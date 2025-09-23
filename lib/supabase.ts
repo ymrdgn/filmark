@@ -70,3 +70,4 @@ export const getCurrentUser = async () => {
   
   const { data: { user }, error } = await supabase.auth.getUser();
   return { user, error };
+};
