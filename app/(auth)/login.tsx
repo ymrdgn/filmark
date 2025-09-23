@@ -5,7 +5,7 @@ import { router } from 'expo-router';
 import { Mail, Lock, Eye, EyeOff, Film } from 'lucide-react-native';
 import { signUp, signIn } from '@/lib/supabase';
 
-export default function AuthScreen() {
+export default function LoginScreen() {
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
