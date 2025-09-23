@@ -2,7 +2,13 @@ import { useEffect } from 'react';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useFrameworkReady } from '@/hooks/useFrameworkReady';
-import { useFonts, Inter_400Regular, Inter_500Medium, Inter_600SemiBold, Inter_700Bold } from '@expo-google-fonts/inter';
+import { 
+  useFonts, 
+  Inter_400Regular, 
+  Inter_500Medium, 
+  Inter_600SemiBold, 
+  Inter_700Bold 
+} from '@expo-google-fonts/inter';
 import * as SplashScreen from 'expo-splash-screen';
 import { router } from 'expo-router';
 
@@ -22,7 +28,6 @@ export default function RootLayout() {
   useEffect(() => {
     if (fontsLoaded || fontError) {
       SplashScreen.hideAsync();
-      // Navigate to tabs directly for preview
       setTimeout(() => {
         router.replace('/(tabs)');
       }, 100);
