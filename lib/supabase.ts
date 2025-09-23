@@ -5,7 +5,7 @@ const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL || 'https://placeholder
 const supabaseAnonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY || 'placeholder-key';
 
 // Check if we have valid Supabase credentials
-if (supabaseUrl === 'https://placeholder.supabase.co' || supabaseAnonKey === 'placeholder-key') {
+if (supabaseUrl === 'https://example.supabase.co' || supabaseAnonKey === 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBsYWNlaG9sZGVyIiwicm9sZSI6ImFub24iLCJpYXQiOjE2NDk3NzUyMDAsImV4cCI6MTk2NTM1MTIwMH0.placeholder') {
   console.warn('⚠️ Supabase credentials not configured. Please set EXPO_PUBLIC_SUPABASE_URL and EXPO_PUBLIC_SUPABASE_ANON_KEY in your .env file');
 }
 
