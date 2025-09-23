@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, ScrollView, SafeAreaView, TouchableOpacity, Dimensions } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { TrendingUp, Clock, Star, Plus, Eye, Film, Tv } from 'lucide-react-native';
+import { router } from 'expo-router';
 
 const { width } = Dimensions.get('window');
 
@@ -27,8 +28,15 @@ export default function HomeScreen() {
       >
         <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
           <View style={styles.header}>
-            <Text style={styles.greeting}>Good evening, Alex!</Text>
+            <Text style={styles.greeting}>Welcome to WatchTracker!</Text>
             <Text style={styles.subtitle}>What would you like to watch today?</Text>
+            
+            <TouchableOpacity 
+              style={styles.authButton}
+              onPress={() => router.push('/auth')}
+            >
+              <Text style={styles.authButtonText}>Sign In / Sign Up</Text>
+            </TouchableOpacity>
           </View>
 
           <View style={styles.statsContainer}>
@@ -130,6 +138,20 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontFamily: 'Inter-Medium',
     color: '#9CA3AF',
+    marginBottom: 20,
+  },
+  authButton: {
+    backgroundColor: 'rgba(99, 102, 241, 0.2)',
+    borderRadius: 8,
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderWidth: 1,
+    borderColor: '#6366F1',
+  },
+  authButtonText: {
+    fontSize: 14,
+    fontFamily: 'Inter-SemiBold',
+    color: '#6366F1',
   },
   statsContainer: {
     paddingHorizontal: 24,
