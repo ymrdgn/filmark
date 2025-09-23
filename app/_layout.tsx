@@ -5,6 +5,7 @@ import { useFrameworkReady } from '@/hooks/useFrameworkReady';
 import { useFonts, Inter_400Regular, Inter_500Medium, Inter_600SemiBold, Inter_700Bold } from '@expo-google-fonts/inter';
 import * as SplashScreen from 'expo-splash-screen';
 import { router } from 'expo-router';
+import { supabase } from '@/lib/supabase';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -21,9 +22,15 @@ export default function RootLayout() {
   useEffect(() => {
     if (fontsLoaded || fontError) {
       SplashScreen.hideAsync();
-      setTimeout(() => {
-        router.replace('/(tabs)');
-      }, 100);
+      
+      // Check authentication status
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        if (session) {
+          router.replace('/(tabs)');
+        } else {
+          router.replace('/(auth)/login');
+        }
+      });
     }
   }, [fontsLoaded, fontError]);
 

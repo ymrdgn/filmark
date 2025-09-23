@@ -2,8 +2,17 @@ import React from 'react';
 import { View, Text, StyleSheet, ScrollView, SafeAreaView, TouchableOpacity } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { User, Settings, Star, TrendingUp, Award, Clock, Film, Tv, Heart, LogOut } from 'lucide-react-native';
+import { signOut } from '@/lib/supabase';
+import { router } from 'expo-router';
 
 export default function ProfileScreen() {
+  const handleSignOut = async () => {
+    const { error } = await signOut();
+    if (!error) {
+      router.replace('/(auth)/login');
+    }
+  };
+
   const stats = [
     { label: 'Movies Watched', value: '127', icon: Film, color: '#EF4444' },
     { label: 'TV Episodes', value: '1,453', icon: Tv, color: '#10B981' },
@@ -22,7 +31,7 @@ export default function ProfileScreen() {
     { label: 'Account Settings', icon: Settings, color: '#6366F1' },
     { label: 'Privacy Settings', icon: User, color: '#8B5CF6' },
     { label: 'Export Data', icon: TrendingUp, color: '#10B981' },
-    { label: 'Sign Out', icon: LogOut, color: '#EF4444' },
+    { label: 'Sign Out', icon: LogOut, color: '#EF4444', onPress: handleSignOut },
   ];
 
   return (
@@ -96,7 +105,7 @@ export default function ProfileScreen() {
             <Text style={styles.sectionTitle}>Settings</Text>
             <View style={styles.menuContainer}>
               {menuItems.map((item, index) => (
-                <TouchableOpacity key={index} style={styles.menuItem}>
+                <TouchableOpacity key={index} style={styles.menuItem} onPress={item.onPress}>
                   <View style={[styles.menuIcon, { backgroundColor: `${item.color}20` }]}>
                     <item.icon size={20} color={item.color} strokeWidth={2} />
                   </View>

@@ -3,10 +3,19 @@ import { View, Text, StyleSheet, ScrollView, SafeAreaView, TouchableOpacity, Dim
 import { LinearGradient } from 'expo-linear-gradient';
 import { TrendingUp, Clock, Star, Plus, Eye, Film, Tv } from 'lucide-react-native';
 import { router } from 'expo-router';
+import { supabase } from '@/lib/supabase';
 
 const { width } = Dimensions.get('window');
 
 export default function HomeScreen() {
+  const [user, setUser] = React.useState(null);
+
+  React.useEffect(() => {
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      setUser(user);
+    });
+  }, []);
+
   const stats = [
     { label: 'Movies Watched', value: '127', icon: Film, color: '#EF4444' },
     { label: 'TV Shows', value: '43', icon: Tv, color: '#10B981' },
@@ -28,15 +37,19 @@ export default function HomeScreen() {
       >
         <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
           <View style={styles.header}>
-            <Text style={styles.greeting}>Welcome to WatchTracker!</Text>
+            <Text style={styles.greeting}>
+              {user ? `Welcome back, ${user.email?.split('@')[0]}!` : 'Welcome to WatchTracker!'}
+            </Text>
             <Text style={styles.subtitle}>What would you like to watch today?</Text>
             
-            <TouchableOpacity 
-              style={styles.authButton}
-              onPress={() => router.push('/(auth)/login')}
-            >
-              <Text style={styles.authButtonText}>Sign In / Sign Up</Text>
-            </TouchableOpacity>
+            {!user && (
+              <TouchableOpacity 
+                style={styles.authButton}
+                onPress={() => router.push('/(auth)/login')}
+              >
+                <Text style={styles.authButtonText}>Sign In / Sign Up</Text>
+              </TouchableOpacity>
+            )}
           </View>
 
           <View style={styles.statsContainer}>

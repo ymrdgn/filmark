@@ -24,6 +24,11 @@ export default function LoginScreen() {
       return;
     }
 
+    if (password.length < 6) {
+      Alert.alert('Error', 'Password must be at least 6 characters long');
+      return;
+    }
+
     setLoading(true);
     
     try {
@@ -37,7 +42,14 @@ export default function LoginScreen() {
       if (result.error) {
         Alert.alert('Error', result.error.message);
       } else {
-        router.replace('/(tabs)');
+        if (isLogin) {
+          router.replace('/(tabs)');
+        } else {
+          Alert.alert('Success', 'Account created successfully! You can now sign in.');
+          setIsLogin(true);
+          setPassword('');
+          setConfirmPassword('');
+        }
       }
     } catch (error) {
       Alert.alert('Error', 'An unexpected error occurred');
