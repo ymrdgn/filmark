@@ -3,6 +3,7 @@ import { View, Text, TextInput, TouchableOpacity, StyleSheet, SafeAreaView, Aler
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { Mail, Lock, Eye, EyeOff, Film } from 'lucide-react-native';
+import { signUp, signIn } from '@/lib/supabase';
 
 export default function AuthScreen() {
   const [isLogin, setIsLogin] = useState(true);
@@ -25,11 +26,24 @@ export default function AuthScreen() {
 
     setLoading(true);
     
-    // Simulate API call
-    setTimeout(() => {
+    try {
+      let result;
+      if (isLogin) {
+        result = await signIn(email, password);
+      } else {
+        result = await signUp(email, password);
+      }
+
+      if (result.error) {
+        Alert.alert('Error', result.error.message);
+      } else {
+        router.replace('/(tabs)');
+      }
+    } catch (error) {
+      Alert.alert('Error', 'An unexpected error occurred');
+    } finally {
       setLoading(false);
-      router.replace('/(tabs)');
-    }, 1500);
+    }
   };
 
   return (
