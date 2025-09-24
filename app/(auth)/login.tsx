@@ -42,11 +42,10 @@ export default function LoginScreen() {
       if (result.error) {
         Alert.alert('Error', result.error.message);
       } else {
-        if (isLogin) {
-          router.replace('/(tabs)');
+        if (!isLogin) {
           Alert.alert(
             'Success', 
-            'Account created successfully! Please check your email to verify your account, then sign in.',
+            'Account created successfully! You can now sign in.',
             [
               {
                 text: 'OK',
@@ -58,6 +57,8 @@ export default function LoginScreen() {
               }
             ]
           );
+        } else {
+          router.replace('/(tabs)');
         }
       }
     } catch (error) {
