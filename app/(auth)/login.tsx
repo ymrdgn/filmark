@@ -44,7 +44,6 @@ export default function LoginScreen() {
       } else {
         if (isLogin) {
           router.replace('/(tabs)');
-        } else {
           Alert.alert(
             'Success', 
             'Account created successfully! Please check your email to verify your account, then sign in.',
