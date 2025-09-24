@@ -45,10 +45,20 @@ export default function LoginScreen() {
         if (isLogin) {
           router.replace('/(tabs)');
         } else {
-          Alert.alert('Success', 'Account created successfully! You can now sign in.');
-          setIsLogin(true);
-          setPassword('');
-          setConfirmPassword('');
+          Alert.alert(
+            'Success', 
+            'Account created successfully! Please check your email to verify your account, then sign in.',
+            [
+              {
+                text: 'OK',
+                onPress: () => {
+                  setIsLogin(true);
+                  setPassword('');
+                  setConfirmPassword('');
+                }
+              }
+            ]
+          );
         }
       }
     } catch (error) {
