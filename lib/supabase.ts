@@ -42,6 +42,7 @@ export const signOut = async () => {
 
 export const getCurrentUser = async () => {
   if (!supabase) {
+  }
   const user = data?.user ?? null;
   return { user, error: authError };
 };
