@@ -14,38 +14,49 @@ export default function LoginScreen() {
   const [loading, setLoading] = useState(false);
 
   const handleAuth = async () => {
+    console.log('handleAuth called, isLogin:', isLogin, 'email:', email, 'password length:', password.length);
+    
     if (!email || !password) {
-      Alert.alert('Error', 'Please fill in all fields');
+      console.log('Missing email or password');
+      Alert.alert('Hata', 'Lütfen tüm alanları doldurun');
       return;
     }
 
     if (!isLogin && password !== confirmPassword) {
-      Alert.alert('Error', 'Passwords do not match');
+      console.log('Passwords do not match');
+      Alert.alert('Hata', 'Şifreler eşleşmiyor');
       return;
     }
 
     if (password.length < 6) {
-      Alert.alert('Error', 'Password must be at least 6 characters long');
+      console.log('Password too short');
+      Alert.alert('Hata', 'Şifre en az 6 karakter olmalı');
       return;
     }
 
+    console.log('Starting auth process...');
     setLoading(true);
     
     try {
       let result;
       if (isLogin) {
+        console.log('Attempting login...');
         result = await signIn(email, password);
       } else {
+        console.log('Attempting signup...');
         result = await signUp(email, password);
       }
 
+      console.log('Auth result:', result);
+
       if (result.error) {
-        Alert.alert('Error', result.error.message);
+        console.log('Auth error:', result.error);
+        Alert.alert('Hata', result.error.message);
       } else {
         if (!isLogin) {
           Alert.alert(
-            'Success', 
-            'Account created successfully! You can now sign in.',
+            'Başarılı', 
+            'Hesap başarıyla oluşturuldu! Şimdi giriş yapabilirsiniz.',
             [
               {
                 text: 'OK',
@@ -62,8 +73,10 @@ export default function LoginScreen() {
         }
       }
     } catch (error) {
-      Alert.alert('Error', 'An unexpected error occurred');
+      console.log('Catch error:', error);
+      Alert.alert('Hata', 'Beklenmeyen bir hata oluştu');
     } finally {
+      console.log('Auth process finished');
       setLoading(false);
     }
   };
