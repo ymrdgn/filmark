@@ -152,6 +152,13 @@ export default function LoginScreen() {
                 </View>
               )}
 
+              {!isLogin && (
+                <View style={styles.passwordRequirements}>
+                  <Text style={styles.requirementsTitle}>Password requirements:</Text>
+                  <Text style={styles.requirementText}>• At least 6 characters</Text>
+                  <Text style={styles.requirementText}>• Mix of letters and numbers recommended</Text>
+                </View>
+              )}
               <TouchableOpacity 
                 style={[styles.button, loading && styles.buttonDisabled]} 
                 onPress={handleAuth}
@@ -284,5 +291,25 @@ const styles = StyleSheet.create({
   switchTextBold: {
     color: '#6366F1',
     fontFamily: 'Inter-SemiBold',
+  },
+  passwordRequirements: {
+    backgroundColor: 'rgba(99, 102, 241, 0.1)',
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(99, 102, 241, 0.2)',
+  },
+  requirementsTitle: {
+    fontSize: 14,
+    fontFamily: 'Inter-SemiBold',
+    color: '#6366F1',
+    marginBottom: 4,
+  },
+  requirementText: {
+    fontSize: 12,
+    fontFamily: 'Inter-Medium',
+    color: '#9CA3AF',
+    lineHeight: 16,
   },
 });
