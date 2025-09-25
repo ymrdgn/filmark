@@ -96,6 +96,21 @@ export default function MoviesScreen() {
     }
   };
 
+  const navigateToMovieDetail = (movie) => {
+    // Movie detail sayfasına navigate et
+    router.push({
+      pathname: '/movie-detail',
+      params: {
+        id: movie.id,
+        title: movie.title,
+        year: movie.year,
+        poster_url: movie.poster_url,
+        status: movie.status,
+        rating: movie.rating
+      }
+    });
+  };
+
   useFocusEffect(
     React.useCallback(() => {
       loadMovies();
@@ -122,7 +137,7 @@ export default function MoviesScreen() {
   };
 
   const renderMyMovieCard = (movie) => (
-    <TouchableOpacity key={movie.id} style={styles.movieCard}>
+    <TouchableOpacity key={movie.id} style={styles.movieCard} onPress={() => navigateToMovieDetail(movie)}>
       <View style={styles.posterContainer}>
         {movie.poster_url ? (
           <Image
