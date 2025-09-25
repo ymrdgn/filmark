@@ -58,8 +58,14 @@ export default function MovieSearchModal({ visible, onClose, onMovieAdded }: Mov
       if (error) {
         Alert.alert('Error', 'Failed to add movie to your list.');
       } else {
-        Alert.alert('Success', `${movie.title} added to your watchlist!`);
-        onMovieAdded?.();
+        Alert.alert('Success', `${movie.title} added to your watchlist!`, [
+          {
+            text: 'OK',
+            onPress: () => {
+              onMovieAdded?.();
+            }
+          }
+        ]);
       }
     } catch (error) {
       console.error('Add movie error:', error);

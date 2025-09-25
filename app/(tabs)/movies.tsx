@@ -1,8 +1,11 @@
 import React, { useState } from 'react';
+import { useFocusEffect } from '@react-navigation/native';
 import { View, Text, StyleSheet, ScrollView, SafeAreaView, TouchableOpacity, TextInput, Dimensions } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Search, Filter, Star, Clock, Eye, EyeOff, Plus } from 'lucide-react-native';
+import { Search, Filter, Star, Clock, Eye, EyeOff, Plus, Image as ImageIcon } from 'lucide-react-native';
 import MovieSearchModal from '@/components/MovieSearchModal';
+import { moviesApi } from '@/lib/api';
+import { Image } from 'react-native';
 
 const { width } = Dimensions.get('window');
 const cardWidth = (width - 72) / 2;
@@ -11,63 +14,30 @@ export default function MoviesScreen() {
   const [searchQuery, setSearchQuery] = useState('');
   const [filter, setFilter] = useState('all'); // all, watched, watchlist
   const [showAddModal, setShowAddModal] = useState(false);
+  const [movies, setMovies] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const movies = [
-    { 
-      id: 1, 
-      title: 'The Dark Knight', 
-      year: 2008, 
-      rating: 5, 
-      duration: 152, 
-      status: 'watched',
-      poster: 'https://images.pexels.com/photos/7991579/pexels-photo-7991579.jpeg?auto=compress&cs=tinysrgb&w=400'
-    },
-    { 
-      id: 2, 
-      title: 'Inception', 
-      year: 2010, 
-      rating: 4, 
-      duration: 148, 
-      status: 'watched',
-      poster: 'https://images.pexels.com/photos/7991579/pexels-photo-7991579.jpeg?auto=compress&cs=tinysrgb&w=400'
-    },
-    { 
-      id: 3, 
-      title: 'Dune', 
-      year: 2021, 
-      rating: 0, 
-      duration: 155, 
-      status: 'watchlist',
-      poster: 'https://images.pexels.com/photos/7991579/pexels-photo-7991579.jpeg?auto=compress&cs=tinysrgb&w=400'
-    },
-    { 
-      id: 4, 
-      title: 'Interstellar', 
-      year: 2014, 
-      rating: 5, 
-      duration: 169, 
-      status: 'watched',
-      poster: 'https://images.pexels.com/photos/7991579/pexels-photo-7991579.jpeg?auto=compress&cs=tinysrgb&w=400'
-    },
-    { 
-      id: 5, 
-      title: 'The Matrix', 
-      year: 1999, 
-      rating: 4, 
-      duration: 136, 
-      status: 'watched',
-      poster: 'https://images.pexels.com/photos/7991579/pexels-photo-7991579.jpeg?auto=compress&cs=tinysrgb&w=400'
-    },
-    { 
-      id: 6, 
-      title: 'Blade Runner 2049', 
-      year: 2017, 
-      rating: 0, 
-      duration: 164, 
-      status: 'watchlist',
-      poster: 'https://images.pexels.com/photos/7991579/pexels-photo-7991579.jpeg?auto=compress&cs=tinysrgb&w=400'
-    },
-  ];
+  const loadMovies = async () => {
+    try {
+      setLoading(true);
+      const { data, error } = await moviesApi.getAll();
+      if (error) {
+        console.error('Error loading movies:', error);
+      } else {
+        setMovies(data || []);
+      }
+    } catch (error) {
+      console.error('Error loading movies:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useFocusEffect(
+    React.useCallback(() => {
+      loadMovies();
+    }, [])
+  );
 
   const filteredMovies = movies.filter(movie => {
     const matchesSearch = movie.title.toLowerCase().includes(searchQuery.toLowerCase());
@@ -78,7 +48,17 @@ export default function MoviesScreen() {
   const renderMovieCard = (movie) => (
     <TouchableOpacity key={movie.id} style={styles.movieCard}>
       <View style={styles.posterContainer}>
-        <View style={styles.poster} />
+        {movie.poster_url ? (
+          <Image
+            source={{ uri: movie.poster_url }}
+            style={styles.poster}
+            resizeMode="cover"
+          />
+        ) : (
+          <View style={styles.posterPlaceholder}>
+            <ImageIcon size={32} color="#6B7280" strokeWidth={1.5} />
+          </View>
+        )}
         <View style={styles.statusBadge}>
           {movie.status === 'watched' ? (
             <Eye size={14} color="#10B981" strokeWidth={2} />
@@ -95,10 +75,12 @@ export default function MoviesScreen() {
         <View style={styles.movieMeta}>
           <View style={styles.duration}>
             <Clock size={12} color="#9CA3AF" strokeWidth={2} />
-            <Text style={styles.durationText}>{movie.duration}m</Text>
+            <Text style={styles.durationText}>
+              {movie.duration ? `${movie.duration}m` : 'N/A'}
+            </Text>
           </View>
           
-          {movie.status === 'watched' && (
+          {movie.status === 'watched' && movie.rating && movie.rating > 0 && (
             <View style={styles.rating}>
               {[...Array(5)].map((_, i) => (
                 <Star
@@ -186,8 +168,8 @@ export default function MoviesScreen() {
           visible={showAddModal}
           onClose={() => setShowAddModal(false)}
           onMovieAdded={() => {
-            // Refresh movies list here
-            console.log('Movie added, should refresh list');
+            loadMovies(); // Refresh movies list
+            setShowAddModal(false);
           }}
         />
       </LinearGradient>
@@ -284,8 +266,15 @@ const styles = StyleSheet.create({
   poster: {
     width: '100%',
     height: cardWidth * 1.5,
+    borderRadius: 12,
+  },
+  posterPlaceholder: {
+    width: '100%',
+    height: cardWidth * 1.5,
     backgroundColor: '#374151',
     borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   statusBadge: {
     position: 'absolute',
