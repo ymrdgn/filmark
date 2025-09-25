@@ -237,7 +237,7 @@ export default function MovieDetailScreen() {
                 <Heart 
                   size={20} 
                   color={isFavorite ? 'white' : '#EF4444'} 
-                  fill={isFavorite ? 'white' : 'transparent'}
+                  fill={isFavorite ? 'white' : 'none'}
                   strokeWidth={2} 
                 />
                 <Text style={[
