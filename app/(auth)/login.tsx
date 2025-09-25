@@ -66,7 +66,8 @@ export default function LoginScreen() {
         
         Alert.alert('Hata', errorMessage);
       } else {
-        if (!isLogin && !result.error) {
+        if (!isLogin) {
+          // Signup successful
           console.log('Signup successful, showing success message');
           Alert.alert(
             'Kayıt Başarılı! 🎉', 
@@ -83,7 +84,8 @@ export default function LoginScreen() {
               }
             ]
           );
-        } else if (isLogin && result.data?.user) {
+        } else if (isLogin) {
+          // Login successful
           console.log('Login successful, navigating to tabs');
           router.replace('/(tabs)');
         }
