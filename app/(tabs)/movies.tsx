@@ -257,7 +257,6 @@ export default function MoviesScreen() {
         )}
       </View>
     </TouchableOpacity>
-    );
   };
 
   const navigateToTMDBMovieDetail = (movie: TMDBMovie) => {
