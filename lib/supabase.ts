@@ -1,19 +1,34 @@
 import { createClient } from '@supabase/supabase-js';
 import { Database } from './database.types';
 
+console.log('Environment variables check:');
+console.log('EXPO_PUBLIC_SUPABASE_URL:', process.env.EXPO_PUBLIC_SUPABASE_URL);
+console.log('EXPO_PUBLIC_SUPABASE_ANON_KEY exists:', !!process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY);
+console.log('EXPO_PUBLIC_SUPABASE_ANON_KEY length:', process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY?.length);
+
 const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL;
 const supabaseAnonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
 
 // Validate Supabase credentials
 if (!supabaseUrl || !supabaseAnonKey) {
-  console.error('Missing Supabase credentials. Please check your .env file:');
+  console.error('❌ Missing Supabase credentials. Please check your .env file:');
   console.error('EXPO_PUBLIC_SUPABASE_URL:', supabaseUrl ? 'SET' : 'MISSING');
   console.error('EXPO_PUBLIC_SUPABASE_ANON_KEY:', supabaseAnonKey ? 'SET' : 'MISSING');
   throw new Error('Supabase credentials not configured');
 }
 
-console.log('Supabase URL:', supabaseUrl);
-console.log('Supabase Key (first 20 chars):', supabaseAnonKey?.substring(0, 20) + '...');
+console.log('✅ Supabase URL:', supabaseUrl);
+console.log('✅ Supabase Key (first 20 chars):', supabaseAnonKey?.substring(0, 20) + '...');
+
+// Validate URL format
+if (!supabaseUrl.includes('supabase.co')) {
+  console.error('❌ Invalid Supabase URL format. Should be: https://your-project-id.supabase.co');
+}
+
+// Validate key format
+if (supabaseAnonKey.length < 100) {
+  console.error('❌ Supabase ANON KEY seems too short. Should be a long JWT token.');
+}
 
 export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
   auth: {

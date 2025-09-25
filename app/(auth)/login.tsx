@@ -52,7 +52,9 @@ export default function LoginScreen() {
       if (result.error) {
         console.log('Auth error:', result.error);
         
-        // Daha anlaşılır hata mesajları
+        // Debug: Log the full error object
+        console.log('Full error object:', JSON.stringify(result.error, null, 2));
+        
         let errorMessage = result.error.message;
         if (result.error.code === 'user_already_exists') {
           errorMessage = 'Bu e-posta adresi ile zaten kayıtlı bir hesap var. Giriş yapmayı deneyin.';
@@ -64,6 +66,8 @@ export default function LoginScreen() {
           errorMessage = 'Şifre en az 6 karakter olmalı.';
         } else if (result.error.message.includes('Invalid API key')) {
           errorMessage = 'Uygulama yapılandırma hatası. Lütfen daha sonra tekrar deneyin.';
+        } else if (result.error.message.includes('API key')) {
+          errorMessage = 'API anahtarı hatası. Lütfen uygulamayı yeniden başlatın.';
         }
         
         Alert.alert('Hata', errorMessage);
