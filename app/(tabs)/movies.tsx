@@ -155,11 +155,16 @@ export default function MoviesScreen() {
             <ImageIcon size={32} color="#6B7280" strokeWidth={1.5} />
           </View>
         )}
-        <View style={styles.statusBadge}>
-          {movie.status === 'watched' ? (
-            <Eye size={14} color="#10B981" strokeWidth={2} />
-          ) : (
-            <Plus size={14} color="#6366F1" strokeWidth={2} />
+        <View style={styles.badgeContainer}>
+          {movie.is_watched && (
+            <View style={styles.watchedBadge}>
+              <Eye size={12} color="#10B981" strokeWidth={2} />
+            </View>
+          )}
+          {movie.is_favorite && (
+            <View style={styles.favoriteBadge}>
+              <Heart size={12} color="#EF4444" fill="#EF4444" strokeWidth={1} />
+            </View>
           )}
         </View>
       </View>
@@ -176,7 +181,6 @@ export default function MoviesScreen() {
             </Text>
           </View>
           
-          {movie.status === 'watched' && movie.rating && movie.rating > 0 && (
           {movie.is_watched && movie.rating && movie.rating > 0 && (
             <View style={styles.rating}>
               {[...Array(5)].map((_, i) => (
@@ -301,17 +305,9 @@ export default function MoviesScreen() {
               style={styles.searchInput}
               placeholder="Search movies..."
               placeholderTextColor="#6B7280"
-          <View style={styles.badgeContainer}>
-            {movie.is_watched && (
-              <View style={styles.watchedBadge}>
-                <Eye size={12} color="#10B981" strokeWidth={2} />
-              </View>
-            )}
-            {movie.is_favorite && (
-              <View style={styles.favoriteBadge}>
-                <Heart size={12} color="#EF4444" fill="#EF4444" strokeWidth={1} />
-              </View>
-            )}
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+            />
           </View>
         </View>
 
