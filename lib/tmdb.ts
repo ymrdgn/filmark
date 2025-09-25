@@ -5,6 +5,13 @@ const TMDB_IMAGE_BASE_URL = 'https://image.tmdb.org/t/p';
 // You need to get this from https://www.themoviedb.org/settings/api
 const TMDB_API_KEY = process.env.EXPO_PUBLIC_TMDB_API_KEY;
 
+// Debug: Log API key status
+console.log('TMDB API Key Debug:');
+console.log('API Key exists:', !!TMDB_API_KEY);
+console.log('API Key length:', TMDB_API_KEY?.length);
+console.log('API Key first 10 chars:', TMDB_API_KEY?.substring(0, 10));
+console.log('All EXPO_PUBLIC env vars:', Object.keys(process.env).filter(key => key.startsWith('EXPO_PUBLIC')));
+
 export interface TMDBMovie {
   id: number;
   title: string;
