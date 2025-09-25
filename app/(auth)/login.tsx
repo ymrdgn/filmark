@@ -67,13 +67,15 @@ export default function LoginScreen() {
         Alert.alert('Hata', errorMessage);
       } else {
         if (!isLogin) {
+          console.log('Signup successful, showing success message');
           Alert.alert(
-            'Başarılı', 
-            'Hesap başarıyla oluşturuldu! Şimdi giriş yapabilirsiniz.',
+            'Kayıt Başarılı! 🎉', 
+            'Hesabınız başarıyla oluşturuldu. Şimdi giriş yapabilirsiniz.',
             [
               {
-                text: 'OK',
+                text: 'Giriş Yap',
                 onPress: () => {
+                  console.log('Switching to login mode');
                   setIsLogin(true);
                   setPassword('');
                   setConfirmPassword('');
@@ -82,6 +84,7 @@ export default function LoginScreen() {
             ]
           );
         } else {
+          console.log('Login successful, navigating to tabs');
           router.replace('/(tabs)');
         }
       }
