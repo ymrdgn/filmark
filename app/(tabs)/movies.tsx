@@ -194,7 +194,7 @@ export default function MoviesScreen() {
     const inCollection = isMovieInCollection(movie);
     
     return (
-      <View key={movie.id} style={styles.tmdbMovieCard}>
+      <TouchableOpacity key={movie.id} style={styles.tmdbMovieCard} onPress={() => navigateToTMDBMovieDetail(movie)}>
         <View style={styles.posterContainer}>
           <Image
             source={{ 
@@ -257,6 +257,23 @@ export default function MoviesScreen() {
         )}
       </View>
     );
+  };
+
+  const navigateToTMDBMovieDetail = (movie: TMDBMovie) => {
+    // TMDB movie detail sayfasına navigate et
+    router.push({
+      pathname: '/tmdb-movie-detail',
+      params: {
+        id: movie.id,
+        title: movie.title,
+        year: movie.release_date ? new Date(movie.release_date).getFullYear() : null,
+        poster_url: getImageUrl(movie.poster_path),
+        overview: movie.overview,
+        vote_average: movie.vote_average,
+        release_date: movie.release_date,
+        inCollection: isMovieInCollection(movie)
+      }
+    });
   };
 
   return (
