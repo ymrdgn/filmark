@@ -54,12 +54,23 @@ export const moviesApi = {
     return { error };
   },
 
-  // Get movies by status
-  getByStatus: async (status: 'watched' | 'watchlist') => {
+  // Get watched movies
+  getWatched: async () => {
     const { data, error } = await supabase
       .from('movies')
       .select('*')
-      .eq('status', status)
+      .eq('is_watched', true)
+      .order('created_at', { ascending: false });
+    
+    return { data, error };
+  },
+
+  // Get favorite movies
+  getFavorites: async () => {
+    const { data, error } = await supabase
+      .from('movies')
+      .select('*')
+      .eq('is_favorite', true)
       .order('created_at', { ascending: false });
     
     return { data, error };
@@ -114,12 +125,23 @@ export const tvShowsApi = {
     return { error };
   },
 
-  // Get TV shows by status
-  getByStatus: async (status: 'watched' | 'watching' | 'watchlist') => {
+  // Get watched TV shows
+  getWatched: async () => {
     const { data, error } = await supabase
       .from('tv_shows')
       .select('*')
-      .eq('status', status)
+      .eq('is_watched', true)
+      .order('created_at', { ascending: false });
+    
+    return { data, error };
+  },
+
+  // Get favorite TV shows
+  getFavorites: async () => {
+    const { data, error } = await supabase
+      .from('tv_shows')
+      .select('*')
+      .eq('is_favorite', true)
       .order('created_at', { ascending: false });
     
     return { data, error };
@@ -221,8 +243,8 @@ export const statsApi = {
   // Get user statistics
   getStats: async () => {
     const [moviesResult, tvShowsResult] = await Promise.all([
-      supabase.from('movies').select('status, rating').eq('status', 'watched'),
-      supabase.from('tv_shows').select('status, rating, episodes').in('status', ['watched', 'watching'])
+      supabase.from('movies').select('is_watched, is_favorite, rating').eq('is_watched', true),
+      supabase.from('tv_shows').select('is_watched, is_favorite, rating, episodes').eq('is_watched', true)
     ]);
 
     const watchedMovies = moviesResult.data || [];
@@ -231,6 +253,10 @@ export const statsApi = {
     const totalMovies = watchedMovies.length;
     const totalTVShows = tvShows.length;
     const totalEpisodes = tvShows.reduce((sum, show) => sum + (show.episodes || 0), 0);
+    
+    // Calculate favorites
+    const favoriteMovies = watchedMovies.filter(m => m.is_favorite).length;
+    const favoriteTVShows = tvShows.filter(s => s.is_favorite).length;
     
     // Calculate average rating
     const allRatings = [
@@ -252,7 +278,9 @@ export const statsApi = {
         tvShows: totalTVShows,
         episodes: totalEpisodes,
         hoursWatched: totalHours,
-        averageRating: Math.round(averageRating * 10) / 10
+        averageRating: Math.round(averageRating * 10) / 10,
+        favoriteMovies,
+        favoriteTVShows
       },
       error: null
     };

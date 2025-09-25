@@ -13,7 +13,7 @@ const cardWidth = (width - 72) / 2;
 
 export default function MoviesScreen() {
   const [searchQuery, setSearchQuery] = useState('');
-  const [filter, setFilter] = useState('all'); // all, watched, watchlist
+  const [filter, setFilter] = useState('all'); // all, watched, favorites
   const [movies, setMovies] = useState([]);
   const [tmdbMovies, setTmdbMovies] = useState<TMDBMovie[]>([]);
   const [loading, setLoading] = useState(true);
@@ -63,7 +63,7 @@ export default function MoviesScreen() {
     }
   };
 
-  const handleAddMovie = async (movie: TMDBMovie, status: 'watched' | 'watchlist') => {
+  const handleAddMovie = async (movie: TMDBMovie, isWatched: boolean = false) => {
     // Zaten eklenmiş mi kontrol et
     const existingMovie = movies.find(m => m.title.toLowerCase() === movie.title.toLowerCase());
     if (existingMovie) {
@@ -77,7 +77,8 @@ export default function MoviesScreen() {
         title: movie.title,
         year: movie.release_date ? new Date(movie.release_date).getFullYear() : null,
         poster_url: getImageUrl(movie.poster_path),
-        status: status,
+        is_watched: isWatched,
+        is_favorite: false,
         rating: null,
         duration: null,
       });
@@ -85,7 +86,7 @@ export default function MoviesScreen() {
       if (error) {
         Alert.alert('Error', 'Failed to add movie to your list.');
       } else {
-        const statusText = status === 'watched' ? 'watched list' : 'watchlist';
+        const statusText = isWatched ? 'watched list' : 'collection';
         Alert.alert('Success', `${movie.title} added to your ${statusText}!`);
         loadMovies(); // Refresh movies list
       }
@@ -106,7 +107,8 @@ export default function MoviesScreen() {
         title: movie.title,
         year: movie.year,
         poster_url: movie.poster_url,
-        status: movie.status,
+        is_watched: movie.is_watched,
+        is_favorite: movie.is_favorite,
         rating: movie.rating
       }
     });
@@ -129,7 +131,9 @@ export default function MoviesScreen() {
 
   const filteredMyMovies = movies.filter(movie => {
     const matchesSearch = movie.title.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesFilter = filter === 'all' || movie.status === filter;
+    const matchesFilter = filter === 'all' || 
+      (filter === 'watched' && movie.is_watched) ||
+      (filter === 'favorites' && movie.is_favorite);
     return matchesSearch && matchesFilter;
   });
 
@@ -173,6 +177,7 @@ export default function MoviesScreen() {
           </View>
           
           {movie.status === 'watched' && movie.rating && movie.rating > 0 && (
+          {movie.is_watched && movie.rating && movie.rating > 0 && (
             <View style={styles.rating}>
               {[...Array(5)].map((_, i) => (
                 <Star
@@ -225,8 +230,8 @@ export default function MoviesScreen() {
         {!inCollection && (
           <View style={styles.actionButtons}>
             <TouchableOpacity
-              style={[styles.actionButton, styles.watchlistButton]}
-              onPress={() => handleAddMovie(movie, 'watchlist')}
+              style={[styles.actionButton, styles.addButton]}
+              onPress={() => handleAddMovie(movie, false)}
               disabled={addingMovieId === movie.id}
             >
               {addingMovieId === movie.id ? (
@@ -234,14 +239,14 @@ export default function MoviesScreen() {
               ) : (
                 <>
                   <Plus size={14} color="#6366F1" strokeWidth={2} />
-                  <Text style={styles.watchlistButtonText}>Watchlist</Text>
+                  <Text style={styles.addButtonText}>Add</Text>
                 </>
               )}
             </TouchableOpacity>
             
             <TouchableOpacity
               style={[styles.actionButton, styles.watchedButton]}
-              onPress={() => handleAddMovie(movie, 'watched')}
+              onPress={() => handleAddMovie(movie, true)}
               disabled={addingMovieId === movie.id}
             >
               {addingMovieId === movie.id ? (
@@ -296,11 +301,16 @@ export default function MoviesScreen() {
               style={styles.searchInput}
               placeholder="Search movies..."
               placeholderTextColor="#6B7280"
-              value={searchQuery}
-              onChangeText={setSearchQuery}
-            />
-            {searchLoading && (
-              <ActivityIndicator size="small" color="#6366F1" />
+          <View style={styles.badgeContainer}>
+            {movie.is_watched && (
+              <View style={styles.watchedBadge}>
+                <Eye size={12} color="#10B981" strokeWidth={2} />
+              </View>
+            )}
+            {movie.is_favorite && (
+              <View style={styles.favoriteBadge}>
+                <Heart size={12} color="#EF4444" fill="#EF4444" strokeWidth={1} />
+              </View>
             )}
           </View>
         </View>
@@ -308,7 +318,7 @@ export default function MoviesScreen() {
         {!searchQuery && (
           <View style={styles.filters}>
             <Text style={styles.filterTitle}>My Collection:</Text>
-            {['all', 'watched', 'watchlist'].map((filterOption) => (
+            {['all', 'watched', 'favorites'].map((filterOption) => (
               <TouchableOpacity
                 key={filterOption}
                 style={[
@@ -321,7 +331,7 @@ export default function MoviesScreen() {
                   styles.filterText,
                   filter === filterOption && styles.filterTextActive
                 ]}>
-                  {filterOption === 'all' ? 'All' : filterOption === 'watched' ? 'Watched' : 'Watchlist'}
+                  {filterOption === 'all' ? 'All' : filterOption === 'watched' ? 'Watched' : 'Favorites'}
                 </Text>
               </TouchableOpacity>
             ))}
@@ -474,14 +484,26 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  statusBadge: {
+  badgeContainer: {
     position: 'absolute',
     top: 8,
     right: 8,
+    flexDirection: 'column',
+    gap: 4,
+  },
+  watchedBadge: {
     width: 28,
     height: 28,
     borderRadius: 14,
-    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    backgroundColor: 'rgba(16, 185, 129, 0.9)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  favoriteBadge: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: 'rgba(239, 68, 68, 0.9)',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -554,12 +576,12 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     gap: 4,
   },
-  watchlistButton: {
+  addButton: {
     backgroundColor: 'rgba(99, 102, 241, 0.1)',
     borderWidth: 1,
     borderColor: 'rgba(99, 102, 241, 0.3)',
   },
-  watchlistButtonText: {
+  addButtonText: {
     fontSize: 12,
     fontFamily: 'Inter-SemiBold',
     color: '#6366F1',

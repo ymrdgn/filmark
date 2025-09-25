@@ -8,7 +8,8 @@ import { moviesApi } from '@/lib/api';
 export default function MovieDetailScreen() {
   const params = useLocalSearchParams();
   const [rating, setRating] = useState(parseInt(params.rating as string) || 0);
-  const [status, setStatus] = useState(params.status as string);
+  const [isWatched, setIsWatched] = useState(params.is_watched === 'true');
+  const [isFavorite, setIsFavorite] = useState(params.is_favorite === 'true');
   const [loading, setLoading] = useState(false);
 
   const movie = {
@@ -16,7 +17,8 @@ export default function MovieDetailScreen() {
     title: params.title,
     year: params.year,
     poster_url: params.poster_url,
-    status: status,
+    is_watched: isWatched,
+    is_favorite: isFavorite,
     rating: rating
   };
 
@@ -25,14 +27,14 @@ export default function MovieDetailScreen() {
     try {
       const { error } = await moviesApi.update(movie.id as string, { 
         rating: newRating,
-        status: 'watched' // Rating verince otomatik watched yap
+        is_watched: true // Rating verince otomatik watched yap
       });
       
       if (error) {
         Alert.alert('Error', 'Failed to update rating.');
       } else {
         setRating(newRating);
-        setStatus('watched');
+        setIsWatched(true);
         Alert.alert('Success', 'Rating updated!');
       }
     } catch (error) {
@@ -42,20 +44,41 @@ export default function MovieDetailScreen() {
     }
   };
 
-  const handleStatusChange = async (newStatus: 'watched' | 'watchlist') => {
+  const handleWatchedToggle = async () => {
     setLoading(true);
     try {
-      const { error } = await moviesApi.update(movie.id as string, { status: newStatus });
+      const newWatchedStatus = !isWatched;
+      const { error } = await moviesApi.update(movie.id as string, { is_watched: newWatchedStatus });
       
       if (error) {
-        Alert.alert('Error', 'Failed to update status.');
+        Alert.alert('Error', 'Failed to update watched status.');
       } else {
-        setStatus(newStatus);
-        const statusText = newStatus === 'watched' ? 'watched' : 'watchlist';
-        Alert.alert('Success', `Moved to ${statusText}!`);
+        setIsWatched(newWatchedStatus);
+        const statusText = newWatchedStatus ? 'marked as watched' : 'unmarked as watched';
+        Alert.alert('Success', `Movie ${statusText}!`);
       }
     } catch (error) {
-      Alert.alert('Error', 'Failed to update status.');
+      Alert.alert('Error', 'Failed to update watched status.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleFavoriteToggle = async () => {
+    setLoading(true);
+    try {
+      const newFavoriteStatus = !isFavorite;
+      const { error } = await moviesApi.update(movie.id as string, { is_favorite: newFavoriteStatus });
+      
+      if (error) {
+        Alert.alert('Error', 'Failed to update favorite status.');
+      } else {
+        setIsFavorite(newFavoriteStatus);
+        const statusText = newFavoriteStatus ? 'added to favorites' : 'removed from favorites';
+        Alert.alert('Success', `Movie ${statusText}!`);
+      }
+    } catch (error) {
+      Alert.alert('Error', 'Failed to update favorite status.');
     } finally {
       setLoading(false);
     }
@@ -134,20 +157,27 @@ export default function MovieDetailScreen() {
               <View style={styles.statusContainer}>
                 <View style={[
                   styles.statusBadge,
-                  { backgroundColor: status === 'watched' ? '#10B98120' : '#6366F120' }
+                  { backgroundColor: isWatched ? '#10B98120' : '#6366F120' }
                 ]}>
-                  {status === 'watched' ? (
+                  {isWatched ? (
                     <Eye size={16} color="#10B981" strokeWidth={2} />
                   ) : (
-                    <Plus size={16} color="#6366F1" strokeWidth={2} />
+                    <Clock size={16} color="#6366F1" strokeWidth={2} />
                   )}
                   <Text style={[
                     styles.statusText,
-                    { color: status === 'watched' ? '#10B981' : '#6366F1' }
+                    { color: isWatched ? '#10B981' : '#6366F1' }
                   ]}>
-                    {status === 'watched' ? 'Watched' : 'Watchlist'}
+                    {isWatched ? 'Watched' : 'Not Watched'}
                   </Text>
                 </View>
+                
+                {isFavorite && (
+                  <View style={styles.favoriteBadge}>
+                    <Heart size={16} color="#EF4444" fill="#EF4444" strokeWidth={1} />
+                    <Text style={styles.favoriteText}>Favorite</Text>
+                  </View>
+                )}
               </View>
             </View>
           </View>
@@ -182,34 +212,39 @@ export default function MovieDetailScreen() {
               <TouchableOpacity
                 style={[
                   styles.actionButton,
-                  status === 'watchlist' && styles.actionButtonActive
+                  isWatched && styles.actionButtonActive
                 ]}
-                onPress={() => handleStatusChange('watchlist')}
+                onPress={handleWatchedToggle}
                 disabled={loading}
               >
-                <Plus size={20} color={status === 'watchlist' ? 'white' : '#6366F1'} strokeWidth={2} />
+                <Eye size={20} color={isWatched ? 'white' : '#10B981'} strokeWidth={2} />
                 <Text style={[
                   styles.actionButtonText,
-                  status === 'watchlist' && styles.actionButtonTextActive
+                  isWatched && styles.actionButtonTextActive
                 ]}>
-                  Add to Watchlist
+                  {isWatched ? 'Watched ✓' : 'Mark as Watched'}
                 </Text>
               </TouchableOpacity>
               
               <TouchableOpacity
                 style={[
                   styles.actionButton,
-                  status === 'watched' && styles.actionButtonActive
+                  isFavorite && styles.favoriteButtonActive
                 ]}
-                onPress={() => handleStatusChange('watched')}
+                onPress={handleFavoriteToggle}
                 disabled={loading}
               >
-                <Eye size={20} color={status === 'watched' ? 'white' : '#10B981'} strokeWidth={2} />
+                <Heart 
+                  size={20} 
+                  color={isFavorite ? 'white' : '#EF4444'} 
+                  fill={isFavorite ? 'white' : 'transparent'}
+                  strokeWidth={2} 
+                />
                 <Text style={[
                   styles.actionButtonText,
-                  status === 'watched' && styles.actionButtonTextActive
+                  isFavorite && styles.actionButtonTextActive
                 ]}>
-                  Mark as Watched
+                  {isFavorite ? 'Favorite ❤️' : 'Add to Favorites'}
                 </Text>
               </TouchableOpacity>
             </View>
@@ -304,6 +339,7 @@ const styles = StyleSheet.create({
   },
   statusContainer: {
     marginTop: 8,
+    gap: 8,
   },
   statusBadge: {
     flexDirection: 'row',
@@ -314,9 +350,24 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     alignSelf: 'flex-start',
   },
+  favoriteBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 20,
+    backgroundColor: '#EF444420',
+    alignSelf: 'flex-start',
+  },
   statusText: {
     fontSize: 14,
     fontFamily: 'Inter-SemiBold',
+  },
+  favoriteText: {
+    fontSize: 14,
+    fontFamily: 'Inter-SemiBold',
+    color: '#EF4444',
   },
   section: {
     paddingHorizontal: 24,
@@ -359,6 +410,10 @@ const styles = StyleSheet.create({
   actionButtonActive: {
     backgroundColor: '#6366F1',
     borderColor: '#6366F1',
+  },
+  favoriteButtonActive: {
+    backgroundColor: '#EF4444',
+    borderColor: '#EF4444',
   },
   actionButtonText: {
     fontSize: 16,

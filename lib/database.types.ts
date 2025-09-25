@@ -17,7 +17,8 @@ export interface Database {
           year: number | null
           duration: number | null
           poster_url: string | null
-          status: 'watched' | 'watchlist'
+          is_watched: boolean
+          is_favorite: boolean
           rating: number | null
           created_at: string
           updated_at: string
@@ -29,7 +30,8 @@ export interface Database {
           year?: number | null
           duration?: number | null
           poster_url?: string | null
-          status?: 'watched' | 'watchlist'
+          is_watched?: boolean
+          is_favorite?: boolean
           rating?: number | null
           created_at?: string
           updated_at?: string
@@ -41,7 +43,8 @@ export interface Database {
           year?: number | null
           duration?: number | null
           poster_url?: string | null
-          status?: 'watched' | 'watchlist'
+          is_watched?: boolean
+          is_favorite?: boolean
           rating?: number | null
           created_at?: string
           updated_at?: string
@@ -56,7 +59,8 @@ export interface Database {
           seasons: number
           episodes: number
           poster_url: string | null
-          status: 'watched' | 'watching' | 'watchlist'
+          is_watched: boolean
+          is_favorite: boolean
           rating: number | null
           current_season: number | null
           current_episode: number | null
@@ -71,7 +75,8 @@ export interface Database {
           seasons?: number
           episodes?: number
           poster_url?: string | null
-          status?: 'watched' | 'watching' | 'watchlist'
+          is_watched?: boolean
+          is_favorite?: boolean
           rating?: number | null
           current_season?: number | null
           current_episode?: number | null
@@ -86,7 +91,8 @@ export interface Database {
           seasons?: number
           episodes?: number
           poster_url?: string | null
-          status?: 'watched' | 'watching' | 'watchlist'
+          is_watched?: boolean
+          is_favorite?: boolean
           rating?: number | null
           current_season?: number | null
           current_episode?: number | null

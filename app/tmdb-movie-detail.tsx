@@ -20,14 +20,15 @@ export default function TMDBMovieDetailScreen() {
     release_date: params.release_date,
   };
 
-  const handleAddToCollection = async (status: 'watched' | 'watchlist') => {
+  const handleAddToCollection = async (isWatched: boolean = false) => {
     setLoading(true);
     try {
       const { error } = await moviesApi.add({
         title: movie.title as string,
         year: movie.year ? parseInt(movie.year as string) : null,
         poster_url: movie.poster_url as string,
-        status: status,
+        is_watched: isWatched,
+        is_favorite: false,
         rating: status === 'watched' ? null : null, // Rating detay sayfasında verilebilir
         duration: null,
       });
@@ -35,7 +36,7 @@ export default function TMDBMovieDetailScreen() {
       if (error) {
         Alert.alert('Error', 'Failed to add movie to your collection.');
       } else {
-        const statusText = status === 'watched' ? 'watched list' : 'watchlist';
+        const statusText = isWatched ? 'watched list' : 'collection';
         Alert.alert('Success', `${movie.title} added to your ${statusText}!`);
         setInCollection(true);
       }
@@ -109,17 +110,17 @@ export default function TMDBMovieDetailScreen() {
               <Text style={styles.sectionTitle}>Add to Collection</Text>
               <View style={styles.actionButtons}>
                 <TouchableOpacity
-                  style={styles.watchlistButton}
-                  onPress={() => handleAddToCollection('watchlist')}
+                  style={styles.addButton}
+                  onPress={() => handleAddToCollection(false)}
                   disabled={loading}
                 >
                   <Plus size={20} color="#6366F1" strokeWidth={2} />
-                  <Text style={styles.watchlistButtonText}>Add to Watchlist</Text>
+                  <Text style={styles.addButtonText}>Add to Collection</Text>
                 </TouchableOpacity>
                 
                 <TouchableOpacity
                   style={styles.watchedButton}
-                  onPress={() => handleAddToCollection('watched')}
+                  onPress={() => handleAddToCollection(true)}
                   disabled={loading}
                 >
                   <Eye size={20} color="white" strokeWidth={2} />
@@ -252,7 +253,7 @@ const styles = StyleSheet.create({
   actionButtons: {
     gap: 12,
   },
-  watchlistButton: {
+  addButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -264,7 +265,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(99, 102, 241, 0.3)',
   },
-  watchlistButtonText: {
+  addButtonText: {
     fontSize: 16,
     fontFamily: 'Inter-SemiBold',
     color: '#6366F1',
