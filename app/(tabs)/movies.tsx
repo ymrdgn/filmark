@@ -3,6 +3,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { View, Text, StyleSheet, ScrollView, SafeAreaView, TouchableOpacity, TextInput, Dimensions, ActivityIndicator, Alert } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Search, Star, Clock, Eye, Plus, Check, Heart, Image as ImageIcon } from 'lucide-react-native';
+import { router } from 'expo-router';
 import { moviesApi } from '@/lib/api';
 import { getPopularMovies, searchMovies, TMDBMovie, getImageUrl } from '@/lib/tmdb';
 import { Image } from 'react-native';
