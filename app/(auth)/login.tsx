@@ -51,7 +51,20 @@ export default function LoginScreen() {
 
       if (result.error) {
         console.log('Auth error:', result.error);
-        Alert.alert('Hata', result.error.message);
+        
+        // Daha anlaşılır hata mesajları
+        let errorMessage = result.error.message;
+        if (result.error.code === 'user_already_exists') {
+          errorMessage = 'Bu e-posta adresi ile zaten kayıtlı bir hesap var. Giriş yapmayı deneyin.';
+        } else if (result.error.message.includes('Invalid login credentials')) {
+          errorMessage = 'E-posta veya şifre hatalı. Lütfen kontrol edin.';
+        } else if (result.error.message.includes('Email not confirmed')) {
+          errorMessage = 'E-posta adresinizi doğrulamanız gerekiyor.';
+        } else if (result.error.message.includes('Password should be at least')) {
+          errorMessage = 'Şifre en az 6 karakter olmalı.';
+        }
+        
+        Alert.alert('Hata', errorMessage);
       } else {
         if (!isLogin) {
           Alert.alert(
