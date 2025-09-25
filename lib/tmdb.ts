@@ -61,7 +61,7 @@ export const getImageUrl = (path: string | null, size: 'w200' | 'w300' | 'w500' 
 // Search movies
 export const searchMovies = async (query: string, page: number = 1): Promise<TMDBSearchResponse> => {
   if (!TMDB_API_KEY) {
-    throw new Error('TMDB API key not configured');
+    throw new Error('TMDB API key not configured. Please add EXPO_PUBLIC_TMDB_API_KEY to your .env file');
   }
 
   const response = await fetch(
@@ -69,7 +69,11 @@ export const searchMovies = async (query: string, page: number = 1): Promise<TMD
   );
 
   if (!response.ok) {
-    throw new Error(`TMDB API error: ${response.status}`);
+    const errorText = await response.text();
+    if (response.status === 401) {
+      throw new Error(`TMDB API key is invalid. Please check your EXPO_PUBLIC_TMDB_API_KEY in .env file. Status: ${response.status}`);
+    }
+    throw new Error(`TMDB API error: ${response.status} - ${errorText}`);
   }
 
   return response.json();
@@ -78,7 +82,7 @@ export const searchMovies = async (query: string, page: number = 1): Promise<TMD
 // Search TV shows
 export const searchTVShows = async (query: string, page: number = 1): Promise<TMDBTVSearchResponse> => {
   if (!TMDB_API_KEY) {
-    throw new Error('TMDB API key not configured');
+    throw new Error('TMDB API key not configured. Please add EXPO_PUBLIC_TMDB_API_KEY to your .env file');
   }
 
   const response = await fetch(
@@ -86,7 +90,11 @@ export const searchTVShows = async (query: string, page: number = 1): Promise<TM
   );
 
   if (!response.ok) {
-    throw new Error(`TMDB API error: ${response.status}`);
+    const errorText = await response.text();
+    if (response.status === 401) {
+      throw new Error(`TMDB API key is invalid. Please check your EXPO_PUBLIC_TMDB_API_KEY in .env file. Status: ${response.status}`);
+    }
+    throw new Error(`TMDB API error: ${response.status} - ${errorText}`);
   }
 
   return response.json();
@@ -95,7 +103,7 @@ export const searchTVShows = async (query: string, page: number = 1): Promise<TM
 // Get popular movies
 export const getPopularMovies = async (page: number = 1): Promise<TMDBSearchResponse> => {
   if (!TMDB_API_KEY) {
-    throw new Error('TMDB API key not configured');
+    throw new Error('TMDB API key not configured. Please add EXPO_PUBLIC_TMDB_API_KEY to your .env file');
   }
 
   const response = await fetch(
@@ -103,7 +111,11 @@ export const getPopularMovies = async (page: number = 1): Promise<TMDBSearchResp
   );
 
   if (!response.ok) {
-    throw new Error(`TMDB API error: ${response.status}`);
+    const errorText = await response.text();
+    if (response.status === 401) {
+      throw new Error(`TMDB API key is invalid. Please check your EXPO_PUBLIC_TMDB_API_KEY in .env file. Status: ${response.status}`);
+    }
+    throw new Error(`TMDB API error: ${response.status} - ${errorText}`);
   }
 
   return response.json();
@@ -112,7 +124,7 @@ export const getPopularMovies = async (page: number = 1): Promise<TMDBSearchResp
 // Get popular TV shows
 export const getPopularTVShows = async (page: number = 1): Promise<TMDBTVSearchResponse> => {
   if (!TMDB_API_KEY) {
-    throw new Error('TMDB API key not configured');
+    throw new Error('TMDB API key not configured. Please add EXPO_PUBLIC_TMDB_API_KEY to your .env file');
   }
 
   const response = await fetch(
@@ -120,7 +132,11 @@ export const getPopularTVShows = async (page: number = 1): Promise<TMDBTVSearchR
   );
 
   if (!response.ok) {
-    throw new Error(`TMDB API error: ${response.status}`);
+    const errorText = await response.text();
+    if (response.status === 401) {
+      throw new Error(`TMDB API key is invalid. Please check your EXPO_PUBLIC_TMDB_API_KEY in .env file. Status: ${response.status}`);
+    }
+    throw new Error(`TMDB API error: ${response.status} - ${errorText}`);
   }
 
   return response.json();
@@ -129,7 +145,7 @@ export const getPopularTVShows = async (page: number = 1): Promise<TMDBTVSearchR
 // Get movie details
 export const getMovieDetails = async (movieId: number) => {
   if (!TMDB_API_KEY) {
-    throw new Error('TMDB API key not configured');
+    throw new Error('TMDB API key not configured. Please add EXPO_PUBLIC_TMDB_API_KEY to your .env file');
   }
 
   const response = await fetch(
@@ -137,7 +153,11 @@ export const getMovieDetails = async (movieId: number) => {
   );
 
   if (!response.ok) {
-    throw new Error(`TMDB API error: ${response.status}`);
+    const errorText = await response.text();
+    if (response.status === 401) {
+      throw new Error(`TMDB API key is invalid. Please check your EXPO_PUBLIC_TMDB_API_KEY in .env file. Status: ${response.status}`);
+    }
+    throw new Error(`TMDB API error: ${response.status} - ${errorText}`);
   }
 
   return response.json();
@@ -146,7 +166,7 @@ export const getMovieDetails = async (movieId: number) => {
 // Get TV show details
 export const getTVShowDetails = async (tvId: number) => {
   if (!TMDB_API_KEY) {
-    throw new Error('TMDB API key not configured');
+    throw new Error('TMDB API key not configured. Please add EXPO_PUBLIC_TMDB_API_KEY to your .env file');
   }
 
   const response = await fetch(
@@ -154,7 +174,11 @@ export const getTVShowDetails = async (tvId: number) => {
   );
 
   if (!response.ok) {
-    throw new Error(`TMDB API error: ${response.status}`);
+    const errorText = await response.text();
+    if (response.status === 401) {
+      throw new Error(`TMDB API key is invalid. Please check your EXPO_PUBLIC_TMDB_API_KEY in .env file. Status: ${response.status}`);
+    }
+    throw new Error(`TMDB API error: ${response.status} - ${errorText}`);
   }
 
   return response.json();
