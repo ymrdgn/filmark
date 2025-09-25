@@ -4,12 +4,24 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { User, Settings, Star, TrendingUp, Award, Clock, Film, Tv, Heart, LogOut } from 'lucide-react-native';
 import { signOut } from '@/lib/supabase';
 import { router } from 'expo-router';
+import { Alert } from 'react-native';
 
 export default function ProfileScreen() {
   const handleSignOut = async () => {
     const { error } = await signOut();
-    if (!error) {
+    
+    // If no error or if the error indicates user doesn't exist (already logged out)
+    if (!error || 
+        error.message?.includes('User from sub claim in JWT does not exist') ||
+        error.message?.includes('user_not_found')) {
       router.replace('/(auth)/login');
+    } else {
+      // For other types of errors, show an alert
+      Alert.alert(
+        'Sign Out Failed',
+        'There was an error signing out. Please try again.',
+        [{ text: 'OK' }]
+      );
     }
   };
 
