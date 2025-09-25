@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, SafeAreaView, TouchableOpacity, TextInput, Dimensions } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Search, Filter, Star, Clock, Eye, EyeOff, Plus } from 'lucide-react-native';
+import MovieSearchModal from '@/components/MovieSearchModal';
 
 const { width } = Dimensions.get('window');
 const cardWidth = (width - 72) / 2;
@@ -9,6 +10,7 @@ const cardWidth = (width - 72) / 2;
 export default function MoviesScreen() {
   const [searchQuery, setSearchQuery] = useState('');
   const [filter, setFilter] = useState('all'); // all, watched, watchlist
+  const [showAddModal, setShowAddModal] = useState(false);
 
   const movies = [
     { 
@@ -138,6 +140,21 @@ export default function MoviesScreen() {
           </View>
         </View>
 
+        <View style={styles.addButtonContainer}>
+          <TouchableOpacity 
+            style={styles.addMovieButton}
+            onPress={() => setShowAddModal(true)}
+          >
+            <LinearGradient
+              colors={['#6366F1', '#8B5CF6']}
+              style={styles.addMovieGradient}
+            >
+              <Plus size={20} color="white" strokeWidth={2} />
+              <Text style={styles.addMovieText}>Add Movie</Text>
+            </LinearGradient>
+          </TouchableOpacity>
+        </View>
+
         <View style={styles.filters}>
           {['all', 'watched', 'watchlist'].map((filterOption) => (
             <TouchableOpacity
@@ -164,6 +181,15 @@ export default function MoviesScreen() {
           </View>
           <View style={styles.bottomSpacer} />
         </ScrollView>
+
+        <MovieSearchModal
+          visible={showAddModal}
+          onClose={() => setShowAddModal(false)}
+          onMovieAdded={() => {
+            // Refresh movies list here
+            console.log('Movie added, should refresh list');
+          }}
+        />
       </LinearGradient>
     </SafeAreaView>
   );
@@ -307,5 +333,26 @@ const styles = StyleSheet.create({
   },
   bottomSpacer: {
     height: 20,
+  },
+  addButtonContainer: {
+    paddingHorizontal: 24,
+    marginBottom: 16,
+  },
+  addMovieButton: {
+    borderRadius: 12,
+    overflow: 'hidden',
+  },
+  addMovieGradient: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    gap: 8,
+  },
+  addMovieText: {
+    fontSize: 16,
+    fontFamily: 'Inter-SemiBold',
+    color: 'white',
   },
 });
