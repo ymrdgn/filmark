@@ -256,6 +256,7 @@ export default function MoviesScreen() {
           </View>
         )}
       </View>
+    </TouchableOpacity>
     );
   };
 
