@@ -87,7 +87,7 @@ export default function LoginScreen() {
           );
         } 
         // Giriş başarılı
-        else if (isLogin) {
+        else {
           // Login successful
           console.log('Login successful, navigating to tabs');
           router.replace('/(tabs)');
