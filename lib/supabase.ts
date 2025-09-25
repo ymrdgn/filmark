@@ -6,9 +6,14 @@ const supabaseAnonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
 
 // Validate Supabase credentials
 if (!supabaseUrl || !supabaseAnonKey) {
-  console.error('Missing Supabase credentials. Please set EXPO_PUBLIC_SUPABASE_URL and EXPO_PUBLIC_SUPABASE_ANON_KEY in your .env file');
+  console.error('Missing Supabase credentials. Please check your .env file:');
+  console.error('EXPO_PUBLIC_SUPABASE_URL:', supabaseUrl ? 'SET' : 'MISSING');
+  console.error('EXPO_PUBLIC_SUPABASE_ANON_KEY:', supabaseAnonKey ? 'SET' : 'MISSING');
   throw new Error('Supabase credentials not configured');
 }
+
+console.log('Supabase URL:', supabaseUrl);
+console.log('Supabase Key (first 20 chars):', supabaseAnonKey?.substring(0, 20) + '...');
 
 export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
   auth: {
@@ -20,18 +25,22 @@ export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
 
 // Auth helper functions
 export const signUp = async (email: string, password: string) => {
+  console.log('SignUp attempt for:', email);
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
   });
+  console.log('SignUp result:', { data: !!data, error: error?.message });
   return { data, error };
 };
 
 export const signIn = async (email: string, password: string) => {
+  console.log('SignIn attempt for:', email);
   const { data, error } = await supabase.auth.signInWithPassword({
     email,
     password,
   });
+  console.log('SignIn result:', { data: !!data, error: error?.message });
   return { data, error };
 };
 
@@ -41,8 +50,7 @@ export const signOut = async () => {
 };
 
 export const getCurrentUser = async () => {
-  if (!supabase) {
-  }
+  const { data, error: authError } = await supabase.auth.getUser();
   const user = data?.user ?? null;
   return { user, error: authError };
 };

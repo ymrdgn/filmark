@@ -62,6 +62,8 @@ export default function LoginScreen() {
           errorMessage = 'E-posta adresinizi doğrulamanız gerekiyor.';
         } else if (result.error.message.includes('Password should be at least')) {
           errorMessage = 'Şifre en az 6 karakter olmalı.';
+        } else if (result.error.message.includes('Invalid API key')) {
+          errorMessage = 'Uygulama yapılandırma hatası. Lütfen daha sonra tekrar deneyin.';
         }
         
         Alert.alert('Hata', errorMessage);
