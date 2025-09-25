@@ -219,6 +219,7 @@ export default function MoviesScreen() {
           )}
         </View>
         
+        <View style={styles.movieInfo}>
           <Text style={styles.movieTitle} numberOfLines={2}>{movie.title}</Text>
           <Text style={styles.movieYear}>
             {movie.release_date ? new Date(movie.release_date).getFullYear() : 'Unknown'}
