@@ -74,6 +74,8 @@ export default function FriendsScreen() {
     }
   };
 
+  console.log("search resault", searchResults)
+
   const handleSendFriendRequest = async (userId: string, userEmail: string) => {
     setSendingRequestId(userId);
     try {
