@@ -130,7 +130,7 @@ export default function FriendsScreen() {
     if (!currentUser) return;
     
     const friendId = friend.user_id === currentUser.id ? friend.friend_id : friend.user_id;
-    const friendEmail = friend.user_id === currentUser.id ? friend.friend_user?.email : friend.requesting_user?.email;
+    const friendEmail = friend.user_id === currentUser.id ? friend.friend_email : friend.requesting_email;
     
     router.push({
       pathname: '/friend-profile',

@@ -8,7 +8,7 @@ export interface Friend {
   created_at: string;
   updated_at: string;
   friend_email?: string;
-  friend_name?: string;
+  requesting_email?: string;
 }
 
 export interface UserSearchResult {
