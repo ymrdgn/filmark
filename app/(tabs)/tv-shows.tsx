@@ -1,7 +1,10 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, SafeAreaView, TouchableOpacity, TextInput, Dimensions } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, ScrollView, SafeAreaView, TouchableOpacity, TextInput, Dimensions, Image, Alert, ActivityIndicator } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Search, Star, Calendar, Eye, Plus, Play } from 'lucide-react-native';
+import { Search, Star, Calendar, Plus, Check, Heart, Play, Eye } from 'lucide-react-native';
+import { router } from 'expo-router';
+import { tvShowsApi } from '@/lib/api';
+import { searchTVShows, TMDBTVShow, getImageUrl, getPopularTVShows } from '@/lib/tmdb';
 
 const { width } = Dimensions.get('window');
 const cardWidth = (width - 72) / 2;
@@ -9,112 +12,255 @@ const cardWidth = (width - 72) / 2;
 export default function TVShowsScreen() {
   const [searchQuery, setSearchQuery] = useState('');
   const [filter, setFilter] = useState('all');
+  const [myTVShows, setMyTVShows] = useState([]);
+  const [tmdbTVShows, setTMDBTVShows] = useState<TMDBTVShow[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [tmdbLoading, setTMDBLoading] = useState(false);
+  const [addingShowId, setAddingShowId] = useState<number | null>(null);
+  const [updatingShowId, setUpdatingShowId] = useState<string | null>(null);
 
-  const tvShows = [
-    { 
-      id: 1, 
-      title: 'Breaking Bad', 
-      year: 2008, 
-      rating: 5, 
-      seasons: 5,
-      episodes: 62,
-      status: 'watched',
-      poster: 'https://images.pexels.com/photos/7991579/pexels-photo-7991579.jpeg?auto=compress&cs=tinysrgb&w=400'
-    },
-    { 
-      id: 2, 
-      title: 'Game of Thrones', 
-      year: 2011, 
-      rating: 4, 
-      seasons: 8,
-      episodes: 73,
-      status: 'watched',
-      poster: 'https://images.pexels.com/photos/7991579/pexels-photo-7991579.jpeg?auto=compress&cs=tinysrgb&w=400'
-    },
-    { 
-      id: 3, 
-      title: 'The Bear', 
-      year: 2022, 
-      rating: 0, 
-      seasons: 3,
-      episodes: 28,
-      status: 'watching',
-      poster: 'https://images.pexels.com/photos/7991579/pexels-photo-7991579.jpeg?auto=compress&cs=tinysrgb&w=400'
-    },
-    { 
-      id: 4, 
-      title: 'Stranger Things', 
-      year: 2016, 
-      rating: 4, 
-      seasons: 4,
-      episodes: 42,
-      status: 'watched',
-      poster: 'https://images.pexels.com/photos/7991579/pexels-photo-7991579.jpeg?auto=compress&cs=tinysrgb&w=400'
-    },
-    { 
-      id: 5, 
-      title: 'The Last of Us', 
-      year: 2023, 
-      rating: 0, 
-      seasons: 1,
-      episodes: 9,
-      status: 'watchlist',
-      poster: 'https://images.pexels.com/photos/7991579/pexels-photo-7991579.jpeg?auto=compress&cs=tinysrgb&w=400'
-    },
-    { 
-      id: 6, 
-      title: 'Wednesday', 
-      year: 2022, 
-      rating: 3, 
-      seasons: 1,
-      episodes: 8,
-      status: 'watched',
-      poster: 'https://images.pexels.com/photos/7991579/pexels-photo-7991579.jpeg?auto=compress&cs=tinysrgb&w=400'
-    },
-  ];
+  useEffect(() => {
+    loadMyTVShows();
+    loadPopularTVShows();
+  }, []);
 
-  const filteredShows = tvShows.filter(show => {
-    const matchesSearch = show.title.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesFilter = filter === 'all' || show.status === filter;
-    return matchesSearch && matchesFilter;
-  });
+  const loadMyTVShows = async () => {
+    // Check if Supabase is properly configured
+    if (!process.env.EXPO_PUBLIC_SUPABASE_URL || !process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY) {
+      console.error('❌ Supabase not configured. Please check your .env file.');
+      Alert.alert(
+        'Configuration Error',
+        'Supabase is not configured. Please check your .env file and restart the development server.',
+        [{ text: 'OK' }]
+      );
+      setLoading(false);
+      return;
+    }
 
-  const getStatusIcon = (status) => {
-    switch (status) {
-      case 'watched':
-        return <Eye size={14} color="#10B981" strokeWidth={2} />;
-      case 'watching':
-        return <Play size={14} color="#F59E0B" strokeWidth={2} />;
-      case 'watchlist':
-        return <Plus size={14} color="#6366F1" strokeWidth={2} />;
-      default:
-        return <Plus size={14} color="#6366F1" strokeWidth={2} />;
+    try {
+      const { data, error } = await tvShowsApi.getAll();
+      if (error) {
+        console.error('Error loading TV shows:', error.message || error);
+        Alert.alert(
+          'Database Error',
+          `Failed to load TV shows: ${error.message || 'Unknown error'}`,
+          [{ text: 'OK' }]
+        );
+      } else {
+        setMyTVShows(data || []);
+      }
+    } catch (error) {
+      console.error('Error loading TV shows:', error);
+      Alert.alert(
+        'Connection Error',
+        'Failed to connect to the database. Please check your internet connection and Supabase configuration.',
+        [{ text: 'OK' }]
+      );
+    } finally {
+      setLoading(false);
     }
   };
 
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 'watched':
-        return '#10B981';
-      case 'watching':
-        return '#F59E0B';
-      case 'watchlist':
-        return '#6366F1';
-      default:
-        return '#6366F1';
+  const loadPopularTVShows = async () => {
+    setTMDBLoading(true);
+    try {
+      const response = await getPopularTVShows();
+      setTMDBTVShows(response.results);
+    } catch (error) {
+      console.error('Error loading TMDB TV shows:', error);
+    } finally {
+      setTMDBLoading(false);
     }
   };
 
-  const renderShowCard = (show) => (
-    <TouchableOpacity key={show.id} style={styles.showCard}>
+  const handleSearch = async () => {
+    if (!searchQuery.trim()) {
+      loadPopularTVShows();
+      return;
+    }
+
+    setTMDBLoading(true);
+    try {
+      const response = await searchTVShows(searchQuery);
+      setTMDBTVShows(response.results);
+    } catch (error) {
+      console.error('Search error:', error);
+      Alert.alert('Error', 'Failed to search TV shows. Please try again.');
+    } finally {
+      setTMDBLoading(false);
+    }
+  };
+
+  const handleSearchChange = (text: string) => {
+    setSearchQuery(text);
+    // If search is cleared, reload popular TV shows
+    if (!text.trim()) {
+      loadPopularTVShows();
+    }
+  };
+
+  const handleAddTVShow = async (show: TMDBTVShow) => {
+    setAddingShowId(show.id);
+    try {
+      const { error } = await tvShowsApi.add({
+        title: show.name,
+        year: show.first_air_date ? new Date(show.first_air_date).getFullYear() : null,
+        poster_url: getImageUrl(show.poster_path),
+        is_watched: false,
+        is_favorite: false,
+        rating: null,
+        seasons: 1,
+        episodes: 1,
+        current_season: 1,
+        current_episode: 1,
+      });
+
+      if (error) {
+        Alert.alert('Error', 'Failed to add TV show to your collection.');
+      } else {
+        Alert.alert('Success', `${show.name} added to your collection!`);
+        loadMyTVShows(); // Reload to show the new TV show
+      }
+    } catch (error) {
+      console.error('Add TV show error:', error);
+      Alert.alert('Error', 'Failed to add TV show to your collection.');
+    } finally {
+      setAddingShowId(null);
+    }
+  };
+
+  const handleToggleFavorite = async (showId: string, currentFavoriteStatus: boolean) => {
+    setUpdatingShowId(showId);
+    try {
+      const { error } = await tvShowsApi.update(showId, { 
+        is_favorite: !currentFavoriteStatus 
+      });
+      
+      if (error) {
+        Alert.alert('Error', 'Failed to update favorite status.');
+      } else {
+        loadMyTVShows(); // Reload to show updated status
+      }
+    } catch (error) {
+      Alert.alert('Error', 'Failed to update favorite status.');
+    } finally {
+      setUpdatingShowId(null);
+    }
+  };
+
+  // Filter TV shows based on current tab
+  const getFilteredTVShows = () => {
+    if (filter === 'watched') {
+      return myTVShows.filter(show => {
+        const matchesSearch = show.title.toLowerCase().includes(searchQuery.toLowerCase());
+        return matchesSearch && show.is_watched === true;
+      });
+    }
+    if (filter === 'watching') {
+      return myTVShows.filter(show => {
+        const matchesSearch = show.title.toLowerCase().includes(searchQuery.toLowerCase());
+        return matchesSearch && !show.is_watched && show.current_episode > 1;
+      });
+    }
+    if (filter === 'favorites') {
+      return myTVShows.filter(show => {
+        const matchesSearch = show.title.toLowerCase().includes(searchQuery.toLowerCase());
+        return matchesSearch && show.is_favorite === true;
+      });
+    }
+    return myTVShows.filter(show => 
+      show.title.toLowerCase().includes(searchQuery.toLowerCase())
+    ); // 'all' case
+  };
+
+  const displayTVShows = getFilteredTVShows();
+
+  const isTVShowInCollection = (tmdbShowName: string) => {
+    return myTVShows.some(show => 
+      show.title.toLowerCase() === tmdbShowName.toLowerCase()
+    );
+  };
+
+  const getStatusIcon = (show) => {
+    if (show.is_watched) {
+      return <Eye size={14} color="#10B981" strokeWidth={2} />;
+    } else if (show.current_episode > 1) {
+      return <Play size={14} color="#F59E0B" strokeWidth={2} />;
+    }
+    return <Plus size={14} color="#6366F1" strokeWidth={2} />;
+  };
+
+  const getStatusColor = (show) => {
+    if (show.is_watched) return '#10B981';
+    if (show.current_episode > 1) return '#F59E0B';
+    return '#6366F1';
+  };
+
+  const renderMyTVShowCard = (show) => (
+    <TouchableOpacity 
+      key={show.id} 
+      style={styles.showCard}
+      onPress={() => router.push({
+        pathname: '/tv-show-detail',
+        params: {
+          id: show.id,
+          title: show.title,
+          year: show.year,
+          poster_url: show.poster_url,
+          is_watched: show.is_watched,
+          is_favorite: show.is_favorite,
+          rating: show.rating,
+          seasons: show.seasons,
+          episodes: show.episodes,
+          current_season: show.current_season,
+          current_episode: show.current_episode
+        }
+      })}
+    >
       <View style={styles.posterContainer}>
-        <View style={styles.poster} />
-        <View style={styles.statusBadge}>
-          {getStatusIcon(show.status)}
+        {show.poster_url ? (
+          <Image
+            source={{ uri: show.poster_url }}
+            style={styles.poster}
+            resizeMode="cover"
+          />
+        ) : (
+          <View style={styles.posterPlaceholder}>
+            <Text style={styles.posterPlaceholderText}>No Image</Text>
+          </View>
+        )}
+        
+        <View style={styles.badgeContainer}>
+          <View style={styles.statusBadge}>
+            {getStatusIcon(show)}
+          </View>
+          <TouchableOpacity
+            style={styles.favoriteButton}
+            onPress={() => handleToggleFavorite(show.id, show.is_favorite)}
+            disabled={updatingShowId === show.id}
+          >
+            {updatingShowId === show.id ? (
+              <ActivityIndicator size="small" color="#EF4444" />
+            ) : (
+              <Heart
+                size={16}
+                color="#EF4444"
+                fill={show.is_favorite ? '#EF4444' : 'transparent'}
+                strokeWidth={2}
+              />
+            )}
+          </TouchableOpacity>
         </View>
-        {show.status === 'watching' && (
+
+        {!show.is_watched && show.current_episode > 1 && (
           <View style={styles.progressBar}>
-            <View style={[styles.progress, { backgroundColor: getStatusColor(show.status) }]} />
+            <View style={[
+              styles.progress, 
+              { 
+                backgroundColor: getStatusColor(show),
+                width: `${Math.min((show.current_episode / show.episodes) * 100, 100)}%`
+              }
+            ]} />
           </View>
         )}
       </View>
@@ -129,7 +275,7 @@ export default function TVShowsScreen() {
             <Text style={styles.seasonsText}>{show.seasons} seasons</Text>
           </View>
           
-          {show.status === 'watched' && show.rating > 0 && (
+          {show.rating > 0 && (
             <View style={styles.rating}>
               {[...Array(5)].map((_, i) => (
                 <Star
@@ -144,15 +290,100 @@ export default function TVShowsScreen() {
           )}
         </View>
         
-        {show.status === 'watching' && (
+        {!show.is_watched && show.current_episode > 1 && (
           <View style={styles.watchingStatus}>
             <View style={styles.watchingDot} />
-            <Text style={styles.watchingText}>Currently watching</Text>
+            <Text style={styles.watchingText}>
+              S{show.current_season}E{show.current_episode}
+            </Text>
           </View>
         )}
       </View>
     </TouchableOpacity>
   );
+
+  const renderTMDBTVShowCard = (show: TMDBTVShow) => {
+    const inCollection = isTVShowInCollection(show.name);
+    const collectionShow = myTVShows.find(s => 
+      s.title.toLowerCase() === show.name.toLowerCase()
+    );
+
+    return (
+      <TouchableOpacity 
+        key={show.id} 
+        style={styles.tmdbShowCard}
+        onPress={() => router.push({
+          pathname: '/tv-show-detail',
+          params: {
+            id: show.id,
+            title: show.name,
+            year: show.first_air_date ? new Date(show.first_air_date).getFullYear() : null,
+            poster_url: getImageUrl(show.poster_path),
+            tmdb_rating: show.vote_average,
+            overview: show.overview,
+            inCollection: inCollection
+          }
+        })}
+      >
+        <View style={styles.posterContainer}>
+          <Image
+            source={{ 
+              uri: getImageUrl(show.poster_path) || 'https://via.placeholder.com/300x450?text=No+Image'
+            }}
+            style={styles.poster}
+            resizeMode="cover"
+          />
+          
+          <View style={styles.badgeContainer}>
+            <TouchableOpacity
+              style={styles.addBadge}
+              onPress={() => handleAddTVShow(show)}
+              disabled={addingShowId === show.id || inCollection}
+            >
+              {addingShowId === show.id ? (
+                <ActivityIndicator size="small" color="#6366F1" />
+              ) : inCollection ? (
+                <Check size={16} color="#10B981" strokeWidth={2} />
+              ) : (
+                <Plus size={16} color="#6366F1" strokeWidth={2} />
+              )}
+            </TouchableOpacity>
+            
+            {inCollection && collectionShow && (
+              <TouchableOpacity
+                style={styles.favoriteButton}
+                onPress={() => handleToggleFavorite(collectionShow.id, collectionShow.is_favorite)}
+                disabled={updatingShowId === collectionShow.id}
+              >
+                {updatingShowId === collectionShow.id ? (
+                  <ActivityIndicator size="small" color="#EF4444" />
+                ) : (
+                  <Heart
+                    size={16}
+                    color="#EF4444"
+                    fill={collectionShow.is_favorite ? '#EF4444' : 'transparent'}
+                    strokeWidth={2}
+                  />
+                )}
+              </TouchableOpacity>
+            )}
+          </View>
+        </View>
+        
+        <View style={styles.showInfo}>
+          <Text style={styles.showTitle} numberOfLines={2}>{show.name}</Text>
+          <Text style={styles.showYear}>
+            {show.first_air_date ? new Date(show.first_air_date).getFullYear() : 'Unknown'}
+          </Text>
+          
+          <View style={styles.tmdbRating}>
+            <Star size={12} color="#F59E0B" fill="#F59E0B" strokeWidth={1} />
+            <Text style={styles.ratingText}>{show.vote_average.toFixed(1)}</Text>
+          </View>
+        </View>
+      </TouchableOpacity>
+    );
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -162,7 +393,7 @@ export default function TVShowsScreen() {
       >
         <View style={styles.header}>
           <Text style={styles.title}>TV Shows</Text>
-          <Text style={styles.subtitle}>{filteredShows.length} shows in collection</Text>
+          <Text style={styles.subtitle}>{displayTVShows.length} shows in collection</Text>
         </View>
 
         <View style={styles.searchContainer}>
@@ -173,13 +404,15 @@ export default function TVShowsScreen() {
               placeholder="Search TV shows..."
               placeholderTextColor="#6B7280"
               value={searchQuery}
-              onChangeText={setSearchQuery}
+              onChangeText={handleSearchChange}
+              onSubmitEditing={handleSearch}
             />
           </View>
         </View>
 
         <View style={styles.filters}>
-          {['all', 'watched', 'watching', 'watchlist'].map((filterOption) => (
+          <Text style={styles.filterTitle}>Filter:</Text>
+          {['all', 'watched', 'watching', 'favorites'].map((filterOption) => (
             <TouchableOpacity
               key={filterOption}
               style={[
@@ -194,16 +427,88 @@ export default function TVShowsScreen() {
               ]}>
                 {filterOption === 'all' ? 'All' : 
                  filterOption === 'watched' ? 'Watched' : 
-                 filterOption === 'watching' ? 'Watching' : 'Watchlist'}
+                 filterOption === 'watching' ? 'Watching' : 'Favorites'}
               </Text>
             </TouchableOpacity>
           ))}
         </View>
 
         <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-          <View style={styles.showsGrid}>
-            {filteredShows.map(renderShowCard)}
-          </View>
+          {filter === 'all' && displayTVShows.length > 0 && (
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>My Collection</Text>
+              <View style={styles.showsGrid}>
+                {displayTVShows.map(renderMyTVShowCard)}
+              </View>
+            </View>
+          )}
+
+          {filter === 'watched' && (
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Watched Shows</Text>
+              {displayTVShows.length > 0 ? (
+                <View style={styles.showsGrid}>
+                  {displayTVShows.map(renderMyTVShowCard)}
+                </View>
+              ) : (
+                <View style={styles.emptyState}>
+                  <Text style={styles.emptyStateText}>No watched shows yet</Text>
+                  <Text style={styles.emptyStateSubtext}>Mark some shows as watched to see them here</Text>
+                </View>
+              )}
+            </View>
+          )}
+
+          {filter === 'watching' && (
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Currently Watching</Text>
+              {displayTVShows.length > 0 ? (
+                <View style={styles.showsGrid}>
+                  {displayTVShows.map(renderMyTVShowCard)}
+                </View>
+              ) : (
+                <View style={styles.emptyState}>
+                  <Text style={styles.emptyStateText}>Not watching anything</Text>
+                  <Text style={styles.emptyStateSubtext}>Start watching some shows to see them here</Text>
+                </View>
+              )}
+            </View>
+          )}
+
+          {filter === 'favorites' && (
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Favorite Shows</Text>
+              {displayTVShows.length > 0 ? (
+                <View style={styles.showsGrid}>
+                  {displayTVShows.map(renderMyTVShowCard)}
+                </View>
+              ) : (
+                <View style={styles.emptyState}>
+                  <Text style={styles.emptyStateText}>No favorite shows yet</Text>
+                  <Text style={styles.emptyStateSubtext}>Add some shows to favorites to see them here</Text>
+                </View>
+              )}
+            </View>
+          )}
+
+          {filter === 'all' && (
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>
+                {searchQuery ? 'Search Results' : 'Popular TV Shows'}
+              </Text>
+              {tmdbLoading ? (
+                <View style={styles.loadingContainer}>
+                  <ActivityIndicator size="large" color="#6366F1" />
+                  <Text style={styles.loadingText}>Loading TV shows...</Text>
+                </View>
+              ) : (
+                <View style={styles.showsGrid}>
+                  {tmdbTVShows.map(renderTMDBTVShowCard)}
+                </View>
+              )}
+            </View>
+          )}
+          
           <View style={styles.bottomSpacer} />
         </ScrollView>
       </LinearGradient>
@@ -256,14 +561,21 @@ const styles = StyleSheet.create({
   },
   filters: {
     flexDirection: 'row',
+    alignItems: 'center',
     paddingHorizontal: 24,
     marginBottom: 24,
     gap: 12,
   },
+  filterTitle: {
+    fontSize: 14,
+    fontFamily: 'Inter-SemiBold',
+    color: '#D1D5DB',
+    marginRight: 8,
+  },
   filterButton: {
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: 20,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 16,
     backgroundColor: 'rgba(255, 255, 255, 0.05)',
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.1)',
@@ -273,7 +585,7 @@ const styles = StyleSheet.create({
     borderColor: '#6366F1',
   },
   filterText: {
-    fontSize: 14,
+    fontSize: 12,
     fontFamily: 'Inter-Medium',
     color: '#9CA3AF',
   },
@@ -282,6 +594,16 @@ const styles = StyleSheet.create({
   },
   scrollView: {
     flex: 1,
+  },
+  section: {
+    marginBottom: 32,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontFamily: 'Inter-SemiBold',
+    color: 'white',
+    marginBottom: 16,
+    paddingHorizontal: 24,
   },
   showsGrid: {
     flexDirection: 'row',
@@ -293,6 +615,10 @@ const styles = StyleSheet.create({
     width: cardWidth,
     marginBottom: 24,
   },
+  tmdbShowCard: {
+    width: cardWidth,
+    marginBottom: 24,
+  },
   posterContainer: {
     position: 'relative',
     marginBottom: 12,
@@ -300,13 +626,45 @@ const styles = StyleSheet.create({
   poster: {
     width: '100%',
     height: cardWidth * 1.5,
-    backgroundColor: '#374151',
     borderRadius: 12,
   },
-  statusBadge: {
+  posterPlaceholder: {
+    width: '100%',
+    height: cardWidth * 1.5,
+    backgroundColor: '#374151',
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  posterPlaceholderText: {
+    color: '#9CA3AF',
+    fontSize: 14,
+    fontFamily: 'Inter-Medium',
+  },
+  badgeContainer: {
     position: 'absolute',
     top: 8,
     right: 8,
+    flexDirection: 'column',
+    gap: 4,
+  },
+  statusBadge: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  addBadge: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  favoriteButton: {
     width: 28,
     height: 28,
     borderRadius: 14,
@@ -326,7 +684,6 @@ const styles = StyleSheet.create({
   },
   progress: {
     height: '100%',
-    width: '65%',
     borderBottomLeftRadius: 12,
     borderBottomRightRadius: 12,
   },
@@ -363,6 +720,16 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 2,
   },
+  tmdbRating: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  ratingText: {
+    fontSize: 12,
+    fontFamily: 'Inter-Medium',
+    color: '#F59E0B',
+  },
   watchingStatus: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -380,7 +747,35 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter-Medium',
     color: '#F59E0B',
   },
+  loadingContainer: {
+    alignItems: 'center',
+    paddingVertical: 40,
+  },
+  loadingText: {
+    fontSize: 16,
+    fontFamily: 'Inter-Medium',
+    color: '#9CA3AF',
+    marginTop: 12,
+  },
   bottomSpacer: {
     height: 20,
+  },
+  emptyState: {
+    alignItems: 'center',
+    paddingVertical: 40,
+    paddingHorizontal: 24,
+  },
+  emptyStateText: {
+    fontSize: 18,
+    fontFamily: 'Inter-SemiBold',
+    color: 'white',
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  emptyStateSubtext: {
+    fontSize: 14,
+    fontFamily: 'Inter-Medium',
+    color: '#9CA3AF',
+    textAlign: 'center',
   },
 });
