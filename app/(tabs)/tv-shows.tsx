@@ -119,10 +119,10 @@ export default function TVShowsScreen() {
         Alert.alert('Error', 'Failed to add TV show to your collection.');
       } else {
         Alert.alert('Success', `${show.name} added to your collection!`);
-        // Reload data and force re-render
+        // Reload my collection data
         await loadMyTVShows();
-        // Force component re-render to update UI
-        setTMDBTVShows(prev => [...prev]);
+        // Force TMDB list to re-render by creating new array reference
+        setTMDBTVShows(currentTMDB => [...currentTMDB]);
       }
     } catch (error) {
       console.error('Add TV show error:', error);
@@ -173,9 +173,13 @@ export default function TVShowsScreen() {
   const displayTVShows = getFilteredTVShows();
 
   const isTVShowInCollection = (tmdbShowName: string) => {
-    return myTVShows.some(show => 
-      show.title.toLowerCase() === tmdbShowName.toLowerCase()
+    console.log('Checking if in collection:', tmdbShowName);
+    console.log('My TV Shows:', myTVShows.map(s => s.title));
+    const found = myTVShows.some(show => 
+      show.title.toLowerCase().trim() === tmdbShowName.toLowerCase().trim()
     );
+    console.log('Found in collection:', found);
+    return found;
   };
 
   const getStatusIcon = (show) => {
@@ -302,10 +306,12 @@ export default function TVShowsScreen() {
   const renderTMDBTVShowCard = (show: TMDBTVShow) => {
     const inCollection = isTVShowInCollection(show.name);
     const collectionShow = myTVShows.find(s => 
-      s.title.toLowerCase() === show.name.toLowerCase()
+      s.title.toLowerCase().trim() === show.name.toLowerCase().trim()
     );
 
-    console.log(`TMDB Show: ${show.name}, In Collection: ${inCollection}, Collection Show:`, collectionShow);
+    console.log(`Rendering TMDB Show: ${show.name}`);
+    console.log(`In Collection: ${inCollection}`);
+    console.log(`Collection Show:`, collectionShow);
 
     return (
       <TouchableOpacity 

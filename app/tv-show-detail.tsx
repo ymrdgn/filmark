@@ -48,7 +48,13 @@ export default function TVShowDetailScreen() {
         console.log('API returned data:', data.length, 'shows');
         const currentShow = data.find(s => s.id === params.id);
         console.log('Found current show:', currentShow);
+        console.log('Params ID:', params.id);
+        console.log('Params inCollection:', params.inCollection);
         if (currentShow) {
+          console.log('Using current show data:', {
+            is_watched: currentShow.is_watched,
+            is_favorite: currentShow.is_favorite
+          });
           setTVShow({
             id: currentShow.id,
             title: currentShow.title,
@@ -65,10 +71,30 @@ export default function TVShowDetailScreen() {
             director: currentShow.director,
             genre: currentShow.genre
           });
-          console.log('Updated TV show state:', {
-            is_watched: currentShow.is_watched,
-            is_favorite: currentShow.is_favorite
-          });
+        } else if (params.inCollection === 'true') {
+          console.log('Show should be in collection but not found, searching by title...');
+          const showByTitle = data.find(s => 
+            s.title.toLowerCase().trim() === (params.title as string).toLowerCase().trim()
+          );
+          console.log('Found by title:', showByTitle);
+          if (showByTitle) {
+            setTVShow({
+              id: showByTitle.id,
+              title: showByTitle.title,
+              year: showByTitle.year,
+              poster_url: showByTitle.poster_url,
+              is_watched: showByTitle.is_watched,
+              is_favorite: showByTitle.is_favorite,
+              rating: showByTitle.rating || 0,
+              seasons: showByTitle.seasons || 1,
+              episodes: showByTitle.episodes || 1,
+              current_season: showByTitle.current_season || 1,
+              current_episode: showByTitle.current_episode || 1,
+              imdb_rating: showByTitle.imdb_rating,
+              director: showByTitle.director,
+              genre: showByTitle.genre
+            });
+          }
         } else {
           console.log('TV show not found in collection, using params');
           // If not in collection, use params data
