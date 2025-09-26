@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, ScrollView, SafeAreaView, TouchableOpacity, Tex
 import { LinearGradient } from 'expo-linear-gradient';
 import { ArrowLeft, Search, UserPlus, Users, Check, X, Mail, Clock } from 'lucide-react-native';
 import { router } from 'expo-router';
+import { supabase } from '@/lib/supabase';
 import { friendsApi, Friend, UserSearchResult } from '@/lib/friends-api';
 
 export default function FriendsScreen() {

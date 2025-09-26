@@ -149,12 +149,98 @@ export interface Database {
           created_at?: string
         }
       }
+      friends: {
+        Row: {
+          id: string
+          user_id: string
+          friend_id: string
+          status: 'pending' | 'accepted' | 'blocked'
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          friend_id: string
+          status?: 'pending' | 'accepted' | 'blocked'
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          friend_id?: string
+          status?: 'pending' | 'accepted' | 'blocked'
+          created_at?: string
+          updated_at?: string
+        }
+      }
+      users: {
+        Row: {
+          id: string
+          email: string
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id: string
+          email: string
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          email?: string
+          created_at?: string
+          updated_at?: string
+        }
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      search_users_by_email: {
+        Args: {
+          search_email: string
+        }
+        Returns: {
+          id: string
+          email: string
+        }[]
+      }
+      get_friend_movies: {
+        Args: {
+          friend_user_id: string
+        }
+        Returns: {
+          id: string
+          title: string
+          year: number | null
+          poster_url: string | null
+          is_watched: boolean
+          is_favorite: boolean
+          rating: number | null
+        }[]
+      }
+      get_friend_tv_shows: {
+        Args: {
+          friend_user_id: string
+        }
+        Returns: {
+          id: string
+          title: string
+          year: number | null
+          seasons: number
+          episodes: number
+          poster_url: string | null
+          is_watched: boolean
+          is_favorite: boolean
+          rating: number | null
+          current_season: number | null
+          current_episode: number | null
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never
