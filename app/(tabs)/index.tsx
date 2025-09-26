@@ -123,7 +123,7 @@ export default function HomeScreen() {
       // Sort by date (newest first) and take first 10
       const sortedActivities = activities
         .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-        .slice(0, 10);
+        .slice(0, 3);
 
       setRecentActivity(sortedActivities);
     } catch (error) {
@@ -209,12 +209,7 @@ export default function HomeScreen() {
 
           {recentActivity.length > 0 && (
             <View style={styles.section}>
-              <View style={styles.sectionHeader}>
-                <Text style={styles.sectionTitle}>Recent Activity</Text>
-                <TouchableOpacity>
-                  <Text style={styles.seeAll}>See All</Text>
-                </TouchableOpacity>
-              </View>
+              <Text style={styles.sectionTitle}>Recent Activity</Text>
               
               {recentActivity.map((item, index) => (
                 <View key={item.id} style={styles.activityCard}>
@@ -261,26 +256,41 @@ export default function HomeScreen() {
           )}
 
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Quick Actions</Text>
-            <View style={styles.quickActions}>
-              <TouchableOpacity style={styles.actionButton}>
-                <LinearGradient
-                  colors={['#6366F1', '#8B5CF6']}
-                  style={styles.actionGradient}
-                >
-                  <Plus size={24} color="white" strokeWidth={2} />
-                  <Text style={styles.actionText}>Add to Watchlist</Text>
-                </LinearGradient>
-              </TouchableOpacity>
-              
-              <TouchableOpacity style={styles.actionButton}>
-                <View style={styles.actionSecondary}>
-                  <TrendingUp size={24} color="#6366F1" strokeWidth={2} />
-                  <Text style={styles.actionTextSecondary}>Discover Trending</Text>
+            <Text style={styles.sectionTitle}>Arkadaşlarımın Aktiviteleri</Text>
+            <View style={styles.friendsActivity}>
+              <View style={styles.friendActivityCard}>
+                <View style={styles.friendAvatar}>
+                  <Text style={styles.friendInitial}>A</Text>
                 </View>
-              </TouchableOpacity>
+                <View style={styles.friendActivityContent}>
+                  <Text style={styles.friendName}>Alex Johnson</Text>
+                  <Text style={styles.friendActivity}>The Dark Knight izlendi - 2 gün önce</Text>
+                </View>
+              </View>
+              
+              <View style={styles.friendActivityCard}>
+                <View style={[styles.friendAvatar, { backgroundColor: '#10B981' }]}>
+                  <Text style={styles.friendInitial}>S</Text>
+                </View>
+                <View style={styles.friendActivityContent}>
+                  <Text style={styles.friendName}>Sarah Wilson</Text>
+                  <Text style={styles.friendActivity}>Breaking Bad favoriye eklendi - 3 gün önce</Text>
+                </View>
+              </View>
+              
+              <View style={styles.friendActivityCard}>
+                <View style={[styles.friendAvatar, { backgroundColor: '#F59E0B' }]}>
+                  <Text style={styles.friendInitial}>M</Text>
+                </View>
+                <View style={styles.friendActivityContent}>
+                  <Text style={styles.friendName}>Mike Davis</Text>
+                  <Text style={styles.friendActivity}>Inception izlendi - 1 hafta önce</Text>
+                </View>
+              </View>
             </View>
           </View>
+          
+          <View style={styles.bottomSpacer} />
         </ScrollView>
       </LinearGradient>
     </SafeAreaView>
@@ -325,17 +335,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontFamily: 'Inter-SemiBold',
     color: '#6366F1',
-  },
-  statsContainer: {
-    paddingHorizontal: 24,
-    marginBottom: 32,
-  },
-  sectionTitle: {
-    fontSize: 20,
-    fontFamily: 'Inter-SemiBold',
-    color: 'white',
-    marginBottom: 16,
-  },
   statsGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -398,42 +397,6 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     marginRight: 16,
     overflow: 'hidden',
-  },
-  activityPosterImage: {
-    width: '100%',
-    height: '100%',
-  },
-  activityPosterPlaceholder: {
-    width: '100%',
-    height: '100%',
-    backgroundColor: '#374151',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  activityContent: {
-    flex: 1,
-  },
-  activityTitle: {
-    fontSize: 16,
-    fontFamily: 'Inter-SemiBold',
-    color: 'white',
-    marginBottom: 4,
-  },
-  activityType: {
-    fontSize: 14,
-    fontFamily: 'Inter-Medium',
-    color: '#9CA3AF',
-    marginBottom: 4,
-  },
-  activityAction: {
-    fontSize: 12,
-    fontFamily: 'Inter-Medium',
-    color: '#6B7280',
-    marginBottom: 8,
-  },
-  activityRating: {
-    flexDirection: 'row',
-    gap: 2,
   },
   loadingContainer: {
     flex: 1,
