@@ -20,6 +20,7 @@ export interface Database {
           is_watched: boolean
           is_favorite: boolean
           rating: number | null
+          watched_date: string | null
           created_at: string
           updated_at: string
         }
@@ -33,6 +34,7 @@ export interface Database {
           is_watched?: boolean
           is_favorite?: boolean
           rating?: number | null
+          watched_date?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -46,6 +48,7 @@ export interface Database {
           is_watched?: boolean
           is_favorite?: boolean
           rating?: number | null
+          watched_date?: string | null
           created_at?: string
           updated_at?: string
         }
