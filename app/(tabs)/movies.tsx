@@ -126,7 +126,7 @@ export default function MoviesScreen() {
   const filteredMyMovies = myMovies.filter(movie => {
     const matchesSearch = movie.title.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesFilter = filter === 'all' || 
-      (filter === 'watched' && movie.is_watched === true) ||
+      (filter === 'watched' && movie.is_watched) ||
       (filter === 'favorites' && movie.is_favorite);
     return matchesSearch && matchesFilter;
   });
@@ -567,5 +567,11 @@ const styles = StyleSheet.create({
   },
   bottomSpacer: {
     height: 20,
+  },
+  debugText: {
+    fontSize: 10,
+    fontFamily: 'Inter-Medium',
+    color: '#6B7280',
+    marginRight: 8,
   },
 });
