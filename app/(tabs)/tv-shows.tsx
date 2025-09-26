@@ -119,7 +119,8 @@ export default function TVShowsScreen() {
         Alert.alert('Error', 'Failed to add TV show to your collection.');
       } else {
         Alert.alert('Success', `${show.name} added to your collection!`);
-        await loadMyTVShows(); // Reload to show the new TV show
+        // Reload to show the new TV show and update UI
+        await loadMyTVShows();
       }
     } catch (error) {
       console.error('Add TV show error:', error);

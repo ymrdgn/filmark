@@ -29,6 +29,13 @@ export default function TVShowDetailScreen() {
   // Load fresh data from API on component mount
   useEffect(() => {
     loadTVShowData();
+    
+    // Listen for focus events to reload data when returning to this screen
+    const unsubscribe = router.addListener?.('focus', () => {
+      loadTVShowData();
+    });
+    
+    return unsubscribe;
   }, []);
 
   const loadTVShowData = async () => {
@@ -86,19 +93,27 @@ export default function TVShowDetailScreen() {
     setLoading(true);
     try {
       const newWatchedStatus = !tvShow.is_watched;
-      const { error } = await tvShowsApi.update(tvShow.id as string, { 
-        is_watched: newWatchedStatus
-      });
+      const updateData = { 
+        is_watched: newWatchedStatus,
+        watched_date: newWatchedStatus ? new Date().toISOString() : null
+      };
+      const { error } = await tvShowsApi.update(tvShow.id as string, updateData);
       
       if (error) {
         Alert.alert('Error', 'Failed to update watched status.');
       } else {
         setTVShow(prev => ({ 
           ...prev, 
-          is_watched: newWatchedStatus
+          is_watched: newWatchedStatus,
+          watched_date: newWatchedStatus ? new Date().toISOString() : null
         }));
         const statusText = newWatchedStatus ? 'marked as watched' : 'unmarked as watched';
         Alert.alert('Success', `TV show ${statusText}!`);
+        
+        // Navigate back to refresh the TV shows list
+        setTimeout(() => {
+          router.back();
+        }, 1000);
       }
     } catch (error) {
       Alert.alert('Error', 'Failed to update watched status.');
@@ -119,6 +134,11 @@ export default function TVShowDetailScreen() {
         setTVShow(prev => ({ ...prev, is_favorite: newFavoriteStatus }));
         const statusText = newFavoriteStatus ? 'added to favorites' : 'removed from favorites';
         Alert.alert('Success', `TV show ${statusText}!`);
+        
+        // Navigate back to refresh the TV shows list
+        setTimeout(() => {
+          router.back();
+        }, 1000);
       }
     } catch (error) {
       Alert.alert('Error', 'Failed to update favorite status.');
