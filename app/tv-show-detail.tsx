@@ -27,6 +27,7 @@ export default function TVShowDetailScreen() {
 
   // Load fresh data from API on component mount
   useEffect(() => {
+    console.log('TV Show Detail - Loading data for ID:', params.id);
     loadTVShowData();
   }, []);
 
@@ -41,11 +42,13 @@ export default function TVShowDetailScreen() {
 
   const loadTVShowData = async () => {
     try {
+      console.log('Loading TV show data from API...');
       const { data, error } = await tvShowsApi.getAll();
       if (!error && data) {
+        console.log('API returned data:', data.length, 'shows');
         const currentShow = data.find(s => s.id === params.id);
+        console.log('Found current show:', currentShow);
         if (currentShow) {
-          console.log('Loading TV show data:', currentShow);
           setTVShow({
             id: currentShow.id,
             title: currentShow.title,
@@ -61,6 +64,10 @@ export default function TVShowDetailScreen() {
             imdb_rating: currentShow.imdb_rating,
             director: currentShow.director,
             genre: currentShow.genre
+          });
+          console.log('Updated TV show state:', {
+            is_watched: currentShow.is_watched,
+            is_favorite: currentShow.is_favorite
           });
         } else {
           console.log('TV show not found in collection, using params');

@@ -119,10 +119,10 @@ export default function TVShowsScreen() {
         Alert.alert('Error', 'Failed to add TV show to your collection.');
       } else {
         Alert.alert('Success', `${show.name} added to your collection!`);
-        // Force reload and update state
+        // Reload data and force re-render
         await loadMyTVShows();
-        // Force re-render by updating state
-        setMyTVShows(prev => [...prev]);
+        // Force component re-render to update UI
+        setTMDBTVShows(prev => [...prev]);
       }
     } catch (error) {
       console.error('Add TV show error:', error);
