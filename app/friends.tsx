@@ -183,7 +183,7 @@ export default function FriendsScreen() {
     if (!currentUser) return null;
     
     const isIncoming = friend.friend_id === currentUser.id;
-    const friendEmail = isIncoming ? friend.requesting_user?.email : friend.friend_user?.email;
+    const friendEmail = isIncoming ? friend.requesting_email : friend.friend_email;
     
     return (
       <View key={friend.id} style={styles.friendCard}>
@@ -201,7 +201,7 @@ export default function FriendsScreen() {
                 <>
                   <Clock size={14} color="#F59E0B" strokeWidth={2} />
                   <Text style={styles.statusText}>
-                    {isIncoming ? `Friend request from ${friendEmail}` : `Request sent to ${friendEmail}`}
+                    {isIncoming ? 'Incoming request' : 'Request sent'}
                   </Text>
                 </>
               )}
@@ -428,11 +428,13 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.1)',
+    minHeight: 72,
   },
   userInfo: {
     flexDirection: 'row',
     alignItems: 'center',
     flex: 1,
+    marginRight: 12,
   },
   userAvatar: {
     width: 40,
@@ -447,6 +449,8 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontFamily: 'Inter-Medium',
     color: 'white',
+    flex: 1,
+    flexWrap: 'wrap',
   },
   addButton: {
     backgroundColor: '#6366F1',
@@ -464,11 +468,13 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     paddingHorizontal: 12,
     paddingVertical: 6,
+    flexShrink: 0,
   },
   statusBadgeText: {
     fontSize: 12,
     fontFamily: 'Inter-SemiBold',
     color: '#F59E0B',
+    textAlign: 'center',
   },
   friendCard: {
     flexDirection: 'row',
