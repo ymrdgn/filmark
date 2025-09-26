@@ -27,15 +27,6 @@ export const friendsApi = {
     return { data, error };
   },
 
-  // Alternative search using RPC (if you have the function)
-  searchUsersByEmailRPC: async (email: string) => {
-    const { data, error } = await supabase.rpc('search_users_by_email', {
-      search_email: email
-    });
-    
-    return { data, error };
-  },
-
   // Send friend request
   sendFriendRequest: async (friendId: string) => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -81,29 +72,50 @@ export const friendsApi = {
 
     const enrichedFriends = await Promise.all(
       friendsData.map(async (friend) => {
-        const friendUserId = friend.user_id === user.id ? friend.friend_id : friend.user_id;
-        const requestingUserId = friend.user_id;
+        // Current user is the one who sent the request if user_id matches
+        const isCurrentUserRequester = friend.user_id === user.id;
         
-        const { data: friendUser } = await supabase
+        // Get the other person's ID (the friend)
+        const otherUserId = isCurrentUserRequester ? friend.friend_id : friend.user_id;
+        
+        // Get current user's email
+        const { data: currentUserData, error: currentUserError } = await supabase
           .from('users')
           .select('email')
-          .eq('id', friendUserId)
+          .eq('id', user.id)
           .maybeSingle();
         
-        const { data: requestingUser } = await supabase
+        // Get other user's email
+        const { data: otherUserData, error: otherUserError } = await supabase
           .from('users')
           .select('email')
-          .eq('id', requestingUserId)
+          .eq('id', otherUserId)
           .maybeSingle();
+        
+        console.log('Friend relationship:', {
+          friendshipId: friend.id,
+          currentUserId: user.id,
+          otherUserId,
+          isCurrentUserRequester,
+          currentUserEmail: currentUserData?.email,
+          otherUserEmail: otherUserData?.email,
+          currentUserError,
+          otherUserError
+        });
         
         return {
           ...friend,
-          friend_email: friendUser?.email || 'Unknown user',
-          requesting_email: requestingUser?.email || 'Unknown user'
+          // friend_email is always the other person's email
+          friend_email: otherUserData?.email || 'Unknown user',
+          // requesting_email is the person who sent the request
+          requesting_email: isCurrentUserRequester 
+            ? (currentUserData?.email || 'Unknown user')
+            : (otherUserData?.email || 'Unknown user')
         };
       })
     );
 
+    console.log('Final enriched friends:', enrichedFriends);
     return { data: enrichedFriends, error: null };
   },
 
@@ -152,7 +164,6 @@ export const friendsApi = {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) throw new Error('User not authenticated');
 
-    // First get the friends relationships
     const { data: friendsData, error: friendsError } = await supabase
       .from('friends')
       .select('*')
@@ -163,46 +174,33 @@ export const friendsApi = {
     if (friendsError) return { data: null, error: friendsError };
     if (!friendsData) return { data: [], error: null };
 
-    // Get user emails for each friend relationship
     const enrichedFriends = await Promise.all(
       friendsData.map(async (friend) => {
-        const friendUserId = friend.user_id === user.id ? friend.friend_id : friend.user_id;
-        const requestingUserId = friend.user_id;
+        const isCurrentUserRequester = friend.user_id === user.id;
+        const otherUserId = isCurrentUserRequester ? friend.friend_id : friend.user_id;
         
-        console.log('Processing friend:', { friendUserId, requestingUserId, currentUserId: user.id });
-        console.log('Accepted friends - Getting emails:', { friendUserId, requestingUserId });
-        
-        // Get friend user email - try users table first, then auth.users
-        const { data: friendUser } = await supabase
+        const { data: currentUserData } = await supabase
           .from('users')
           .select('email')
-          .eq('id', friendUserId)
+          .eq('id', user.id)
           .maybeSingle();
-          
-        console.log('Friend user query result:', { friendUser, friendError });
-        const friendEmail = friendUser?.email;
-          
-        // Get requesting user email - try users table first, then auth.users
-        const { data: requestingUser } = await supabase
+        
+        const { data: otherUserData } = await supabase
           .from('users')
           .select('email')
-          .eq('id', requestingUserId)
+          .eq('id', otherUserId)
           .maybeSingle();
-
-        console.log('Requesting user query result:', { requestingUser, requestingError });
-        const requestingEmail = requestingUser?.email;
-
-        console.log('Final emails:', { friendEmail, requestingEmail });
         
         return {
           ...friend,
-          friend_email: friendEmail || 'User email not available',
-          requesting_email: requestingEmail || 'User email not available'
+          friend_email: otherUserData?.email || 'Unknown user',
+          requesting_email: isCurrentUserRequester 
+            ? (currentUserData?.email || 'Unknown user')
+            : (otherUserData?.email || 'Unknown user')
         };
       })
     );
 
-    console.log('Enriched friends:', enrichedFriends);
     return { data: enrichedFriends, error: null };
   }
 };
