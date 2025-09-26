@@ -22,6 +22,15 @@ export default function TVShowsScreen() {
   useEffect(() => {
     loadMyTVShows();
     loadPopularTVShows();
+    
+    // Set up global refresh function
+    global.refreshTVShows = () => {
+      loadMyTVShows();
+    };
+    
+    return () => {
+      global.refreshTVShows = null;
+    };
   }, []);
 
   const loadMyTVShows = async () => {

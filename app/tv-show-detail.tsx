@@ -4,6 +4,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { ArrowLeft, Star, Calendar, Clock, Eye, Plus, Trash2, Heart, User, Tv, Play, Pause } from 'lucide-react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { tvShowsApi } from '@/lib/api';
+import { useFocusEffect } from '@react-navigation/native';
 
 export default function TVShowDetailScreen() {
   const params = useLocalSearchParams();
@@ -24,6 +25,22 @@ export default function TVShowDetailScreen() {
     genre: null
   });
   const [loading, setLoading] = useState(false);
+
+  // Auto refresh parent screen when going back
+  useFocusEffect(
+    React.useCallback(() => {
+      return () => {
+        // This runs when screen loses focus (going back)
+        // Force refresh the TV shows list
+        if (router.canGoBack()) {
+          setTimeout(() => {
+            // Trigger a refresh on the parent screen
+            global.refreshTVShows?.();
+          }, 100);
+        }
+      };
+    }, [])
+  );
 
   // Load fresh data from API on component mount
   useEffect(() => {
@@ -139,12 +156,16 @@ export default function TVShowDetailScreen() {
           is_watched: newWatchedStatus
         }));
         const statusText = newWatchedStatus ? 'marked as watched' : 'unmarked as watched';
-        Alert.alert('Success', `TV show ${statusText}!`);
-        
-        // Navigate back to refresh the TV shows list
-        setTimeout(() => {
-          router.back();
-        }, 1000);
+        Alert.alert('Success', `TV show ${statusText}!`, [
+          {
+            text: 'OK',
+            onPress: () => {
+              // Trigger refresh and go back
+              global.refreshTVShows?.();
+              router.back();
+            }
+          }
+        ]);
       }
     } catch (error) {
       Alert.alert('Error', 'Failed to update watched status.');
@@ -164,12 +185,16 @@ export default function TVShowDetailScreen() {
       } else {
         setTVShow(prev => ({ ...prev, is_favorite: newFavoriteStatus }));
         const statusText = newFavoriteStatus ? 'added to favorites' : 'removed from favorites';
-        Alert.alert('Success', `TV show ${statusText}!`);
-        
-        // Navigate back to refresh the TV shows list
-        setTimeout(() => {
-          router.back();
-        }, 1000);
+        Alert.alert('Success', `TV show ${statusText}!`, [
+          {
+            text: 'OK',
+            onPress: () => {
+              // Trigger refresh and go back
+              global.refreshTVShows?.();
+              router.back();
+            }
+          }
+        ]);
       }
     } catch (error) {
       Alert.alert('Error', 'Failed to update favorite status.');
