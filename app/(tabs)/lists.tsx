@@ -1,12 +1,10 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, SafeAreaView, TouchableOpacity, Modal, TextInput } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, SafeAreaView, TouchableOpacity } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { BookMarked, Heart, Clock, Star, Plus, X, Film, Tv } from 'lucide-react-native';
+import { BookMarked, Heart, Clock, Star, Film, Tv } from 'lucide-react-native';
 import { moviesApi, tvShowsApi } from '@/lib/api';
 
 export default function ListsScreen() {
-  const [showCreateModal, setShowCreateModal] = useState(false);
-  const [newListName, setNewListName] = useState('');
   const [favorites, setFavorites] = useState([]);
   const [watchedItems, setWatchedItems] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -69,15 +67,6 @@ export default function ListsScreen() {
     },
   ];
 
-  const handleCreateList = () => {
-    if (newListName.trim()) {
-      // Add logic to create new list
-      console.log('Creating list:', newListName);
-      setNewListName('');
-      setShowCreateModal(false);
-    }
-  };
-
   const renderListCard = (list) => (
     <TouchableOpacity key={list.id} style={styles.listCard}>
       <View style={styles.listHeader}>
@@ -120,73 +109,8 @@ export default function ListsScreen() {
             {lists.map(renderListCard)}
           </View>
           
-          <TouchableOpacity 
-            style={styles.createButton} 
-            onPress={() => setShowCreateModal(true)}
-          >
-            <LinearGradient
-              colors={['#6366F1', '#8B5CF6']}
-              style={styles.createButtonGradient}
-            >
-              <Plus size={24} color="white" strokeWidth={2} />
-              <Text style={styles.createButtonText}>Create New List</Text>
-            </LinearGradient>
-          </TouchableOpacity>
-          
           <View style={styles.bottomSpacer} />
         </ScrollView>
-
-        <Modal
-          visible={showCreateModal}
-          transparent={true}
-          animationType="fade"
-          onRequestClose={() => setShowCreateModal(false)}
-        >
-          <View style={styles.modalOverlay}>
-            <View style={styles.modalContainer}>
-              <View style={styles.modalHeader}>
-                <Text style={styles.modalTitle}>Create New List</Text>
-                <TouchableOpacity onPress={() => setShowCreateModal(false)}>
-                  <X size={24} color="#9CA3AF" strokeWidth={2} />
-                </TouchableOpacity>
-              </View>
-              
-              <View style={styles.modalContent}>
-                <Text style={styles.inputLabel}>List Name</Text>
-                <TextInput
-                  style={styles.modalInput}
-                  placeholder="Enter list name..."
-                  placeholderTextColor="#6B7280"
-                  value={newListName}
-                  onChangeText={setNewListName}
-                  autoFocus
-                />
-                
-                <View style={styles.modalButtons}>
-                  <TouchableOpacity 
-                    style={styles.cancelButton} 
-                    onPress={() => setShowCreateModal(false)}
-                  >
-                    <Text style={styles.cancelButtonText}>Cancel</Text>
-                  </TouchableOpacity>
-                  
-                  <TouchableOpacity 
-                    style={[styles.confirmButton, !newListName.trim() && styles.confirmButtonDisabled]} 
-                    onPress={handleCreateList}
-                    disabled={!newListName.trim()}
-                  >
-                    <LinearGradient
-                      colors={['#6366F1', '#8B5CF6']}
-                      style={styles.confirmButtonGradient}
-                    >
-                      <Text style={styles.confirmButtonText}>Create</Text>
-                    </LinearGradient>
-                  </TouchableOpacity>
-                </View>
-              </View>
-            </View>
-          </View>
-        </Modal>
       </LinearGradient>
     </SafeAreaView>
   );
@@ -285,106 +209,5 @@ const styles = StyleSheet.create({
   },
   bottomSpacer: {
     height: 40,
-  },
-  },
-  createButtonGradient: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 16,
-    paddingHorizontal: 24,
-    borderRadius: 12,
-    gap: 8,
-  },
-  createButtonText: {
-    fontSize: 16,
-    fontFamily: 'Inter-SemiBold',
-    color: 'white',
-  },
-  bottomSpacer: {
-    height: 20,
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.7)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 24,
-  },
-  modalContainer: {
-    backgroundColor: '#1F2937',
-    borderRadius: 16,
-    width: '100%',
-    maxWidth: 400,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
-  },
-  modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: 24,
-    paddingBottom: 16,
-  },
-  modalTitle: {
-    fontSize: 20,
-    fontFamily: 'Inter-SemiBold',
-    color: 'white',
-  },
-  modalContent: {
-    padding: 24,
-    paddingTop: 0,
-  },
-  inputLabel: {
-    fontSize: 14,
-    fontFamily: 'Inter-Medium',
-    color: '#D1D5DB',
-    marginBottom: 8,
-  },
-  modalInput: {
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-    borderRadius: 12,
-    padding: 16,
-    fontSize: 16,
-    fontFamily: 'Inter-Medium',
-    color: 'white',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
-    marginBottom: 24,
-  },
-  modalButtons: {
-    flexDirection: 'row',
-    gap: 12,
-  },
-  cancelButton: {
-    flex: 1,
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-    borderRadius: 12,
-    paddingVertical: 16,
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
-  },
-  cancelButtonText: {
-    fontSize: 16,
-    fontFamily: 'Inter-SemiBold',
-    color: '#9CA3AF',
-  },
-  confirmButton: {
-    flex: 1,
-    borderRadius: 12,
-  },
-  confirmButtonDisabled: {
-    opacity: 0.5,
-  },
-  confirmButtonGradient: {
-    paddingVertical: 16,
-    alignItems: 'center',
-    borderRadius: 12,
-  },
-  confirmButtonText: {
-    fontSize: 16,
-    fontFamily: 'Inter-SemiBold',
-    color: 'white',
   },
 });
