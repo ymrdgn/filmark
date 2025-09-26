@@ -428,13 +428,13 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.1)',
-    minHeight: 72,
   },
   userInfo: {
     flexDirection: 'row',
     alignItems: 'center',
     flex: 1,
-    marginRight: 12,
+    marginRight: 16,
+    minWidth: 0, // Allow text to wrap properly
   },
   userAvatar: {
     width: 40,
@@ -444,13 +444,15 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
+    flexShrink: 0, // Prevent avatar from shrinking
   },
   userEmail: {
     fontSize: 16,
     fontFamily: 'Inter-Medium',
     color: 'white',
     flex: 1,
-    flexWrap: 'wrap',
+    numberOfLines: 2,
+    flexShrink: 1, // Allow text to shrink
   },
   addButton: {
     backgroundColor: '#6366F1',
@@ -459,6 +461,7 @@ const styles = StyleSheet.create({
     height: 40,
     justifyContent: 'center',
     alignItems: 'center',
+    flexShrink: 0, // Prevent button from shrinking
   },
   addButtonDisabled: {
     opacity: 0.6,
