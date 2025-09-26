@@ -129,26 +129,26 @@ export default function FriendsScreen() {
 
   const handleRemoveFriend = async (friendshipId: string, friendEmail: string) => {
     Alert.alert(
-      'Arkadaşlıktan Çıkar',
-      `${friendEmail} kişisini arkadaşlıktan çıkarmak istediğinize emin misiniz?`,
+      'Remove Friend',
+      `Are you sure you want to remove ${friendEmail} from your friends?`,
       [
-        { text: 'İptal', style: 'cancel' },
+        { text: 'Cancel', style: 'cancel' },
         {
-          text: 'Evet, Çıkar',
+          text: 'Yes, Remove',
           style: 'destructive',
           onPress: async () => {
             setRemovingFriendId(friendshipId);
             try {
               const { error } = await friendsApi.removeFriend(friendshipId);
               if (error) {
-                Alert.alert('Hata', 'Arkadaş çıkarılamadı');
+                Alert.alert('Error', 'Failed to remove friend');
               } else {
-                Alert.alert('Başarılı', 'Arkadaş başarıyla çıkarıldı');
+                Alert.alert('Success', 'Friend removed successfully');
                 loadFriends();
               }
             } catch (error) {
               console.error('Remove friend error:', error);
-              Alert.alert('Hata', 'Arkadaş çıkarılamadı');
+              Alert.alert('Error', 'Failed to remove friend');
             } finally {
               setRemovingFriendId(null);
             }
