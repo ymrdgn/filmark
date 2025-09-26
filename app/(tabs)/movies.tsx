@@ -4,7 +4,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Search, Star, Calendar, Plus, Check, Heart } from 'lucide-react-native';
 import { router } from 'expo-router';
 import { moviesApi } from '@/lib/api';
-import { searchMovies, OMDBMovie } from '@/lib/omdb';
+import { searchMovies, OMDBMovie, getMovieDetails } from '@/lib/omdb';
 
 const { width } = Dimensions.get('window');
 const cardWidth = (width - 72) / 2;
@@ -109,8 +109,11 @@ export default function MoviesScreen() {
   };
 
   const handleAddMovie = async (movie: OMDBMovie) => {
-    setAddingMovieId(movie.imdbID);
+    setAddingMovieId(parseInt(movie.imdbID.replace('tt', '')));
     try {
+      // Get detailed movie info from OMDB
+      const details = await getMovieDetails(movie.imdbID);
+      
       const { error } = await moviesApi.add({
         title: movie.Title,
         year: parseInt(movie.Year) || null,
@@ -118,7 +121,7 @@ export default function MoviesScreen() {
         is_watched: true, // Artık watched olarak ekliyor
         is_favorite: false,
         rating: null,
-        duration: null,
+        duration: details.Runtime && details.Runtime !== 'N/A' ? parseInt(details.Runtime.replace(' min', '')) : null,
       });
 
       if (error) {
