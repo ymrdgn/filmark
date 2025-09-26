@@ -41,10 +41,13 @@ export default function TVShowDetailScreen() {
   }, []);
 
   const loadTVShowData = async () => {
+    console.log('Loading TV show data for ID:', params.id);
     try {
       const { data, error } = await tvShowsApi.getAll();
+      console.log('API response:', { data: data?.length, error });
       if (!error && data) {
         const currentShow = data.find(s => s.id === params.id);
+        console.log('Found current show:', currentShow);
         if (currentShow) {
           setTVShow({
             id: currentShow.id,
@@ -66,6 +69,7 @@ export default function TVShowDetailScreen() {
           const showByTitle = data.find(s => 
             s.title?.toLowerCase().trim() === (params.title as string)?.toLowerCase().trim()
           );
+          console.log('Found show by title:', showByTitle);
           if (showByTitle) {
             setTVShow({
               id: showByTitle.id,

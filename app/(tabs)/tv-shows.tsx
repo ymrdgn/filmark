@@ -173,9 +173,17 @@ export default function TVShowsScreen() {
   const displayTVShows = getFilteredTVShows();
 
   const isTVShowInCollection = (tmdbShowName: string) => {
-    const found = myTVShows.some(show => 
-      show.title?.toLowerCase().trim() === tmdbShowName?.toLowerCase().trim()
-    );
+    console.log('Checking if in collection:', tmdbShowName);
+    console.log('My TV Shows:', myTVShows.map(s => ({ id: s.id, title: s.title })));
+    
+    const found = myTVShows.some(show => {
+      const showTitle = show.title?.toLowerCase().trim();
+      const searchTitle = tmdbShowName?.toLowerCase().trim();
+      console.log('Comparing:', showTitle, 'vs', searchTitle);
+      return showTitle === searchTitle;
+    });
+    
+    console.log('Found in collection:', found);
     return found;
   };
 
