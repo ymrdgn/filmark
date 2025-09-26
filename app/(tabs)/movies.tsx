@@ -299,9 +299,9 @@ export default function MoviesScreen() {
             <TouchableOpacity
               style={styles.addBadge}
               onPress={() => handleAddMovie(movie)}
-              disabled={addingMovieId === movie.imdbID || inCollection}
+              disabled={addingMovieId === parseInt(movie.imdbID.replace('tt', '')) || inCollection}
             >
-              {addingMovieId === movie.imdbID ? (
+              {addingMovieId === parseInt(movie.imdbID.replace('tt', '')) ? (
                 <ActivityIndicator size="small" color="#6366F1" />
               ) : inCollection ? (
                 <Check size={16} color="#10B981" strokeWidth={2} />
