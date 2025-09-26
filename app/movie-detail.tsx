@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, SafeAreaView, TouchableOpacity, Image, Alert } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { ArrowLeft, Star, Calendar, Clock, Eye, Plus, Trash2, CreditCard as Edit3, Heart } from 'lucide-react-native';
+import { ArrowLeft, Star, Calendar, Clock, Eye, Plus, Trash2, CreditCard as Edit3, Heart, User, Film } from 'lucide-react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { moviesApi } from '@/lib/api';
 
@@ -14,7 +14,11 @@ export default function MovieDetailScreen() {
     poster_url: params.poster_url,
     is_watched: params.is_watched === 'true',
     is_favorite: params.is_favorite === 'true',
-    rating: parseInt(params.rating as string) || 0
+    rating: parseInt(params.rating as string) || 0,
+    imdb_rating: null,
+    director: null,
+    genre: null,
+    watched_date: null
   });
   const [loading, setLoading] = useState(false);
 
@@ -36,7 +40,11 @@ export default function MovieDetailScreen() {
             poster_url: currentMovie.poster_url,
             is_watched: currentMovie.is_watched,
             is_favorite: currentMovie.is_favorite,
-            rating: currentMovie.rating || 0
+            rating: currentMovie.rating || 0,
+            imdb_rating: currentMovie.imdb_rating,
+            director: currentMovie.director,
+            genre: currentMovie.genre,
+            watched_date: currentMovie.watched_date
           });
         }
       }
@@ -70,12 +78,20 @@ export default function MovieDetailScreen() {
     setLoading(true);
     try {
       const newWatchedStatus = !movie.is_watched;
-      const { error } = await moviesApi.update(movie.id as string, { is_watched: newWatchedStatus });
+      const updateData = { 
+        is_watched: newWatchedStatus,
+        watched_date: newWatchedStatus ? new Date().toISOString() : null
+      };
+      const { error } = await moviesApi.update(movie.id as string, updateData);
       
       if (error) {
         Alert.alert('Error', 'Failed to update watched status.');
       } else {
-        setMovie(prev => ({ ...prev, is_watched: newWatchedStatus }));
+        setMovie(prev => ({ 
+          ...prev, 
+          is_watched: newWatchedStatus,
+          watched_date: newWatchedStatus ? new Date().toISOString() : null
+        }));
         const statusText = newWatchedStatus ? 'marked as watched' : 'unmarked as watched';
         Alert.alert('Success', `Movie ${statusText}!`);
         
@@ -152,6 +168,27 @@ export default function MovieDetailScreen() {
                 <Text style={styles.movieYear}>{movie.year}</Text>
               </View>
               
+              {movie.imdb_rating && (
+                <View style={styles.imdbRating}>
+                  <Star size={16} color="#F5C518" fill="#F5C518" strokeWidth={1} />
+                  <Text style={styles.imdbRatingText}>{movie.imdb_rating} IMDB</Text>
+                </View>
+              )}
+              
+              {movie.director && (
+                <View style={styles.movieMeta}>
+                  <User size={16} color="#9CA3AF" strokeWidth={2} />
+                  <Text style={styles.movieDirector}>{movie.director}</Text>
+                </View>
+              )}
+              
+              {movie.genre && (
+                <View style={styles.movieMeta}>
+                  <Film size={16} color="#9CA3AF" strokeWidth={2} />
+                  <Text style={styles.movieGenre}>{movie.genre}</Text>
+                </View>
+              )}
+              
               <View style={styles.statusContainer}>
                 <View style={[
                   styles.statusBadge,
@@ -164,6 +201,19 @@ export default function MovieDetailScreen() {
                   )}
                   <Text style={[
                     styles.statusText,
+              
+              {movie.is_watched && movie.watched_date && (
+                <View style={styles.watchedDateContainer}>
+                  <Clock size={14} color="#6B7280" strokeWidth={2} />
+                  <Text style={styles.watchedDateText}>
+                    Watched on {new Date(movie.watched_date).toLocaleDateString('en-US', {
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric'
+                    })}
+                  </Text>
+                </View>
+              )}
                     { color: movie.is_watched ? '#10B981' : '#6366F1' }
                   ]}>
                     {movie.is_watched ? 'Watched' : 'Not Watched'}
@@ -327,6 +377,27 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter-Medium',
     color: '#9CA3AF',
   },
+  imdbRating: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 8,
+  },
+  imdbRatingText: {
+    fontSize: 16,
+    fontFamily: 'Inter-SemiBold',
+    color: '#F5C518',
+  },
+  movieDirector: {
+    fontSize: 14,
+    fontFamily: 'Inter-Medium',
+    color: '#9CA3AF',
+  },
+  movieGenre: {
+    fontSize: 14,
+    fontFamily: 'Inter-Medium',
+    color: '#9CA3AF',
+  },
   statusContainer: {
     marginTop: 8,
     gap: 8,
@@ -358,6 +429,20 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontFamily: 'Inter-SemiBold',
     color: '#EF4444',
+  },
+  watchedDateContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginTop: 12,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  watchedDateText: {
+    fontSize: 12,
+    fontFamily: 'Inter-Medium',
+    color: '#6B7280',
   },
   section: {
     paddingHorizontal: 24,
