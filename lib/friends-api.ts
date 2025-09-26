@@ -70,6 +70,7 @@ export const friendsApi = {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) throw new Error('User not authenticated');
 
+    console.log('Current user ID:', user.id);
     // First get the friends relationships
     const { data: friendsData, error: friendsError } = await supabase
       .from('friends')
@@ -80,6 +81,7 @@ export const friendsApi = {
     if (friendsError) return { data: null, error: friendsError };
     if (!friendsData) return { data: [], error: null };
 
+    console.log('Friends data:', friendsData);
     // Get user emails for each friend relationship
     const enrichedFriends = await Promise.all(
       friendsData.map(async (friend) => {
@@ -177,6 +179,7 @@ export const friendsApi = {
         const friendUserId = friend.user_id === user.id ? friend.friend_id : friend.user_id;
         const requestingUserId = friend.user_id;
         
+        console.log('Processing friend:', { friendUserId, requestingUserId, currentUserId: user.id });
         console.log('Accepted friends - Getting emails:', { friendUserId, requestingUserId });
         
         // Get friend user email - try users table first, then auth.users
@@ -186,6 +189,7 @@ export const friendsApi = {
           .eq('id', friendUserId)
           .maybeSingle();
           
+        console.log('Friend user query result:', { friendUser, friendError });
         const friendEmail = friendUser?.email;
           
         // Get requesting user email - try users table first, then auth.users
@@ -195,8 +199,11 @@ export const friendsApi = {
           .eq('id', requestingUserId)
           .maybeSingle();
 
+        console.log('Requesting user query result:', { requestingUser, requestingError });
         const requestingEmail = requestingUser?.email;
 
+        console.log('Final emails:', { friendEmail, requestingEmail });
+        
         return {
           ...friend,
           friend_email: friendEmail || 'User email not available',
@@ -205,6 +212,7 @@ export const friendsApi = {
       })
     );
 
+    console.log('Enriched friends:', enrichedFriends);
     return { data: enrichedFriends, error: null };
   }
 };
