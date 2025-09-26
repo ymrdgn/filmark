@@ -283,9 +283,9 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
     marginTop: 4,
   },
-  createButton: {
-    margin: 24,
-    borderRadius: 12,
+  bottomSpacer: {
+    height: 40,
+  },
   },
   createButtonGradient: {
     flexDirection: 'row',
