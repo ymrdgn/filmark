@@ -256,7 +256,7 @@ export default function HomeScreen() {
           )}
 
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Arkadaşlarımın Aktiviteleri</Text>
+            <Text style={styles.sectionTitle}>Friends Activity</Text>
             <View style={styles.friendsActivity}>
               <View style={styles.friendActivityCard}>
                 <View style={styles.friendAvatar}>
