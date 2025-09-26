@@ -86,7 +86,10 @@ export default function FriendsScreen() {
       console.error('Send friend request error:', error);
       Alert.alert('Error', 'Failed to send friend request');
     } finally {
-      setSendingRequestId(null);
+      setS
+    }
+  }
+}endingRequestId(null);
     }
   };
 
@@ -550,17 +553,6 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter-Medium',
     color: '#9CA3AF',
     textAlign: 'center',
-  },
-  statusBadge: {
-    backgroundColor: 'rgba(245, 158, 11, 0.2)',
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-  },
-  statusBadgeText: {
-    fontSize: 12,
-    fontFamily: 'Inter-SemiBold',
-    color: '#F59E0B',
   },
   bottomSpacer: {
     height: 40,
