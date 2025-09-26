@@ -201,7 +201,7 @@ export default function FriendsScreen() {
                 <>
                   <Clock size={14} color="#F59E0B" strokeWidth={2} />
                   <Text style={styles.statusText}>
-                    {isIncoming ? 'Incoming Request' : 'Request Sent'}
+                    {isIncoming ? `Friend request from ${friendEmail}` : `Request sent to ${friendEmail}`}
                   </Text>
                 </>
               )}
