@@ -79,19 +79,19 @@ export const friendsApi = {
         
         // Get friend user email
         const { data: friendUser, error: friendError } = await supabase
-          .from('auth.users')
+          .from('users')
           .select('email')
           .eq('id', friendUserId)
-          .single();
+          .maybeSingle();
           
         console.log('Getting emails for accepted friends:', { friendUserId, requestingUserId, friendUser, friendError });
           
         // Get requesting user email
         const { data: requestingUser, error: requestingError } = await supabase
-          .from('auth.users')
+          .from('users')
           .select('email')
           .eq('id', requestingUserId)
-          .single();
+          .maybeSingle();
 
         console.log('Requesting user data:', { requestingUser, requestingError });
 
@@ -172,19 +172,19 @@ export const friendsApi = {
         
         // Get friend user email
         const { data: friendUser } = await supabase
-          .from('auth.users')
+          .from('users')
           .select('email')
           .eq('id', friendUserId)
-          .single();
+          .maybeSingle();
           
         console.log('Friend user data:', { friendUser, friendError });
           
         // Get requesting user email
         const { data: requestingUser } = await supabase
-          .from('auth.users')
+          .from('users')
           .select('email')
           .eq('id', requestingUserId)
-          .single();
+          .maybeSingle();
 
         console.log('Requesting user data:', { requestingUser, requestingError });
 
