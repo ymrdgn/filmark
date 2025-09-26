@@ -94,37 +94,6 @@ export default function MovieDetailScreen() {
     }
   };
 
-  const handleDelete = async () => {
-    Alert.alert(
-      'Delete Movie',
-      `Are you sure you want to remove "${movie.title}" from your collection?`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Delete',
-          style: 'destructive',
-          onPress: async () => {
-            setLoading(true);
-            try {
-              const { error } = await moviesApi.delete(movie.id as string);
-              
-              if (error) {
-                Alert.alert('Error', 'Failed to delete movie.');
-              } else {
-                Alert.alert('Success', 'Movie removed from collection!', [
-                  { text: 'OK', onPress: () => router.back() }
-                ]);
-              }
-            } catch (error) {
-              Alert.alert('Error', 'Failed to delete movie.');
-            } finally {
-              setLoading(false);
-            }
-          }
-        }
-      ]
-    );
-  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -135,9 +104,6 @@ export default function MovieDetailScreen() {
         <View style={styles.header}>
           <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
             <ArrowLeft size={24} color="white" strokeWidth={2} />
-          </TouchableOpacity>
-          <TouchableOpacity onPress={handleDelete} style={styles.deleteButton}>
-            <Trash2 size={20} color="#EF4444" strokeWidth={2} />
           </TouchableOpacity>
         </View>
 
@@ -285,14 +251,6 @@ const styles = StyleSheet.create({
     height: 40,
     borderRadius: 20,
     backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  deleteButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: 'rgba(239, 68, 68, 0.1)',
     justifyContent: 'center',
     alignItems: 'center',
   },
