@@ -1,19 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, SafeAreaView, TouchableOpacity, TextInput, Alert, ActivityIndicator } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { ArrowLeft, Search, UserPlus, Check, X, Users, Mail } from 'lucide-react-native';
+import { ArrowLeft, Search, UserPlus, Users, Check, X, Mail, Clock } from 'lucide-react-native';
 import { router } from 'expo-router';
-import { friendsApi } from '@/lib/friends-api';
 import { supabase } from '@/lib/supabase';
+import { friendsApi, Friend, UserSearchResult } from '@/lib/friends-api';
 
 export default function FriendsScreen() {
-  const [currentUser, setCurrentUser] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [searchResults, setSearchResults] = useState([]);
-  const [friends, setFriends] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [searching, setSearching] = useState(false);
-  const [sendingRequestTo, setSendingRequestTo] = useState<string | null>(null);
+  const [searchResults, setSearchResults] = useState<UserSearchResult[]>([]);
+  const [friends, setFriends] = useState<Friend[]>([]);
+  const [currentUser, setCurrentUser] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [searchLoading, setSearchLoading] = useState(false);
+  const [sendingRequestId, setSendingRequestId] = useState<string | null>(null);
+  const [processingRequestId, setProcessingRequestId] = useState<string | null>(null);
 
   useEffect(() => {
     loadCurrentUser();
@@ -30,92 +31,107 @@ export default function FriendsScreen() {
   };
 
   const loadFriends = async () => {
+    setLoading(true);
     try {
       const { data, error } = await friendsApi.getFriends();
       if (error) {
         console.error('Error loading friends:', error);
-        Alert.alert('Error', 'Failed to load friends list.');
+        Alert.alert('Error', 'Failed to load friends');
       } else {
         setFriends(data || []);
       }
     } catch (error) {
       console.error('Error loading friends:', error);
-      Alert.alert('Error', 'Failed to load friends list.');
+      Alert.alert('Error', 'Failed to load friends');
     } finally {
       setLoading(false);
     }
   };
 
   const handleSearch = async () => {
-    if (!searchQuery.trim()) return;
+    if (!searchQuery.trim()) {
+      setSearchResults([]);
+      return;
+    }
 
-    setSearching(true);
+    setSearchLoading(true);
     try {
-      const { data, error } = await friendsApi.searchUsersByEmail(searchQuery.trim());
+      const { data, error } = await friendsApi.searchUsersByEmail(searchQuery);
       if (error) {
-        Alert.alert('Error', 'Failed to search users.');
+        console.error('Search error:', error);
+        Alert.alert('Error', 'Failed to search users');
       } else {
-        // Filter out current user
-        const filteredResults = (data || []).filter(user => user.id !== currentUser?.id);
-        setSearchResults(filteredResults);
+        setSearchResults(data || []);
       }
     } catch (error) {
       console.error('Search error:', error);
-      Alert.alert('Error', 'Failed to search users.');
+      Alert.alert('Error', 'Failed to search users');
     } finally {
-      setSearching(false);
+      setSearchLoading(false);
     }
   };
 
-  const handleSendFriendRequest = async (friendId: string) => {
-    setSendingRequestTo(friendId);
+  const handleSendFriendRequest = async (userId: string, userEmail: string) => {
+    setSendingRequestId(userId);
     try {
-      const { error } = await friendsApi.sendFriendRequest(friendId);
+      const { data, error } = await friendsApi.sendFriendRequest(userId);
       if (error) {
-        Alert.alert('Error', error.message || 'Failed to send friend request.');
+        Alert.alert('Error', error.message || 'Failed to send friend request');
       } else {
-        Alert.alert('Success', 'Friend request sent!');
-        loadFriends(); // Reload friends list
+        Alert.alert('Success', `Friend request sent to ${userEmail}!`);
+        // Reload friends to show pending request but keep search results
+        loadFriends();
       }
     } catch (error) {
       console.error('Send friend request error:', error);
-      Alert.alert('Error', 'Failed to send friend request.');
+      Alert.alert('Error', 'Failed to send friend request');
     } finally {
-      setSendingRequestTo(null);
+      setSendingRequestId(null);
     }
   };
 
   const handleAcceptRequest = async (friendshipId: string) => {
+    setProcessingRequestId(friendshipId);
     try {
       const { error } = await friendsApi.acceptFriendRequest(friendshipId);
       if (error) {
-        Alert.alert('Error', 'Failed to accept friend request.');
+        Alert.alert('Error', 'Failed to accept friend request');
       } else {
         Alert.alert('Success', 'Friend request accepted!');
         loadFriends();
       }
     } catch (error) {
       console.error('Accept request error:', error);
-      Alert.alert('Error', 'Failed to accept friend request.');
+      Alert.alert('Error', 'Failed to accept friend request');
+    } finally {
+      setProcessingRequestId(null);
     }
   };
 
   const handleRejectRequest = async (friendshipId: string) => {
+    setProcessingRequestId(friendshipId);
     try {
       const { error } = await friendsApi.removeFriend(friendshipId);
       if (error) {
-        Alert.alert('Error', 'Failed to reject friend request.');
+        Alert.alert('Error', 'Failed to reject friend request');
       } else {
-        Alert.alert('Success', 'Friend request rejected.');
+        Alert.alert('Success', 'Friend request rejected');
         loadFriends();
       }
     } catch (error) {
       console.error('Reject request error:', error);
-      Alert.alert('Error', 'Failed to reject friend request.');
+      Alert.alert('Error', 'Failed to reject friend request');
+    } finally {
+      setProcessingRequestId(null);
     }
   };
 
-  const handleViewFriendProfile = (friendId: string, friendEmail: string) => {
+  const handleViewFriendProfile = (friend: Friend) => {
+    if (!currentUser) return;
+    
+    const friendId = friend.user_id === currentUser.id ? friend.friend_id : friend.user_id;
+    const friendEmail = friend.user_id === currentUser.id ? friend.friend_user?.email : friend.requesting_user?.email;
+    
     router.push({
       pathname: '/friend-profile',
       params: {
@@ -125,67 +141,109 @@ export default function FriendsScreen() {
     });
   };
 
-  const getRelationshipStatus = (userId: string) => {
-    const friendship = friends.find(f => 
-      (f.user_id === userId || f.friend_id === userId) && 
-      (f.user_id === currentUser?.id || f.friend_id === currentUser?.id)
+  const renderSearchResult = (user: UserSearchResult) => {
+    // Check if user already has a pending/accepted friendship
+    const existingFriendship = friends.find(f => 
+      (f.user_id === user.id && f.friend_id === currentUser?.id) ||
+      (f.friend_id === user.id && f.user_id === currentUser?.id)
     );
-    
-    if (!friendship) return null;
-    
-    if (friendship.status === 'accepted') return 'friends';
-    if (friendship.status === 'pending') {
-      // If current user sent the request
-      if (friendship.user_id === currentUser?.id) return 'sent';
-      // If current user received the request
-      return 'received';
-    }
-    
-    return null;
-  };
-
-  const renderSearchResult = (user) => {
-    const status = getRelationshipStatus(user.id);
     
     return (
       <View key={user.id} style={styles.searchResultCard}>
         <View style={styles.userInfo}>
           <View style={styles.userAvatar}>
-            <Text style={styles.userInitial}>
-              {user.email.charAt(0).toUpperCase()}
+            <Mail size={20} color="#6366F1" strokeWidth={2} />
+          </View>
+          <Text style={styles.userEmail}>{user.email}</Text>
+        </View>
+        {existingFriendship ? (
+          <View style={styles.statusBadge}>
+            <Text style={styles.statusBadgeText}>
+              {existingFriendship.status === 'pending' ? 'Request Sent' : 'Friends'}
             </Text>
           </View>
-          <View style={styles.userDetails}>
-            <Text style={styles.userEmail}>{user.email}</Text>
-            <Text style={styles.userName}>{user.email.split('@')[0]}</Text>
+        ) : (
+          <TouchableOpacity
+            style={[styles.addButton, sendingRequestId === user.id && styles.addButtonDisabled]}
+            onPress={() => handleSendFriendRequest(user.id, user.email)}
+            disabled={sendingRequestId === user.id}
+          >
+            {sendingRequestId === user.id ? (
+              <ActivityIndicator size="small" color="white" />
+            ) : (
+              <UserPlus size={20} color="white" strokeWidth={2} />
+            )}
+          </TouchableOpacity>
+        )}
+      </View>
+    );
+  };
+
+  const renderFriend = (friend: Friend) => {
+    if (!currentUser) return null;
+    
+    const isIncoming = friend.friend_id === currentUser.id;
+    const friendEmail = isIncoming ? friend.requesting_user?.email : friend.friend_user?.email;
+    
+    return (
+      <View key={friend.id} style={styles.friendCard}>
+        <View style={styles.friendInfo}>
+          <View style={[
+            styles.friendAvatar,
+            { backgroundColor: friend.status === 'accepted' ? '#10B981' : '#F59E0B' }
+          ]}>
+            <Users size={20} color="white" strokeWidth={2} />
+          </View>
+          <View style={styles.friendDetails}>
+            <Text style={styles.friendEmail}>{friendEmail}</Text>
+            <View style={styles.friendStatus}>
+              {friend.status === 'pending' && (
+                <>
+                  <Clock size={14} color="#F59E0B" strokeWidth={2} />
+                  <Text style={styles.statusText}>
+                    {isIncoming ? 'Incoming Request' : 'Request Sent'}
+                  </Text>
+                </>
+              )}
+              {friend.status === 'accepted' && (
+                <>
+                  <Check size={14} color="#10B981" strokeWidth={2} />
+                  <Text style={[styles.statusText, { color: '#10B981' }]}>Friends</Text>
+                </>
+              )}
+            </View>
           </View>
         </View>
         
-        <View style={styles.actionContainer}>
-          {status === 'friends' && (
-            <View style={styles.statusBadge}>
-              <Text style={styles.statusText}>Friends</Text>
-            </View>
+        <View style={styles.friendActions}>
+          {friend.status === 'pending' && isIncoming && (
+            <>
+              <TouchableOpacity
+                style={[styles.actionButton, styles.acceptButton]}
+                onPress={() => handleAcceptRequest(friend.id)}
+                disabled={processingRequestId === friend.id}
+              >
+                {processingRequestId === friend.id ? (
+                  <ActivityIndicator size="small" color="white" />
+                ) : (
+                  <Check size={16} color="white" strokeWidth={2} />
+                )}
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.actionButton, styles.rejectButton]}
+                onPress={() => handleRejectRequest(friend.id)}
+                disabled={processingRequestId === friend.id}
+              >
+                <X size={16} color="white" strokeWidth={2} />
+              </TouchableOpacity>
+            </>
           )}
-          {status === 'sent' && (
-            <View style={[styles.statusBadge, { backgroundColor: '#F59E0B20' }]}>
-              <Text style={[styles.statusText, { color: '#F59E0B' }]}>Request Sent</Text>
-            </View>
-          )}
-          {!status && (
+          {friend.status === 'accepted' && (
             <TouchableOpacity
-              style={styles.addButton}
-              onPress={() => handleSendFriendRequest(user.id)}
-              disabled={sendingRequestTo === user.id}
+              style={styles.viewProfileButton}
+              onPress={() => handleViewFriendProfile(friend)}
             >
-              {sendingRequestTo === user.id ? (
-                <ActivityIndicator size="small" color="white" />
-              ) : (
-                <>
-                  <UserPlus size={16} color="white" strokeWidth={2} />
-                  <Text style={styles.addButtonText}>Add</Text>
-                </>
-              )}
+              <Text style={styles.viewProfileText}>View Profile</Text>
             </TouchableOpacity>
           )}
         </View>
@@ -193,78 +251,7 @@ export default function FriendsScreen() {
     );
   };
 
-  const renderFriend = (friend) => {
-    if (!currentUser) return null;
-    
-    const friendId = friend.user_id === currentUser.id ? friend.friend_id : friend.user_id;
-    const friendEmail = friend.user_id === currentUser.id ? friend.friend_user?.email : friend.requesting_user?.email;
-    
-    if (friend.status === 'pending' && friend.friend_id === currentUser.id) {
-      // Incoming request
-      return (
-        <View key={friend.id} style={styles.friendCard}>
-          <View style={styles.userInfo}>
-            <View style={styles.userAvatar}>
-              <Text style={styles.userInitial}>
-                {friendEmail?.charAt(0).toUpperCase()}
-              </Text>
-            </View>
-            <View style={styles.userDetails}>
-              <Text style={styles.userEmail}>{friendEmail}</Text>
-              <Text style={styles.userName}>{friendEmail?.split('@')[0]}</Text>
-              <Text style={styles.requestText}>Sent you a friend request</Text>
-            </View>
-          </View>
-          
-          <View style={styles.requestActions}>
-            <TouchableOpacity
-              style={styles.acceptButton}
-              onPress={() => handleAcceptRequest(friend.id)}
-            >
-              <Check size={16} color="white" strokeWidth={2} />
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.rejectButton}
-              onPress={() => handleRejectRequest(friend.id)}
-            >
-              <X size={16} color="white" strokeWidth={2} />
-            </TouchableOpacity>
-          </View>
-        </View>
-      );
-    } else if (friend.status === 'accepted') {
-      // Accepted friend
-      return (
-        <View key={friend.id} style={styles.friendCard}>
-          <View style={styles.userInfo}>
-            <View style={styles.userAvatar}>
-              <Text style={styles.userInitial}>
-                {friendEmail?.charAt(0).toUpperCase()}
-              </Text>
-            </View>
-            <View style={styles.userDetails}>
-              <Text style={styles.userEmail}>{friendEmail}</Text>
-              <Text style={styles.userName}>{friendEmail?.split('@')[0]}</Text>
-            </View>
-          </View>
-          
-          <TouchableOpacity
-            style={styles.viewButton}
-            onPress={() => handleViewFriendProfile(friendId, friendEmail)}
-          >
-            <Text style={styles.viewButtonText}>View Lists</Text>
-          </TouchableOpacity>
-        </View>
-      );
-    }
-    
-    return null;
-  };
-
-  const pendingRequests = friends.filter(f => 
-    f.status === 'pending' && f.friend_id === currentUser?.id
-  );
-  
+  const pendingRequests = friends.filter(f => f.status === 'pending');
   const acceptedFriends = friends.filter(f => f.status === 'accepted');
 
   return (
@@ -293,6 +280,8 @@ export default function FriendsScreen() {
               value={searchQuery}
               onChangeText={setSearchQuery}
               onSubmitEditing={handleSearch}
+              keyboardType="email-address"
+              autoCapitalize="none"
             />
             <TouchableOpacity onPress={handleSearch} style={styles.searchButton}>
               <Text style={styles.searchButtonText}>Search</Text>
@@ -301,20 +290,21 @@ export default function FriendsScreen() {
         </View>
 
         <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-          {searching && (
-            <View style={styles.loadingContainer}>
-              <ActivityIndicator size="large" color="#6366F1" />
-              <Text style={styles.loadingText}>Searching...</Text>
-            </View>
-          )}
-
+          {/* Search Results */}
           {searchResults.length > 0 && (
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>Search Results</Text>
-              {searchResults.map(renderSearchResult)}
+              {searchLoading ? (
+                <View style={styles.loadingContainer}>
+                  <ActivityIndicator size="large" color="#6366F1" />
+                </View>
+              ) : (
+                searchResults.map(renderSearchResult)
+              )}
             </View>
           )}
 
+          {/* Pending Requests */}
           {pendingRequests.length > 0 && (
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>Pending Requests</Text>
@@ -322,24 +312,23 @@ export default function FriendsScreen() {
             </View>
           )}
 
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>My Friends</Text>
-            {loading ? (
-              <View style={styles.loadingContainer}>
-                <ActivityIndicator size="large" color="#6366F1" />
-                <Text style={styles.loadingText}>Loading friends...</Text>
-              </View>
-            ) : acceptedFriends.length > 0 ? (
-              acceptedFriends.map(renderFriend)
-            ) : (
-              <View style={styles.emptyState}>
-                <Users size={48} color="#6B7280" strokeWidth={1.5} />
-                <Text style={styles.emptyStateText}>No friends yet</Text>
-                <Text style={styles.emptyStateSubtext}>Search for friends by email to get started</Text>
-              </View>
-            )}
-          </View>
-          
+          {/* Friends */}
+          {acceptedFriends.length > 0 && (
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>My Friends</Text>
+              {acceptedFriends.map(renderFriend)}
+            </View>
+          )}
+
+          {/* Empty State */}
+          {friends.length === 0 && !loading && (
+            <View style={styles.emptyState}>
+              <Users size={48} color="#6B7280" strokeWidth={1.5} />
+              <Text style={styles.emptyStateText}>No friends yet</Text>
+              <Text style={styles.emptyStateSubtext}>Search for friends by email to get started</Text>
+            </View>
+          )}
+
           <View style={styles.bottomSpacer} />
         </ScrollView>
       </LinearGradient>
@@ -440,6 +429,47 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.1)',
   },
+  userInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  userAvatar: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(99, 102, 241, 0.2)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+  },
+  userEmail: {
+    fontSize: 16,
+    fontFamily: 'Inter-Medium',
+    color: 'white',
+  },
+  addButton: {
+    backgroundColor: '#6366F1',
+    borderRadius: 8,
+    width: 40,
+    height: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  addButtonDisabled: {
+    opacity: 0.6,
+  },
+  statusBadge: {
+    backgroundColor: 'rgba(245, 158, 11, 0.2)',
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+  },
+  statusBadgeText: {
+    fontSize: 12,
+    fontFamily: 'Inter-SemiBold',
+    color: '#F59E0B',
+  },
   friendCard: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -451,122 +481,77 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.1)',
   },
-  userInfo: {
+  friendInfo: {
     flexDirection: 'row',
     alignItems: 'center',
     flex: 1,
   },
-  userAvatar: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: '#6366F1',
+  friendAvatar: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
   },
-  userInitial: {
-    fontSize: 18,
-    fontFamily: 'Inter-Bold',
-    color: 'white',
-  },
-  userDetails: {
+  friendDetails: {
     flex: 1,
   },
-  userEmail: {
+  friendEmail: {
     fontSize: 16,
-    fontFamily: 'Inter-SemiBold',
+    fontFamily: 'Inter-Medium',
     color: 'white',
     marginBottom: 4,
   },
-  userName: {
-    fontSize: 14,
-    fontFamily: 'Inter-Medium',
-    color: '#9CA3AF',
-  },
-  requestText: {
-    fontSize: 12,
-    fontFamily: 'Inter-Medium',
-    color: '#F59E0B',
-    marginTop: 2,
-  },
-  actionContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  statusBadge: {
-    backgroundColor: '#10B98120',
-    borderRadius: 16,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-  },
-  statusText: {
-    fontSize: 12,
-    fontFamily: 'Inter-SemiBold',
-    color: '#10B981',
-  },
-  addButton: {
+  friendStatus: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
+  },
+  statusText: {
+    fontSize: 12,
+    fontFamily: 'Inter-Medium',
+    color: '#F59E0B',
+  },
+  friendActions: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  actionButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  acceptButton: {
+    backgroundColor: '#10B981',
+  },
+  rejectButton: {
+    backgroundColor: '#EF4444',
+  },
+  viewProfileButton: {
     backgroundColor: '#6366F1',
     borderRadius: 8,
     paddingHorizontal: 12,
     paddingVertical: 8,
   },
-  addButtonText: {
-    fontSize: 14,
-    fontFamily: 'Inter-SemiBold',
-    color: 'white',
-  },
-  requestActions: {
-    flexDirection: 'row',
-    gap: 8,
-  },
-  acceptButton: {
-    backgroundColor: '#10B981',
-    borderRadius: 8,
-    width: 36,
-    height: 36,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  rejectButton: {
-    backgroundColor: '#EF4444',
-    borderRadius: 8,
-    width: 36,
-    height: 36,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  viewButton: {
-    backgroundColor: '#6366F1',
-    borderRadius: 8,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-  },
-  viewButtonText: {
-    fontSize: 14,
+  viewProfileText: {
+    fontSize: 12,
     fontFamily: 'Inter-SemiBold',
     color: 'white',
   },
   loadingContainer: {
     alignItems: 'center',
-    paddingVertical: 40,
-  },
-  loadingText: {
-    fontSize: 16,
-    fontFamily: 'Inter-Medium',
-    color: '#9CA3AF',
-    marginTop: 12,
+    paddingVertical: 20,
   },
   emptyState: {
     alignItems: 'center',
     paddingVertical: 60,
+    paddingHorizontal: 24,
   },
   emptyStateText: {
-    fontSize: 18,
+    fontSize: 20,
     fontFamily: 'Inter-SemiBold',
     color: 'white',
     marginTop: 16,
