@@ -20,6 +20,17 @@ export interface UserSearchResult {
 export const friendsApi = {
   // Search users by email
   searchUsersByEmail: async (email: string) => {
+    const { data, error } = await supabase
+      .from('users')
+      .select('id, email')
+      .ilike('email', `%${email}%`)
+      .limit(10);
+    
+    return { data, error };
+  },
+
+  // Alternative search using RPC (if you have the function)
+  searchUsersByEmailRPC: async (email: string) => {
     const { data, error } = await supabase.rpc('search_users_by_email', {
       search_email: email
     });
