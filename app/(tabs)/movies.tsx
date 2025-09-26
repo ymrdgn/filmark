@@ -154,7 +154,7 @@ export default function MoviesScreen() {
   const getFilteredMovies = () => {
     console.log('getFilteredMovies called with filter:', filter);
     console.log('myMovies length:', myMovies.length);
-    console.log('myMovies:', myMovies.map(m => ({ title: m.title, is_watched: m.is_watched, is_favorite: m.is_favorite })));
+    console.log('Full myMovies objects:', myMovies);
     
     if (filter === 'watched') {
       const watchedMovies = myMovies.filter(movie => {
