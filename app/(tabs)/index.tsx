@@ -335,6 +335,16 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontFamily: 'Inter-SemiBold',
     color: '#6366F1',
+  },
+  statsContainer: {
+    paddingHorizontal: 24,
+    marginBottom: 32,
+  },
+  sectionTitle: {
+    fontSize: 20,
+    fontFamily: 'Inter-SemiBold',
+    color: 'white',
+    marginBottom: 16,
   statsGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
