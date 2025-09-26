@@ -77,38 +77,50 @@ export const friendsApi = {
         const friendUserId = friend.user_id === user.id ? friend.friend_id : friend.user_id;
         const requestingUserId = friend.user_id;
         
-        // Get friend user email
+        // Get friend user email - try users table first, then auth.users
         const { data: friendUser, error: friendError } = await supabase
           .from('users')
           .select('email')
           .eq('id', friendUserId)
           .maybeSingle();
           
-        console.log('Friend user query:', { 
-          friendUserId, 
-          friendUser, 
-          friendError,
-          friendUserEmail: friendUser?.email 
-        });
+        let friendEmail = friendUser?.email;
+        
+        // If not found in users table, try to get from auth.users via admin API
+        if (!friendEmail) {
+          try {
+            const { data: authUser, error: authError } = await supabase.auth.admin.getUserById(friendUserId);
+            friendEmail = authUser?.user?.email;
+            console.log('Fallback auth user query:', { friendUserId, authUser: authUser?.user, authError });
+          } catch (error) {
+            console.log('Auth fallback failed:', error);
+          }
+        }
           
-        // Get requesting user email
+        // Get requesting user email - try users table first, then auth.users
         const { data: requestingUser, error: requestingError } = await supabase
           .from('users')
           .select('email')
           .eq('id', requestingUserId)
           .maybeSingle();
 
-        console.log('Requesting user query:', { 
-          requestingUserId, 
-          requestingUser, 
-          requestingError,
-          requestingUserEmail: requestingUser?.email 
-        });
+        let requestingEmail = requestingUser?.email;
+        
+        // If not found in users table, try to get from auth.users via admin API
+        if (!requestingEmail) {
+          try {
+            const { data: authUser, error: authError } = await supabase.auth.admin.getUserById(requestingUserId);
+            requestingEmail = authUser?.user?.email;
+            console.log('Fallback auth user query:', { requestingUserId, authUser: authUser?.user, authError });
+          } catch (error) {
+            console.log('Auth fallback failed:', error);
+          }
+        }
 
         return {
           ...friend,
-          friend_email: friendUser?.email || `User not found (${friendUserId})`,
-          requesting_email: requestingUser?.email || `User not found (${requestingUserId})`
+          friend_email: friendEmail || `User not found (${friendUserId})`,
+          requesting_email: requestingEmail || `User not found (${requestingUserId})`
         };
       })
     );
@@ -180,28 +192,48 @@ export const friendsApi = {
         
         console.log('Accepted friends - Getting emails:', { friendUserId, requestingUserId });
         
-        // Get friend user email
+        // Get friend user email - try users table first, then auth.users
         const { data: friendUser } = await supabase
           .from('users')
           .select('email')
           .eq('id', friendUserId)
           .maybeSingle();
           
-        console.log('Accepted friend user data:', { friendUser });
+        let friendEmail = friendUser?.email;
+        
+        // If not found in users table, try to get from auth.users via admin API
+        if (!friendEmail) {
+          try {
+            const { data: authUser, error: authError } = await supabase.auth.admin.getUserById(friendUserId);
+            friendEmail = authUser?.user?.email;
+          } catch (error) {
+            console.log('Auth fallback failed for accepted friends:', error);
+          }
+        }
           
-        // Get requesting user email
+        // Get requesting user email - try users table first, then auth.users
         const { data: requestingUser } = await supabase
           .from('users')
           .select('email')
           .eq('id', requestingUserId)
           .maybeSingle();
 
-        console.log('Accepted requesting user data:', { requestingUser });
+        let requestingEmail = requestingUser?.email;
+        
+        // If not found in users table, try to get from auth.users via admin API
+        if (!requestingEmail) {
+          try {
+            const { data: authUser, error: authError } = await supabase.auth.admin.getUserById(requestingUserId);
+            requestingEmail = authUser?.user?.email;
+          } catch (error) {
+            console.log('Auth fallback failed for accepted friends:', error);
+          }
+        }
 
         return {
           ...friend,
-          friend_email: friendUser?.email || 'Unknown user',
-          requesting_email: requestingUser?.email || 'Unknown user'
+          friend_email: friendEmail || 'Unknown user',
+          requesting_email: requestingEmail || 'Unknown user'
         };
       })
     );
