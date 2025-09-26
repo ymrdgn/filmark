@@ -70,7 +70,6 @@ export const friendsApi = {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) throw new Error('User not authenticated');
 
-    // First get the friends relationships
     const { data: friendsData, error: friendsError } = await supabase
       .from('friends')
       .select('*')
@@ -80,55 +79,31 @@ export const friendsApi = {
     if (friendsError) return { data: null, error: friendsError };
     if (!friendsData) return { data: [], error: null };
 
-    // Get user emails for each friend relationship
     const enrichedFriends = await Promise.all(
       friendsData.map(async (friend) => {
         const friendUserId = friend.user_id === user.id ? friend.friend_id : friend.user_id;
         const requestingUserId = friend.user_id;
         
-        console.log('🔍 Processing friend relationship:', {
-          friendshipId: friend.id,
-          currentUserId: user.id,
-          friendUserId,
-          requestingUserId,
-          status: friend.status
-        });
-        
-        // Get friend user email from users table  
         const { data: friendUser } = await supabase
           .from('users')
           .select('email')
           .eq('id', friendUserId)
           .maybeSingle();
         
-        console.log('📧 Friend user query:', {
-          friendUserId,
-          friendUser,
-          friendError: friendError?.message
-        });
-        
-        // Get requesting user email from users table  
         const { data: requestingUser } = await supabase
           .from('users')
           .select('email')
           .eq('id', requestingUserId)
           .maybeSingle();
         
-        console.log('📧 Requesting user query:', {
-          requestingUserId,
-          requestingUser,
-          requestingError: requestingError?.message
-        });
-        
         return {
           ...friend,
-          friend_email: friendUser?.email || 'Email not found',
-          requesting_email: requestingUser?.email || 'Email not found'
+          friend_email: friendUser?.email || 'Unknown user',
+          requesting_email: requestingUser?.email || 'Unknown user'
         };
       })
     );
 
-    console.log('✅ Final enriched friends:', enrichedFriends);
     return { data: enrichedFriends, error: null };
   },
 
