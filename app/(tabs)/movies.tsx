@@ -130,11 +130,19 @@ export default function MoviesScreen() {
 
   // Filter movies based on current tab
   const getFilteredMovies = () => {
+    console.log('getFilteredMovies called with filter:', filter);
+    console.log('myMovies length:', myMovies.length);
+    console.log('myMovies:', myMovies.map(m => ({ title: m.title, is_watched: m.is_watched, is_favorite: m.is_favorite })));
+    
     if (filter === 'watched') {
-      return myMovies.filter(movie => {
+      const watchedMovies = myMovies.filter(movie => {
         const matchesSearch = movie.title.toLowerCase().includes(searchQuery.toLowerCase());
-        return matchesSearch && movie.is_watched === true;
+        const isWatched = movie.is_watched === true;
+        console.log(`Movie: ${movie.title}, matches search: ${matchesSearch}, is_watched: ${isWatched}, final: ${matchesSearch && isWatched}`);
+        return matchesSearch && isWatched;
       });
+      console.log('Filtered watched movies:', watchedMovies.length);
+      return watchedMovies;
     }
     if (filter === 'favorites') {
       return myMovies.filter(movie => {
