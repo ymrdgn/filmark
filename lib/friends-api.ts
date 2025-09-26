@@ -61,17 +61,45 @@ export const friendsApi = {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) throw new Error('User not authenticated');
 
-    const { data, error } = await supabase
+    // First get the friends relationships
+    const { data: friendsData, error: friendsError } = await supabase
       .from('friends')
-      .select(`
-        *,
-        friend_user:users!friends_friend_id_fkey(email),
-        requesting_user:users!friends_user_id_fkey(email)
-      `)
+      .select('*')
       .or(`user_id.eq.${user.id},friend_id.eq.${user.id}`)
       .order('created_at', { ascending: false });
     
-    return { data, error };
+    if (friendsError) return { data: null, error: friendsError };
+    if (!friendsData) return { data: [], error: null };
+
+    // Get user emails for each friend relationship
+    const enrichedFriends = await Promise.all(
+      friendsData.map(async (friend) => {
+        const friendUserId = friend.user_id === user.id ? friend.friend_id : friend.user_id;
+        const requestingUserId = friend.user_id;
+        
+        // Get friend user email
+        const { data: friendUser } = await supabase
+          .from('users')
+          .select('email')
+          .eq('id', friendUserId)
+          .single();
+          
+        // Get requesting user email
+        const { data: requestingUser } = await supabase
+          .from('users')
+          .select('email')
+          .eq('id', requestingUserId)
+          .single();
+
+        return {
+          ...friend,
+          friend_user: friendUser,
+          requesting_user: requestingUser
+        };
+      })
+    );
+
+    return { data: enrichedFriends, error: null };
   },
 
   // Accept friend request
@@ -119,17 +147,45 @@ export const friendsApi = {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) throw new Error('User not authenticated');
 
-    const { data, error } = await supabase
+    // First get the friends relationships
+    const { data: friendsData, error: friendsError } = await supabase
       .from('friends')
-      .select(`
-        *,
-        friend_user:users!friends_friend_id_fkey(email),
-        requesting_user:users!friends_user_id_fkey(email)
-      `)
+      .select('*')
       .or(`user_id.eq.${user.id},friend_id.eq.${user.id}`)
       .eq('status', 'accepted')
       .order('created_at', { ascending: false });
     
-    return { data, error };
+    if (friendsError) return { data: null, error: friendsError };
+    if (!friendsData) return { data: [], error: null };
+
+    // Get user emails for each friend relationship
+    const enrichedFriends = await Promise.all(
+      friendsData.map(async (friend) => {
+        const friendUserId = friend.user_id === user.id ? friend.friend_id : friend.user_id;
+        const requestingUserId = friend.user_id;
+        
+        // Get friend user email
+        const { data: friendUser } = await supabase
+          .from('users')
+          .select('email')
+          .eq('id', friendUserId)
+          .single();
+          
+        // Get requesting user email
+        const { data: requestingUser } = await supabase
+          .from('users')
+          .select('email')
+          .eq('id', requestingUserId)
+          .single();
+
+        return {
+          ...friend,
+          friend_user: friendUser,
+          requesting_user: requestingUser
+        };
+      })
+    );
+
+    return { data: enrichedFriends, error: null };
   }
 };
