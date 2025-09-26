@@ -168,21 +168,21 @@ export const friendsApi = {
         
         // Get friend user email
         const { data: friendUser } = await supabase
-          .from('users')
+          .from('auth.users')
           .select('email')
           .eq('id', friendUserId)
-          .maybeSingle();
+          .single();
           
-        console.log('Friend user data:', friendUser);
+        console.log('Friend user data:', { friendUser, friendError });
           
         // Get requesting user email
         const { data: requestingUser } = await supabase
-          .from('users')
+          .from('auth.users')
           .select('email')
           .eq('id', requestingUserId)
-          .maybeSingle();
+          .single();
 
-        console.log('Requesting user data:', requestingUser);
+        console.log('Requesting user data:', { requestingUser, requestingError });
 
         return {
           ...friend,
