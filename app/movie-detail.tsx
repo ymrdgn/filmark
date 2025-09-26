@@ -227,6 +227,19 @@ export default function MovieDetailScreen() {
                   </View>
                 )}
               </View>
+              
+              {movie.is_watched && movie.watched_date && (
+                <View style={styles.watchedDateContainer}>
+                  <Clock size={14} color="#6B7280" strokeWidth={2} />
+                  <Text style={styles.watchedDateText}>
+                    Watched on {new Date(movie.watched_date).toLocaleDateString('en-US', {
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric'
+                    })}
+                  </Text>
+                </View>
+              )}
             </View>
           </View>
 
