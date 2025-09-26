@@ -69,6 +69,14 @@ export default function MoviesScreen() {
     }
   };
 
+  const handleSearchChange = (text: string) => {
+    setSearchQuery(text);
+    // If search is cleared, reload popular movies
+    if (!text.trim()) {
+      loadTMDBMovies();
+    }
+  };
+
   const handleAddMovie = async (movie: TMDBMovie) => {
     setAddingMovieId(movie.id);
     try {
@@ -305,7 +313,7 @@ export default function MoviesScreen() {
               placeholder="Search movies..."
               placeholderTextColor="#6B7280"
               value={searchQuery}
-              onChangeText={setSearchQuery}
+              onChangeText={handleSearchChange}
               onSubmitEditing={handleSearch}
             />
           </View>
