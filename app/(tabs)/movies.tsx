@@ -98,6 +98,25 @@ export default function MoviesScreen() {
     }
   };
 
+  const handleToggleFavorite = async (movieId: string) => {
+    try {
+      const movie = movies.find(m => m.id === movieId);
+      if (!movie) return;
+
+      const { error } = await moviesApi.update(movieId, { 
+        is_favorite: !movie.is_favorite 
+      });
+      
+      if (error) {
+        Alert.alert('Error', 'Failed to update favorite status.');
+      } else {
+        loadMovies(); // Refresh movies list
+      }
+    } catch (error) {
+      Alert.alert('Error', 'Failed to update favorite status.');
+    }
+  };
+
   const navigateToMovieDetail = (movie) => {
     // Movie detail sayfasına navigate et
     router.push({
@@ -160,6 +179,38 @@ export default function MoviesScreen() {
             <View style={styles.favoriteBadge}>
               <Heart size={12} color="#EF4444" fill="#EF4444" strokeWidth={1} />
             </View>
+          )}
+          <TouchableOpacity
+            style={styles.favoriteButton}
+            onPress={() => handleToggleFavorite(movie.id)}
+          >
+            <Heart 
+              size={12} 
+              color="#EF4444" 
+              fill={movie.is_favorite ? "#EF4444" : "transparent"} 
+              strokeWidth={1.5} 
+            />
+          </TouchableOpacity>
+          {inCollection && (
+            <TouchableOpacity
+              style={styles.favoriteButton}
+              onPress={() => {
+                const existingMovie = movies.find(m => m.title.toLowerCase() === movie.title.toLowerCase());
+                if (existingMovie) {
+                  handleToggleFavorite(existingMovie.id);
+                }
+              }}
+            >
+              <Heart 
+                size={12} 
+                color="#EF4444" 
+                fill={(() => {
+                  const existingMovie = movies.find(m => m.title.toLowerCase() === movie.title.toLowerCase());
+                  return existingMovie?.is_favorite ? "#EF4444" : "transparent";
+                })()} 
+                strokeWidth={1.5} 
+              />
+            </TouchableOpacity>
           )}
         </View>
       </View>
@@ -467,6 +518,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   favoriteBadge: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  favoriteButton: {
     width: 28,
     height: 28,
     borderRadius: 14,
