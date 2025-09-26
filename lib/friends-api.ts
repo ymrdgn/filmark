@@ -78,18 +78,22 @@ export const friendsApi = {
         const requestingUserId = friend.user_id;
         
         // Get friend user email
-        const { data: friendUser } = await supabase
-          .from('users')
+        const { data: friendUser, error: friendError } = await supabase
+          .from('auth.users')
           .select('email')
           .eq('id', friendUserId)
-          .maybeSingle();
+          .single();
+          
+        console.log('Getting emails for accepted friends:', { friendUserId, requestingUserId, friendUser, friendError });
           
         // Get requesting user email
-        const { data: requestingUser } = await supabase
-          .from('users')
+        const { data: requestingUser, error: requestingError } = await supabase
+          .from('auth.users')
           .select('email')
           .eq('id', requestingUserId)
-          .maybeSingle();
+          .single();
+
+        console.log('Requesting user data:', { requestingUser, requestingError });
 
         return {
           ...friend,
