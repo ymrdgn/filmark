@@ -201,19 +201,6 @@ export default function MovieDetailScreen() {
                   )}
                   <Text style={[
                     styles.statusText,
-              
-              {movie.is_watched && movie.watched_date && (
-                <View style={styles.watchedDateContainer}>
-                  <Clock size={14} color="#6B7280" strokeWidth={2} />
-                  <Text style={styles.watchedDateText}>
-                    Watched on {new Date(movie.watched_date).toLocaleDateString('en-US', {
-                      year: 'numeric',
-                      month: 'long',
-                      day: 'numeric'
-                    })}
-                  </Text>
-                </View>
-              )}
                     { color: movie.is_watched ? '#10B981' : '#6366F1' }
                   ]}>
                     {movie.is_watched ? 'Watched' : 'Not Watched'}
@@ -227,6 +214,19 @@ export default function MovieDetailScreen() {
                   </View>
                 )}
               </View>
+              
+              {movie.is_watched && movie.watched_date && (
+                <View style={styles.watchedDateContainer}>
+                  <Clock size={14} color="#6B7280" strokeWidth={2} />
+                  <Text style={styles.watchedDateText}>
+                    Watched on {new Date(movie.watched_date).toLocaleDateString('en-US', {
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric'
+                    })}
+                  </Text>
+                </View>
+              )}
             </View>
           </View>
 
