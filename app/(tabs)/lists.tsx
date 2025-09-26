@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, SafeAreaView, TouchableOpacity } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { BookMarked, Heart, Clock, Star, Film, Tv } from 'lucide-react-native';
+import { router } from 'expo-router';
 import { moviesApi, tvShowsApi } from '@/lib/api';
 
 export default function ListsScreen() {
@@ -68,7 +69,17 @@ export default function ListsScreen() {
   ];
 
   const renderListCard = (list) => (
-    <TouchableOpacity key={list.id} style={styles.listCard}>
+    <TouchableOpacity 
+      key={list.id} 
+      style={styles.listCard}
+      onPress={() => {
+        if (list.name === 'Favorites') {
+          router.push('/list-detail?type=favorites&title=Favorites');
+        } else if (list.name === 'Watched') {
+          router.push('/list-detail?type=watched&title=Watched');
+        }
+      }}
+    >
       <View style={styles.listHeader}>
         <View style={[styles.listIcon, { backgroundColor: `${list.color}20` }]}>
           <list.icon size={24} color={list.color} strokeWidth={2} />

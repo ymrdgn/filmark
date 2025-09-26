@@ -47,6 +47,7 @@ export default function RootLayout() {
         <Stack.Screen name="movie-detail" />
         <Stack.Screen name="omdb-movie-detail" />
         <Stack.Screen name="tv-show-detail" />
+        <Stack.Screen name="list-detail" />
         <Stack.Screen name="+not-found" />
       </Stack>
       <StatusBar style="light" />
