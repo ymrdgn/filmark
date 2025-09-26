@@ -421,7 +421,6 @@ const styles = StyleSheet.create({
   searchResultCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
     backgroundColor: 'rgba(255, 255, 255, 0.05)',
     borderRadius: 12,
     padding: 16,
@@ -433,8 +432,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     flex: 1,
-    marginRight: 16,
-    minWidth: 0, // Allow text to wrap properly
+    marginRight: 12,
   },
   userAvatar: {
     width: 40,
@@ -444,15 +442,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
-    flexShrink: 0, // Prevent avatar from shrinking
   },
   userEmail: {
     fontSize: 16,
     fontFamily: 'Inter-Medium',
     color: 'white',
     flex: 1,
-    numberOfLines: 2,
-    flexShrink: 1, // Allow text to shrink
   },
   addButton: {
     backgroundColor: '#6366F1',
@@ -461,7 +456,6 @@ const styles = StyleSheet.create({
     height: 40,
     justifyContent: 'center',
     alignItems: 'center',
-    flexShrink: 0, // Prevent button from shrinking
   },
   addButtonDisabled: {
     opacity: 0.6,
@@ -471,7 +465,6 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     paddingHorizontal: 12,
     paddingVertical: 6,
-    flexShrink: 0,
   },
   statusBadgeText: {
     fontSize: 12,
