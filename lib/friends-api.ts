@@ -82,14 +82,14 @@ export const friendsApi = {
           .from('users')
           .select('email')
           .eq('id', friendUserId)
-          .single();
+          .maybeSingle();
           
         // Get requesting user email
         const { data: requestingUser } = await supabase
           .from('users')
           .select('email')
           .eq('id', requestingUserId)
-          .single();
+          .maybeSingle();
 
         return {
           ...friend,
@@ -169,14 +169,14 @@ export const friendsApi = {
           .from('users')
           .select('email')
           .eq('id', friendUserId)
-          .single();
+          .maybeSingle();
           
         // Get requesting user email
         const { data: requestingUser } = await supabase
           .from('users')
           .select('email')
           .eq('id', requestingUserId)
-          .single();
+          .maybeSingle();
 
         return {
           ...friend,
