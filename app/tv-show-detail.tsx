@@ -21,8 +21,7 @@ export default function TVShowDetailScreen() {
     current_episode: parseInt(params.current_episode as string) || 1,
     imdb_rating: null,
     director: null,
-    genre: null,
-    watched_date: null
+    genre: null
   });
   const [loading, setLoading] = useState(false);
 
@@ -61,8 +60,7 @@ export default function TVShowDetailScreen() {
             current_episode: currentShow.current_episode || 1,
             imdb_rating: currentShow.imdb_rating,
             director: currentShow.director,
-            genre: currentShow.genre,
-            watched_date: currentShow.watched_date
+            genre: currentShow.genre
           });
         } else {
           console.log('TV show not found in collection, using params');
@@ -105,10 +103,7 @@ export default function TVShowDetailScreen() {
     setLoading(true);
     try {
       const newWatchedStatus = !tvShow.is_watched;
-      const updateData = { 
-        is_watched: newWatchedStatus,
-        watched_date: newWatchedStatus ? new Date().toISOString() : null
-      };
+      const updateData = { is_watched: newWatchedStatus };
       const { error } = await tvShowsApi.update(tvShow.id as string, updateData);
       
       if (error) {
@@ -116,8 +111,7 @@ export default function TVShowDetailScreen() {
       } else {
         setTVShow(prev => ({ 
           ...prev, 
-          is_watched: newWatchedStatus,
-          watched_date: newWatchedStatus ? new Date().toISOString() : null
+          is_watched: newWatchedStatus
         }));
         const statusText = newWatchedStatus ? 'marked as watched' : 'unmarked as watched';
         Alert.alert('Success', `TV show ${statusText}!`);
