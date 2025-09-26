@@ -432,7 +432,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     flex: 1,
-    marginRight: 12,
+    marginRight: 16,
+    minWidth: 0, // Allow text to shrink
   },
   userAvatar: {
     width: 40,
@@ -448,6 +449,8 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter-Medium',
     color: 'white',
     flex: 1,
+    numberOfLines: 1,
+    flexShrink: 1,
   },
   addButton: {
     backgroundColor: '#6366F1',
