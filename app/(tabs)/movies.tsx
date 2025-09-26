@@ -131,12 +131,20 @@ export default function MoviesScreen() {
   // Filter movies based on current tab
   const getFilteredMovies = () => {
     if (filter === 'watched') {
-      return filteredMyMovies.filter(movie => movie.is_watched === true);
+      return myMovies.filter(movie => {
+        const matchesSearch = movie.title.toLowerCase().includes(searchQuery.toLowerCase());
+        return matchesSearch && movie.is_watched === true;
+      });
     }
     if (filter === 'favorites') {
-      return filteredMyMovies.filter(movie => movie.is_favorite === true);
+      return myMovies.filter(movie => {
+        const matchesSearch = movie.title.toLowerCase().includes(searchQuery.toLowerCase());
+        return matchesSearch && movie.is_favorite === true;
+      });
     }
-    return filteredMyMovies; // 'all' case
+    return myMovies.filter(movie => 
+      movie.title.toLowerCase().includes(searchQuery.toLowerCase())
+    ); // 'all' case
   };
 
   const displayMovies = getFilteredMovies();
