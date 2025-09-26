@@ -156,11 +156,6 @@ export default function MoviesScreen() {
           </View>
         )}
         <View style={styles.badgeContainer}>
-          {movie.is_watched && (
-            <View style={styles.watchedBadge}>
-              <Eye size={12} color="#10B981" strokeWidth={2} />
-            </View>
-          )}
           {movie.is_favorite && (
             <View style={styles.favoriteBadge}>
               <Heart size={12} color="#EF4444" fill="#EF4444" strokeWidth={1} />
@@ -212,11 +207,21 @@ export default function MoviesScreen() {
             style={styles.poster}
             resizeMode="cover"
           />
-          {inCollection && (
-            <View style={styles.inCollectionBadge}>
-              <Check size={14} color="#10B981" strokeWidth={2} />
-            </View>
-          )}
+          <View style={styles.badgeContainer}>
+            <TouchableOpacity
+              style={styles.addBadge}
+              onPress={() => handleAddMovie(movie, false)}
+              disabled={addingMovieId === movie.id}
+            >
+              {addingMovieId === movie.id ? (
+                <ActivityIndicator size={12} color="#6366F1" />
+              ) : inCollection ? (
+                <Check size={12} color="#10B981" strokeWidth={2} />
+              ) : (
+                <Plus size={12} color="#6366F1" strokeWidth={2} />
+              )}
+            </TouchableOpacity>
+          </View>
         </View>
         
         <View style={styles.movieInfo}>
@@ -230,40 +235,6 @@ export default function MoviesScreen() {
             <Text style={styles.ratingText}>{movie.vote_average.toFixed(1)}</Text>
           </View>
         </View>
-
-        {!inCollection && (
-          <View style={styles.actionButtons}>
-            <TouchableOpacity
-              style={[styles.actionButton, styles.addButton]}
-              onPress={() => handleAddMovie(movie, false)}
-              disabled={addingMovieId === movie.id}
-            >
-              {addingMovieId === movie.id ? (
-                <ActivityIndicator size="small" color="#6366F1" />
-              ) : (
-                <>
-                  <Plus size={14} color="#6366F1" strokeWidth={2} />
-                  <Text style={styles.addButtonText}>Add</Text>
-                </>
-              )}
-            </TouchableOpacity>
-            
-            <TouchableOpacity
-              style={[styles.actionButton, styles.watchedButton]}
-              onPress={() => handleAddMovie(movie, true)}
-              disabled={addingMovieId === movie.id}
-            >
-              {addingMovieId === movie.id ? (
-                <ActivityIndicator size="small" color="white" />
-              ) : (
-                <>
-                  <Eye size={14} color="white" strokeWidth={2} />
-                  <Text style={styles.watchedButtonText}>Watched</Text>
-                </>
-              )}
-            </TouchableOpacity>
-          </View>
-        )}
       </TouchableOpacity>
     );
   };
@@ -487,11 +458,11 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
     gap: 4,
   },
-  watchedBadge: {
+  addBadge: {
     width: 28,
     height: 28,
     borderRadius: 14,
-    backgroundColor: 'rgba(16, 185, 129, 0.9)',
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -500,17 +471,6 @@ const styles = StyleSheet.create({
     height: 28,
     borderRadius: 14,
     backgroundColor: 'rgba(0, 0, 0, 0.7)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  inCollectionBadge: {
-    position: 'absolute',
-    top: 8,
-    right: 8,
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: 'rgba(16, 185, 129, 0.9)',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -557,38 +517,6 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontFamily: 'Inter-Medium',
     color: '#F59E0B',
-  },
-  actionButtons: {
-    flexDirection: 'row',
-    gap: 8,
-  },
-  actionButton: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: 8,
-    gap: 4,
-  },
-  addButton: {
-    backgroundColor: 'rgba(99, 102, 241, 0.1)',
-    borderWidth: 1,
-    borderColor: 'rgba(99, 102, 241, 0.3)',
-  },
-  addButtonText: {
-    fontSize: 12,
-    fontFamily: 'Inter-SemiBold',
-    color: '#6366F1',
-  },
-  watchedButton: {
-    backgroundColor: '#10B981',
-  },
-  watchedButtonText: {
-    fontSize: 12,
-    fontFamily: 'Inter-SemiBold',
-    color: 'white',
   },
   bottomSpacer: {
     height: 20,
