@@ -125,9 +125,10 @@ export default function MoviesScreen() {
 
   const filteredMyMovies = myMovies.filter(movie => {
     const matchesSearch = movie.title.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesFilter = filter === 'all' || 
-      (filter === 'watched' && movie.is_watched) ||
-      (filter === 'favorites' && movie.is_favorite);
+    const matchesFilter = 
+      filter === 'all' || 
+      (filter === 'watched' && movie.is_watched === true) ||
+      (filter === 'favorites' && movie.is_favorite === true);
     return matchesSearch && matchesFilter;
   });
 
@@ -354,9 +355,9 @@ export default function MoviesScreen() {
           {filter === 'watched' && (
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>Watched Movies</Text>
-              {filteredMyMovies.length > 0 ? (
+              {filteredMyMovies.filter(movie => movie.is_watched === true).length > 0 ? (
                 <View style={styles.moviesGrid}>
-                  {filteredMyMovies.map(renderMyMovieCard)}
+                  {filteredMyMovies.filter(movie => movie.is_watched === true).map(renderMyMovieCard)}
                 </View>
               ) : (
                 <View style={styles.emptyState}>
@@ -370,9 +371,9 @@ export default function MoviesScreen() {
           {filter === 'favorites' && (
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>Favorite Movies</Text>
-              {filteredMyMovies.length > 0 ? (
+              {filteredMyMovies.filter(movie => movie.is_favorite === true).length > 0 ? (
                 <View style={styles.moviesGrid}>
-                  {filteredMyMovies.map(renderMyMovieCard)}
+                  {filteredMyMovies.filter(movie => movie.is_favorite === true).map(renderMyMovieCard)}
                 </View>
               ) : (
                 <View style={styles.emptyState}>
