@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, SafeAreaView, TouchableOpacity, TextInput, Alert, ActivityIndicator } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { ArrowLeft, Search, UserPlus, Users, Check, X, Mail, Clock } from 'lucide-react-native';
+import { ArrowLeft, Search, UserPlus, Users, Check, X, Mail, Clock, Trash2 } from 'lucide-react-native';
 import { router } from 'expo-router';
 import { supabase } from '@/lib/supabase';
 import { friendsApi, Friend, UserSearchResult } from '@/lib/friends-api';
@@ -15,6 +15,7 @@ export default function FriendsScreen() {
   const [searchLoading, setSearchLoading] = useState(false);
   const [sendingRequestId, setSendingRequestId] = useState<string | null>(null);
   const [processingRequestId, setProcessingRequestId] = useState<string | null>(null);
+  const [removingFriendId, setRemovingFriendId] = useState<string | null>(null);
 
   useEffect(() => {
     loadCurrentUser();
@@ -124,6 +125,37 @@ export default function FriendsScreen() {
     } finally {
       setProcessingRequestId(null);
     }
+  };
+
+  const handleRemoveFriend = async (friendshipId: string, friendEmail: string) => {
+    Alert.alert(
+      'Remove Friend',
+      `Are you sure you want to remove ${friendEmail} from your friends?`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Remove',
+          style: 'destructive',
+          onPress: async () => {
+            setRemovingFriendId(friendshipId);
+            try {
+              const { error } = await friendsApi.removeFriend(friendshipId);
+              if (error) {
+                Alert.alert('Error', 'Failed to remove friend');
+              } else {
+                Alert.alert('Success', 'Friend removed successfully');
+                loadFriends();
+              }
+            } catch (error) {
+              console.error('Remove friend error:', error);
+              Alert.alert('Error', 'Failed to remove friend');
+            } finally {
+              setRemovingFriendId(null);
+            }
+          }
+        }
+      ]
+    );
   };
 
   const handleViewFriendProfile = (friend: Friend) => {
@@ -239,12 +271,25 @@ export default function FriendsScreen() {
             </>
           )}
           {friend.status === 'accepted' && (
-            <TouchableOpacity
-              style={styles.viewProfileButton}
-              onPress={() => handleViewFriendProfile(friend)}
-            >
-              <Text style={styles.viewProfileText}>View Profile</Text>
-            </TouchableOpacity>
+            <>
+              <TouchableOpacity
+                style={styles.viewProfileButton}
+                onPress={() => handleViewFriendProfile(friend)}
+              >
+                <Text style={styles.viewProfileText}>View Profile</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.actionButton, styles.removeButton]}
+                onPress={() => handleRemoveFriend(friend.id, friendEmail)}
+                disabled={removingFriendId === friend.id}
+              >
+                {removingFriendId === friend.id ? (
+                  <ActivityIndicator size="small" color="white" />
+                ) : (
+                  <Trash2 size={16} color="white" strokeWidth={2} />
+                )}
+              </TouchableOpacity>
+            </>
           )}
         </View>
       </View>
@@ -533,6 +578,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#10B981',
   },
   rejectButton: {
+    backgroundColor: '#EF4444',
+  },
+  removeButton: {
     backgroundColor: '#EF4444',
   },
   viewProfileButton: {
