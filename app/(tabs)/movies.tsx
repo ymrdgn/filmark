@@ -25,15 +25,37 @@ export default function MoviesScreen() {
   }, []);
 
   const loadMyMovies = async () => {
+    // Check if Supabase is properly configured
+    if (!process.env.EXPO_PUBLIC_SUPABASE_URL || !process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY) {
+      console.error('❌ Supabase not configured. Please check your .env file.');
+      Alert.alert(
+        'Configuration Error',
+        'Supabase is not configured. Please check your .env file and restart the development server.',
+        [{ text: 'OK' }]
+      );
+      setLoading(false);
+      return;
+    }
+
     try {
       const { data, error } = await moviesApi.getAll();
       if (error) {
-        console.error('Error loading movies:', error);
+        console.error('Error loading movies:', error.message || error);
+        Alert.alert(
+          'Database Error',
+          `Failed to load movies: ${error.message || 'Unknown error'}`,
+          [{ text: 'OK' }]
+        );
       } else {
         setMyMovies(data || []);
       }
     } catch (error) {
       console.error('Error loading movies:', error);
+      Alert.alert(
+        'Connection Error',
+        'Failed to connect to the database. Please check your internet connection and Supabase configuration.',
+        [{ text: 'OK' }]
+      );
     } finally {
       setLoading(false);
     }
