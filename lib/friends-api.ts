@@ -86,28 +86,24 @@ export const friendsApi = {
         const friendUserId = friend.user_id === user.id ? friend.friend_id : friend.user_id;
         const requestingUserId = friend.user_id;
         
-        // Get friend user email from users table
-        const { data: friendUser, error: friendError } = await supabase
+        // Get friend user email from users table  
+        const { data: friendUser } = await supabase
           .from('users')
           .select('email')
           .eq('id', friendUserId)
-          .single();
-          
-        console.log('Friend user query:', { friendUserId, friendUser, friendError });
+          .maybeSingle();
         
-        // Get requesting user email from users table
-        const { data: requestingUser, error: requestingError } = await supabase
+        // Get requesting user email from users table  
+        const { data: requestingUser } = await supabase
           .from('users')
           .select('email')
           .eq('id', requestingUserId)
-          .single();
-
-        console.log('Requesting user query:', { requestingUserId, requestingUser, requestingError });
+          .maybeSingle();
         
         return {
           ...friend,
-          friend_email: friendUser?.email || `User not found (${friendUserId})`,
-          requesting_email: requestingUser?.email || `User not found (${requestingUserId})`
+          friend_email: friendUser?.email || 'Email not found',
+          requesting_email: requestingUser?.email || 'Email not found'
         };
       })
     );
