@@ -1,33 +1,173 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView, SafeAreaView, TouchableOpacity, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, SafeAreaView, TouchableOpacity, Dimensions, Image } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { TrendingUp, Clock, Star, Plus, Eye, Film, Tv } from 'lucide-react-native';
 import { router } from 'expo-router';
-import { supabase } from '@/lib/supabase';
+import { supabase, getCurrentUser } from '@/lib/supabase';
+import { moviesApi, tvShowsApi, statsApi } from '@/lib/api';
 
 const { width } = Dimensions.get('window');
 
 export default function HomeScreen() {
   const [user, setUser] = React.useState(null);
+  const [stats, setStats] = React.useState({
+    moviesWatched: 0,
+    tvShows: 0,
+    episodes: 0,
+    hoursWatched: 0,
+    averageRating: 0,
+    favoriteMovies: 0,
+    favoriteTVShows: 0
+  });
+  const [recentActivity, setRecentActivity] = React.useState([]);
+  const [loading, setLoading] = React.useState(true);
 
   React.useEffect(() => {
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      setUser(user);
-    });
+    loadUserData();
   }, []);
 
-  const stats = [
-    { label: 'Movies Watched', value: '127', icon: Film, color: '#EF4444' },
-    { label: 'TV Shows', value: '43', icon: Tv, color: '#10B981' },
-    { label: 'Hours Watched', value: '284', icon: Clock, color: '#F59E0B' },
-    { label: 'Average Rating', value: '4.2', icon: Star, color: '#8B5CF6' },
+  const loadUserData = async () => {
+    try {
+      const { user } = await getCurrentUser();
+      setUser(user);
+      
+      if (user) {
+        await Promise.all([
+          loadStats(),
+          loadRecentActivity()
+        ]);
+      }
+    } catch (error) {
+      console.error('Error loading user data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loadStats = async () => {
+    try {
+      const { data, error } = await statsApi.getStats();
+      if (!error && data) {
+        setStats(data);
+      }
+    } catch (error) {
+      console.error('Error loading stats:', error);
+    }
+  };
+
+  const loadRecentActivity = async () => {
+    try {
+      const [moviesResult, tvShowsResult] = await Promise.all([
+        moviesApi.getAll(),
+        tvShowsApi.getAll()
+      ]);
+
+      const activities = [];
+
+      // Movies - watched and favorites
+      if (moviesResult.data) {
+        moviesResult.data.forEach(movie => {
+          if (movie.is_watched) {
+            activities.push({
+              id: `movie-watched-${movie.id}`,
+              title: movie.title,
+              type: 'Movie',
+              action: 'watched',
+              date: movie.updated_at,
+              poster: movie.poster_url,
+              rating: movie.rating
+            });
+          }
+          if (movie.is_favorite) {
+            activities.push({
+              id: `movie-favorite-${movie.id}`,
+              title: movie.title,
+              type: 'Movie',
+              action: 'favorited',
+              date: movie.updated_at,
+              poster: movie.poster_url,
+              rating: movie.rating
+            });
+          }
+        });
+      }
+
+      // TV Shows - watched and favorites
+      if (tvShowsResult.data) {
+        tvShowsResult.data.forEach(show => {
+          if (show.is_watched) {
+            activities.push({
+              id: `tv-watched-${show.id}`,
+              title: show.title,
+              type: 'TV Show',
+              action: 'watched',
+              date: show.updated_at,
+              poster: show.poster_url,
+              rating: show.rating
+            });
+          }
+          if (show.is_favorite) {
+            activities.push({
+              id: `tv-favorite-${show.id}`,
+              title: show.title,
+              type: 'TV Show',
+              action: 'favorited',
+              date: show.updated_at,
+              poster: show.poster_url,
+              rating: show.rating
+            });
+          }
+        });
+      }
+
+      // Sort by date (newest first) and take first 10
+      const sortedActivities = activities
+        .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+        .slice(0, 10);
+
+      setRecentActivity(sortedActivities);
+    } catch (error) {
+      console.error('Error loading recent activity:', error);
+    }
+  };
+
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffTime = Math.abs(now.getTime() - date.getTime());
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
+    if (diffDays === 1) return 'Today';
+    if (diffDays === 2) return 'Yesterday';
+    if (diffDays <= 7) return `${diffDays - 1} days ago`;
+    
+    return date.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric'
+    });
+  };
+
+  const statsData = [
+    { label: 'Movies Watched', value: stats.moviesWatched.toString(), icon: Film, color: '#EF4444' },
+    { label: 'TV Shows', value: stats.tvShows.toString(), icon: Tv, color: '#10B981' },
+    { label: 'Hours Watched', value: `${stats.hoursWatched}h`, icon: Clock, color: '#F59E0B' },
+    { label: 'Average Rating', value: stats.averageRating > 0 ? stats.averageRating.toString() : '0', icon: Star, color: '#8B5CF6' },
   ];
 
-  const recentActivity = [
-    { title: 'The Dark Knight', type: 'Movie', rating: 5, poster: 'https://images.pexels.com/photos/7991579/pexels-photo-7991579.jpeg?auto=compress&cs=tinysrgb&w=400' },
-    { title: 'Breaking Bad', type: 'TV Show', rating: 5, poster: 'https://images.pexels.com/photos/7991579/pexels-photo-7991579.jpeg?auto=compress&cs=tinysrgb&w=400' },
-    { title: 'Inception', type: 'Movie', rating: 4, poster: 'https://images.pexels.com/photos/7991579/pexels-photo-7991579.jpeg?auto=compress&cs=tinysrgb&w=400' },
-  ];
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <LinearGradient
+          colors={['#1F2937', '#111827']}
+          style={styles.gradient}
+        >
+          <View style={styles.loadingContainer}>
+            <Text style={styles.loadingText}>Loading...</Text>
+          </View>
+        </LinearGradient>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -55,7 +195,7 @@ export default function HomeScreen() {
           <View style={styles.statsContainer}>
             <Text style={styles.sectionTitle}>Your Stats</Text>
             <View style={styles.statsGrid}>
-              {stats.map((stat, index) => (
+              {statsData.map((stat, index) => (
                 <View key={index} style={styles.statCard}>
                   <View style={[styles.statIcon, { backgroundColor: `${stat.color}20` }]}>
                     <stat.icon size={24} color={stat.color} strokeWidth={2} />
@@ -67,38 +207,58 @@ export default function HomeScreen() {
             </View>
           </View>
 
-          <View style={styles.section}>
-            <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>Recent Activity</Text>
-              <TouchableOpacity>
-                <Text style={styles.seeAll}>See All</Text>
-              </TouchableOpacity>
-            </View>
-            
-            {recentActivity.map((item, index) => (
-              <View key={index} style={styles.activityCard}>
-                <View style={styles.activityPoster} />
-                <View style={styles.activityContent}>
-                  <Text style={styles.activityTitle}>{item.title}</Text>
-                  <Text style={styles.activityType}>{item.type}</Text>
-                  <View style={styles.activityRating}>
-                    {[...Array(5)].map((_, i) => (
-                      <Star
-                        key={i}
-                        size={14}
-                        color={i < item.rating ? '#F59E0B' : '#374151'}
-                        fill={i < item.rating ? '#F59E0B' : 'transparent'}
-                        strokeWidth={1.5}
+          {recentActivity.length > 0 && (
+            <View style={styles.section}>
+              <View style={styles.sectionHeader}>
+                <Text style={styles.sectionTitle}>Recent Activity</Text>
+                <TouchableOpacity>
+                  <Text style={styles.seeAll}>See All</Text>
+                </TouchableOpacity>
+              </View>
+              
+              {recentActivity.map((item, index) => (
+                <View key={item.id} style={styles.activityCard}>
+                  <View style={styles.activityPoster}>
+                    {item.poster ? (
+                      <Image
+                        source={{ uri: item.poster }}
+                        style={styles.activityPosterImage}
+                        resizeMode="cover"
                       />
-                    ))}
+                    ) : (
+                      <View style={styles.activityPosterPlaceholder}>
+                        {item.type === 'Movie' ? (
+                          <Film size={20} color="#9CA3AF" strokeWidth={1.5} />
+                        ) : (
+                          <Tv size={20} color="#9CA3AF" strokeWidth={1.5} />
+                        )}
+                      </View>
+                    )}
+                  </View>
+                  <View style={styles.activityContent}>
+                    <Text style={styles.activityTitle}>{item.title}</Text>
+                    <Text style={styles.activityType}>{item.type}</Text>
+                    <Text style={styles.activityAction}>
+                      {item.action === 'watched' ? '📺 Watched' : '❤️ Added to favorites'} • {formatDate(item.date)}
+                    </Text>
+                    {item.rating > 0 && (
+                      <View style={styles.activityRating}>
+                        {[...Array(5)].map((_, i) => (
+                          <Star
+                            key={i}
+                            size={12}
+                            color={i < item.rating ? '#F59E0B' : '#374151'}
+                            fill={i < item.rating ? '#F59E0B' : 'transparent'}
+                            strokeWidth={1.5}
+                          />
+                        ))}
+                      </View>
+                    )}
                   </View>
                 </View>
-                <View style={styles.watchedBadge}>
-                  <Eye size={16} color="#10B981" strokeWidth={2} />
-                </View>
-              </View>
-            ))}
-          </View>
+              ))}
+            </View>
+          )}
 
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Quick Actions</Text>
@@ -235,9 +395,20 @@ const styles = StyleSheet.create({
   activityPoster: {
     width: 60,
     height: 90,
-    backgroundColor: '#374151',
     borderRadius: 8,
     marginRight: 16,
+    overflow: 'hidden',
+  },
+  activityPosterImage: {
+    width: '100%',
+    height: '100%',
+  },
+  activityPosterPlaceholder: {
+    width: '100%',
+    height: '100%',
+    backgroundColor: '#374151',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   activityContent: {
     flex: 1,
@@ -252,19 +423,27 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontFamily: 'Inter-Medium',
     color: '#9CA3AF',
+    marginBottom: 4,
+  },
+  activityAction: {
+    fontSize: 12,
+    fontFamily: 'Inter-Medium',
+    color: '#6B7280',
     marginBottom: 8,
   },
   activityRating: {
     flexDirection: 'row',
     gap: 2,
   },
-  watchedBadge: {
-    backgroundColor: 'rgba(16, 185, 129, 0.2)',
-    borderRadius: 20,
-    width: 32,
-    height: 32,
+  loadingContainer: {
+    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  loadingText: {
+    fontSize: 18,
+    fontFamily: 'Inter-Medium',
+    color: '#9CA3AF',
   },
   quickActions: {
     gap: 12,
