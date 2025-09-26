@@ -93,8 +93,8 @@ export const friendsApi = {
 
         return {
           ...friend,
-          friend_user: friendUser,
-          requesting_user: requestingUser
+          friend_email: friendUser?.email || 'Unknown user',
+          requesting_email: requestingUser?.email || 'Unknown user'
         };
       })
     );
@@ -180,8 +180,8 @@ export const friendsApi = {
 
         return {
           ...friend,
-          friend_user: friendUser,
-          requesting_user: requestingUser
+          friend_email: friendUser?.email || 'Unknown user',
+          requesting_email: requestingUser?.email || 'Unknown user'
         };
       })
     );
