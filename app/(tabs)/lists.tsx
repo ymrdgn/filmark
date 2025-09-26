@@ -2,10 +2,49 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, SafeAreaView, TouchableOpacity, Modal, TextInput } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { BookMarked, Heart, Clock, Star, Plus, X, Film, Tv } from 'lucide-react-native';
+import { moviesApi, tvShowsApi } from '@/lib/api';
 
 export default function ListsScreen() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [newListName, setNewListName] = useState('');
+  const [favorites, setFavorites] = useState([]);
+  const [watchedItems, setWatchedItems] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  React.useEffect(() => {
+    loadLists();
+  }, []);
+
+  const loadLists = async () => {
+    try {
+      const [moviesResult, tvShowsResult] = await Promise.all([
+        moviesApi.getAll(),
+        tvShowsApi.getAll()
+      ]);
+
+      // Favorites
+      const favoriteMovies = moviesResult.data?.filter(m => m.is_favorite) || [];
+      const favoriteTVShows = tvShowsResult.data?.filter(s => s.is_favorite) || [];
+      const allFavorites = [
+        ...favoriteMovies.map(m => ({ ...m, type: 'Movie' })),
+        ...favoriteTVShows.map(s => ({ ...s, type: 'TV Show' }))
+      ];
+      setFavorites(allFavorites);
+
+      // Watched
+      const watchedMovies = moviesResult.data?.filter(m => m.is_watched) || [];
+      const watchedTVShows = tvShowsResult.data?.filter(s => s.is_watched) || [];
+      const allWatched = [
+        ...watchedMovies.map(m => ({ ...m, type: 'Movie' })),
+        ...watchedTVShows.map(s => ({ ...s, type: 'TV Show' }))
+      ];
+      setWatchedItems(allWatched);
+    } catch (error) {
+      console.error('Error loading lists:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const lists = [
     {
@@ -14,39 +53,19 @@ export default function ListsScreen() {
       description: 'My all-time favorite movies and shows',
       icon: Heart,
       color: '#EF4444',
-      itemCount: 15,
-      items: ['The Dark Knight', 'Breaking Bad', 'Inception'],
+      itemCount: favorites.length,
+      items: favorites.slice(0, 3).map(item => item.title),
       type: 'system'
     },
     {
       id: 2,
-      name: 'Watchlist',
-      description: 'Movies and shows I want to watch',
+      name: 'Watched',
+      description: 'Movies and shows I have watched',
       icon: Clock,
-      color: '#F59E0B',
-      itemCount: 23,
-      items: ['Dune', 'The Last of Us', 'Oppenheimer'],
-      type: 'system'
-    },
-    {
-      id: 3,
-      name: 'Must Watch Again',
-      description: 'Content worth rewatching',
-      icon: Star,
-      color: '#8B5CF6',
-      itemCount: 8,
-      items: ['Interstellar', 'Game of Thrones S1-4', 'The Matrix'],
-      type: 'custom'
-    },
-    {
-      id: 4,
-      name: 'Sci-Fi Collection',
-      description: 'The best science fiction content',
-      icon: BookMarked,
       color: '#10B981',
-      itemCount: 12,
-      items: ['Blade Runner 2049', 'Black Mirror', 'Ex Machina'],
-      type: 'custom'
+      itemCount: watchedItems.length,
+      items: watchedItems.slice(0, 3).map(item => item.title),
+      type: 'system'
     },
   ];
 
@@ -93,7 +112,7 @@ export default function ListsScreen() {
       >
         <View style={styles.header}>
           <Text style={styles.title}>My Lists</Text>
-          <Text style={styles.subtitle}>Organize your favorite content</Text>
+          <Text style={styles.subtitle}>{favorites.length + watchedItems.length} items in your lists</Text>
         </View>
 
         <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
