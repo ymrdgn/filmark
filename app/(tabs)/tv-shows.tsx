@@ -156,12 +156,6 @@ export default function TVShowsScreen() {
         return matchesSearch && show.is_watched === true;
       });
     }
-    if (filter === 'watching') {
-      return myTVShows.filter(show => {
-        const matchesSearch = show.title.toLowerCase().includes(searchQuery.toLowerCase());
-        return matchesSearch && !show.is_watched && show.current_episode > 1;
-      });
-    }
     if (filter === 'favorites') {
       return myTVShows.filter(show => {
         const matchesSearch = show.title.toLowerCase().includes(searchQuery.toLowerCase());
@@ -412,7 +406,7 @@ export default function TVShowsScreen() {
 
         <View style={styles.filters}>
           <Text style={styles.filterTitle}>Filter:</Text>
-          {['all', 'watched', 'watching', 'favorites'].map((filterOption) => (
+          {['all', 'watched', 'favorites'].map((filterOption) => (
             <TouchableOpacity
               key={filterOption}
               style={[
@@ -426,20 +420,26 @@ export default function TVShowsScreen() {
                 filter === filterOption && styles.filterTextActive
               ]}>
                 {filterOption === 'all' ? 'All' : 
-                 filterOption === 'watched' ? 'Watched' : 
-                 filterOption === 'watching' ? 'Watching' : 'Favorites'}
+                 filterOption === 'watched' ? 'Watched' : 'Favorites'}
               </Text>
             </TouchableOpacity>
           ))}
         </View>
 
         <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-          {filter === 'all' && displayTVShows.length > 0 && (
+          {filter === 'all' && (
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>My Collection</Text>
-              <View style={styles.showsGrid}>
-                {displayTVShows.map(renderMyTVShowCard)}
-              </View>
+              {displayTVShows.length > 0 ? (
+                <View style={styles.showsGrid}>
+                  {displayTVShows.map(renderMyTVShowCard)}
+                </View>
+              ) : (
+                <View style={styles.emptyState}>
+                  <Text style={styles.emptyStateText}>No TV shows in collection</Text>
+                  <Text style={styles.emptyStateSubtext}>Add some shows from popular shows below</Text>
+                </View>
+              )}
             </View>
           )}
 
@@ -454,22 +454,6 @@ export default function TVShowsScreen() {
                 <View style={styles.emptyState}>
                   <Text style={styles.emptyStateText}>No watched shows yet</Text>
                   <Text style={styles.emptyStateSubtext}>Mark some shows as completed to see them here</Text>
-                </View>
-              )}
-            </View>
-          )}
-
-          {filter === 'watching' && (
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Currently Watching</Text>
-              {displayTVShows.length > 0 ? (
-                <View style={styles.showsGrid}>
-                  {displayTVShows.map(renderMyTVShowCard)}
-                </View>
-              ) : (
-                <View style={styles.emptyState}>
-                  <Text style={styles.emptyStateText}>Not watching anything</Text>
-                  <Text style={styles.emptyStateSubtext}>Start watching some shows to see them here</Text>
                 </View>
               )}
             </View>

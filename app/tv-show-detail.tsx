@@ -297,27 +297,6 @@ export default function TVShowDetailScreen() {
             )}
           </View>
 
-          {!tvShow.is_watched && (
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Episode Progress</Text>
-              <View style={styles.episodeControls}>
-                <View style={styles.episodeInfo}>
-                  <Text style={styles.episodeLabel}>Season {tvShow.current_season}</Text>
-                  <Text style={styles.episodeLabel}>Episode {tvShow.current_episode}</Text>
-                </View>
-                <View style={styles.episodeButtons}>
-                  <TouchableOpacity
-                    style={styles.episodeButton}
-                    onPress={() => handleEpisodeUpdate(tvShow.current_season, tvShow.current_episode + 1)}
-                    disabled={loading}
-                  >
-                    <Text style={styles.episodeButtonText}>Next Episode</Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
-            </View>
-          )}
-
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Actions</Text>
             <View style={styles.actionButtons}>
@@ -334,7 +313,7 @@ export default function TVShowDetailScreen() {
                   styles.actionButtonText,
                   tvShow.is_watched && styles.actionButtonTextActive
                 ]}>
-                  {tvShow.is_watched ? 'Completed ✓' : 'Mark as Completed'}
+                  {tvShow.is_watched ? 'Watched ✓' : 'Mark as Watched'}
                 </Text>
               </TouchableOpacity>
               
