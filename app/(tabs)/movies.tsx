@@ -402,9 +402,9 @@ export default function MoviesScreen() {
           {filter === 'watched' && (
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>Watched Movies</Text>
-              {displayMovies.length > 0 && displayMovies.some(movie => movie.is_watched === true) ? (
+              {displayMovies.length > 0 ? (
                 <View style={styles.moviesGrid}>
-                  {displayMovies.filter(movie => movie.is_watched === true).map(renderMyMovieCard)}
+                  {displayMovies.map(renderMyMovieCard)}
                 </View>
               ) : (
                 <View style={styles.emptyState}>
