@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, SafeAreaView, TouchableOpacity, Image, Alert } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { ArrowLeft, Star, Calendar, Clock, Eye, Plus, Trash2, CreditCard as Edit3, Heart } from 'lucide-react-native';
@@ -7,19 +8,42 @@ import { moviesApi } from '@/lib/api';
 
 export default function MovieDetailScreen() {
   const params = useLocalSearchParams();
-  const [rating, setRating] = useState(parseInt(params.rating as string) || 0);
-  const [isWatched, setIsWatched] = useState(params.is_watched === 'true');
-  const [isFavorite, setIsFavorite] = useState(params.is_favorite === 'true');
-  const [loading, setLoading] = useState(false);
-
-  const movie = {
+  const [movie, setMovie] = useState({
     id: params.id,
     title: params.title,
     year: params.year,
     poster_url: params.poster_url,
-    is_watched: isWatched,
-    is_favorite: isFavorite,
-    rating: rating
+    is_watched: params.is_watched === 'true',
+    is_favorite: params.is_favorite === 'true',
+    rating: parseInt(params.rating as string) || 0
+  });
+  const [loading, setLoading] = useState(false);
+
+  // Load fresh data from API on component mount
+  useEffect(() => {
+    loadMovieData();
+  }, []);
+
+  const loadMovieData = async () => {
+    try {
+      const { data, error } = await moviesApi.getAll();
+      if (!error && data) {
+        const currentMovie = data.find(m => m.id === params.id);
+        if (currentMovie) {
+          setMovie({
+            id: currentMovie.id,
+            title: currentMovie.title,
+            year: currentMovie.year,
+            poster_url: currentMovie.poster_url,
+            is_watched: currentMovie.is_watched,
+            is_favorite: currentMovie.is_favorite,
+            rating: currentMovie.rating || 0
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Error loading movie data:', error);
+    }
   };
 
   const handleRatingChange = async (newRating: number) => {
@@ -33,8 +57,7 @@ export default function MovieDetailScreen() {
       if (error) {
         Alert.alert('Error', 'Failed to update rating.');
       } else {
-        setRating(newRating);
-        setIsWatched(true);
+        setMovie(prev => ({ ...prev, rating: newRating, is_watched: true }));
         Alert.alert('Success', 'Rating updated!');
       }
     } catch (error) {
@@ -47,13 +70,13 @@ export default function MovieDetailScreen() {
   const handleWatchedToggle = async () => {
     setLoading(true);
     try {
-      const newWatchedStatus = !isWatched;
+      const newWatchedStatus = !movie.is_watched;
       const { error } = await moviesApi.update(movie.id as string, { is_watched: newWatchedStatus });
       
       if (error) {
         Alert.alert('Error', 'Failed to update watched status.');
       } else {
-        setIsWatched(newWatchedStatus);
+        setMovie(prev => ({ ...prev, is_watched: newWatchedStatus }));
         const statusText = newWatchedStatus ? 'marked as watched' : 'unmarked as watched';
         Alert.alert('Success', `Movie ${statusText}!`);
         
@@ -72,13 +95,13 @@ export default function MovieDetailScreen() {
   const handleFavoriteToggle = async () => {
     setLoading(true);
     try {
-      const newFavoriteStatus = !isFavorite;
+      const newFavoriteStatus = !movie.is_favorite;
       const { error } = await moviesApi.update(movie.id as string, { is_favorite: newFavoriteStatus });
       
       if (error) {
         Alert.alert('Error', 'Failed to update favorite status.');
       } else {
-        setIsFavorite(newFavoriteStatus);
+        setMovie(prev => ({ ...prev, is_favorite: newFavoriteStatus }));
         const statusText = newFavoriteStatus ? 'added to favorites' : 'removed from favorites';
         Alert.alert('Success', `Movie ${statusText}!`);
         
@@ -133,22 +156,22 @@ export default function MovieDetailScreen() {
               <View style={styles.statusContainer}>
                 <View style={[
                   styles.statusBadge,
-                  { backgroundColor: isWatched ? '#10B98120' : '#6366F120' }
+                  { backgroundColor: movie.is_watched ? '#10B98120' : '#6366F120' }
                 ]}>
-                  {isWatched ? (
+                  {movie.is_watched ? (
                     <Eye size={16} color="#10B981" strokeWidth={2} />
                   ) : (
                     <Clock size={16} color="#6366F1" strokeWidth={2} />
                   )}
                   <Text style={[
                     styles.statusText,
-                    { color: isWatched ? '#10B981' : '#6366F1' }
+                    { color: movie.is_watched ? '#10B981' : '#6366F1' }
                   ]}>
-                    {isWatched ? 'Watched' : 'Not Watched'}
+                    {movie.is_watched ? 'Watched' : 'Not Watched'}
                   </Text>
                 </View>
                 
-                {isFavorite && (
+                {movie.is_favorite && (
                   <View style={styles.favoriteBadge}>
                     <Heart size={16} color="#EF4444" fill="#EF4444" strokeWidth={1} />
                     <Text style={styles.favoriteText}>Favorite</Text>
@@ -170,15 +193,15 @@ export default function MovieDetailScreen() {
                 >
                   <Star
                     size={32}
-                    color={star <= rating ? '#F59E0B' : '#374151'}
-                    fill={star <= rating ? '#F59E0B' : 'transparent'}
+                    color={star <= movie.rating ? '#F59E0B' : '#374151'}
+                    fill={star <= movie.rating ? '#F59E0B' : 'transparent'}
                     strokeWidth={1.5}
                   />
                 </TouchableOpacity>
               ))}
             </View>
-            {rating > 0 && (
-              <Text style={styles.ratingText}>You rated this {rating}/5 stars</Text>
+            {movie.rating > 0 && (
+              <Text style={styles.ratingText}>You rated this {movie.rating}/5 stars</Text>
             )}
           </View>
 
@@ -188,39 +211,39 @@ export default function MovieDetailScreen() {
               <TouchableOpacity
                 style={[
                   styles.actionButton,
-                  isWatched && styles.actionButtonActive
+                  movie.is_watched && styles.actionButtonActive
                 ]}
                 onPress={handleWatchedToggle}
                 disabled={loading}
               >
-                <Eye size={20} color={isWatched ? 'white' : '#10B981'} strokeWidth={2} />
+                <Eye size={20} color={movie.is_watched ? 'white' : '#10B981'} strokeWidth={2} />
                 <Text style={[
                   styles.actionButtonText,
-                  isWatched && styles.actionButtonTextActive
+                  movie.is_watched && styles.actionButtonTextActive
                 ]}>
-                  {isWatched ? 'Watched ✓' : 'Mark as Watched'}
+                  {movie.is_watched ? 'Watched ✓' : 'Mark as Watched'}
                 </Text>
               </TouchableOpacity>
               
               <TouchableOpacity
                 style={[
                   styles.actionButton,
-                  isFavorite && styles.favoriteButtonActive
+                  movie.is_favorite && styles.favoriteButtonActive
                 ]}
                 onPress={handleFavoriteToggle}
                 disabled={loading}
               >
                 <Heart 
                   size={20} 
-                  color={isFavorite ? 'white' : '#EF4444'} 
-                  fill={isFavorite ? 'white' : 'none'}
+                  color={movie.is_favorite ? 'white' : '#EF4444'} 
+                  fill={movie.is_favorite ? 'white' : 'none'}
                   strokeWidth={2} 
                 />
                 <Text style={[
                   styles.actionButtonText,
-                  isFavorite && styles.actionButtonTextActive
+                  movie.is_favorite && styles.actionButtonTextActive
                 ]}>
-                  {isFavorite ? 'Favorite ❤️' : 'Add to Favorites'}
+                  {movie.is_favorite ? 'Favorite ❤️' : 'Add to Favorites'}
                 </Text>
               </TouchableOpacity>
             </View>
