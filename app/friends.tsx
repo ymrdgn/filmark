@@ -9,14 +9,25 @@ export default function FriendsScreen() {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<UserSearchResult[]>([]);
   const [friends, setFriends] = useState<Friend[]>([]);
+  const [currentUser, setCurrentUser] = useState(null);
   const [loading, setLoading] = useState(false);
   const [searchLoading, setSearchLoading] = useState(false);
   const [sendingRequestId, setSendingRequestId] = useState<string | null>(null);
   const [processingRequestId, setProcessingRequestId] = useState<string | null>(null);
 
   useEffect(() => {
+    loadCurrentUser();
     loadFriends();
   }, []);
+
+  const loadCurrentUser = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      setCurrentUser(user);
+    } catch (error) {
+      console.error('Error loading current user:', error);
+    }
+  };
 
   const loadFriends = async () => {
     setLoading(true);
@@ -117,9 +128,10 @@ export default function FriendsScreen() {
   };
 
   const handleViewFriendProfile = (friend: Friend) => {
-    const { data: { user } } = await supabase.auth.getUser();
-    const friendId = friend.user_id === user?.id ? friend.friend_id : friend.user_id;
-    const friendEmail = friend.user_id === user?.id ? friend.friend_user?.email : friend.requesting_user?.email;
+    if (!currentUser) return;
+    
+    const friendId = friend.user_id === currentUser.id ? friend.friend_id : friend.user_id;
+    const friendEmail = friend.user_id === currentUser.id ? friend.friend_user?.email : friend.requesting_user?.email;
     
     router.push({
       pathname: '/friend-profile',
@@ -153,8 +165,9 @@ export default function FriendsScreen() {
   );
 
   const renderFriend = (friend: Friend) => {
-    const { data: { user } } = await supabase.auth.getUser();
-    const isIncoming = friend.friend_id === user?.id;
+    if (!currentUser) return null;
+    
+    const isIncoming = friend.friend_id === currentUser.id;
     const friendEmail = isIncoming ? friend.requesting_user?.email : friend.friend_user?.email;
     
     return (
