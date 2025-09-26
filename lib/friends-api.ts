@@ -84,7 +84,12 @@ export const friendsApi = {
           .eq('id', friendUserId)
           .maybeSingle();
           
-        console.log('Friend user query:', { friendUserId, friendUser, friendError });
+        console.log('Friend user query:', { 
+          friendUserId, 
+          friendUser, 
+          friendError,
+          friendUserEmail: friendUser?.email 
+        });
           
         // Get requesting user email
         const { data: requestingUser, error: requestingError } = await supabase
@@ -93,12 +98,17 @@ export const friendsApi = {
           .eq('id', requestingUserId)
           .maybeSingle();
 
-        console.log('Requesting user query:', { requestingUserId, requestingUser, requestingError });
+        console.log('Requesting user query:', { 
+          requestingUserId, 
+          requestingUser, 
+          requestingError,
+          requestingUserEmail: requestingUser?.email 
+        });
 
         return {
           ...friend,
-          friend_email: friendUser?.email || 'Unknown user',
-          requesting_email: requestingUser?.email || 'Unknown user'
+          friend_email: friendUser?.email || `User not found (${friendUserId})`,
+          requesting_email: requestingUser?.email || `User not found (${requestingUserId})`
         };
       })
     );
