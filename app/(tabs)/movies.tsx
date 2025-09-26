@@ -1,3 +1,401 @@
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, ScrollView, SafeAreaView, TouchableOpacity, TextInput, Dimensions, Image, Alert, ActivityIndicator } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
+import { Search, Star, Calendar, Plus, Check, Heart } from 'lucide-react-native';
+import { router } from 'expo-router';
+import { moviesApi } from '@/lib/api';
+import { searchMovies, getPopularMovies, TMDBMovie, getImageUrl } from '@/lib/tmdb';
+
+const { width } = Dimensions.get('window');
+const cardWidth = (width - 72) / 2;
+
+export default function MoviesScreen() {
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filter, setFilter] = useState('all');
+  const [myMovies, setMyMovies] = useState([]);
+  const [tmdbMovies, setTMDBMovies] = useState<TMDBMovie[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [tmdbLoading, setTmdbLoading] = useState(false);
+  const [addingMovieId, setAddingMovieId] = useState<number | null>(null);
+  const [updatingMovieId, setUpdatingMovieId] = useState<string | null>(null);
+
+  useEffect(() => {
+    loadMyMovies();
+    loadTMDBMovies();
+  }, []);
+
+  const loadMyMovies = async () => {
+    try {
+      const { data, error } = await moviesApi.getAll();
+      if (error) {
+        console.error('Error loading movies:', error);
+      } else {
+        setMyMovies(data || []);
+      }
+    } catch (error) {
+      console.error('Error loading movies:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loadTMDBMovies = async () => {
+    setTmdbLoading(true);
+    try {
+      const response = await getPopularMovies();
+      setTMDBMovies(response.results);
+    } catch (error) {
+      console.error('Error loading TMDB movies:', error);
+    } finally {
+      setTmdbLoading(false);
+    }
+  };
+
+  const handleSearch = async () => {
+    if (!searchQuery.trim()) {
+      loadTMDBMovies();
+      return;
+    }
+
+    setTmdbLoading(true);
+    try {
+      const response = await searchMovies(searchQuery);
+      setTMDBMovies(response.results);
+    } catch (error) {
+      console.error('Search error:', error);
+      Alert.alert('Error', 'Failed to search movies. Please try again.');
+    } finally {
+      setTmdbLoading(false);
+    }
+  };
+
+  const handleAddMovie = async (movie: TMDBMovie) => {
+    setAddingMovieId(movie.id);
+    try {
+      const { error } = await moviesApi.add({
+        title: movie.title,
+        year: movie.release_date ? new Date(movie.release_date).getFullYear() : null,
+        poster_url: getImageUrl(movie.poster_path),
+        is_watched: false,
+        is_favorite: false,
+        rating: null,
+        duration: null,
+      });
+
+      if (error) {
+        Alert.alert('Error', 'Failed to add movie to your collection.');
+      } else {
+        Alert.alert('Success', `${movie.title} added to your collection!`);
+        loadMyMovies(); // Reload to show the new movie
+      }
+    } catch (error) {
+      console.error('Add movie error:', error);
+      Alert.alert('Error', 'Failed to add movie to your collection.');
+    } finally {
+      setAddingMovieId(null);
+    }
+  };
+
+  const handleToggleFavorite = async (movieId: string, currentFavoriteStatus: boolean) => {
+    setUpdatingMovieId(movieId);
+    try {
+      const { error } = await moviesApi.update(movieId, { 
+        is_favorite: !currentFavoriteStatus 
+      });
+      
+      if (error) {
+        Alert.alert('Error', 'Failed to update favorite status.');
+      } else {
+        loadMyMovies(); // Reload to show updated status
+      }
+    } catch (error) {
+      Alert.alert('Error', 'Failed to update favorite status.');
+    } finally {
+      setUpdatingMovieId(null);
+    }
+  };
+
+  const filteredMyMovies = myMovies.filter(movie => {
+    const matchesSearch = movie.title.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesFilter = filter === 'all' || 
+      (filter === 'watched' && movie.is_watched) ||
+      (filter === 'favorites' && movie.is_favorite) ||
+      (filter === 'watchlist' && !movie.is_watched);
+    return matchesSearch && matchesFilter;
+  });
+
+  const isMovieInCollection = (tmdbMovieTitle: string) => {
+    return myMovies.some(movie => 
+      movie.title.toLowerCase() === tmdbMovieTitle.toLowerCase()
+    );
+  };
+
+  const renderMyMovieCard = (movie) => (
+    <TouchableOpacity 
+      key={movie.id} 
+      style={styles.movieCard}
+      onPress={() => router.push({
+        pathname: '/movie-detail',
+        params: {
+          id: movie.id,
+          title: movie.title,
+          year: movie.year,
+          poster_url: movie.poster_url,
+          is_watched: movie.is_watched,
+          is_favorite: movie.is_favorite,
+          rating: movie.rating
+        }
+      })}
+    >
+      <View style={styles.posterContainer}>
+        {movie.poster_url ? (
+          <Image
+            source={{ uri: movie.poster_url }}
+            style={styles.poster}
+            resizeMode="cover"
+          />
+        ) : (
+          <View style={styles.posterPlaceholder}>
+            <Text style={styles.posterPlaceholderText}>No Image</Text>
+          </View>
+        )}
+        
+        <View style={styles.badgeContainer}>
+          <TouchableOpacity
+            style={styles.favoriteButton}
+            onPress={() => handleToggleFavorite(movie.id, movie.is_favorite)}
+            disabled={updatingMovieId === movie.id}
+          >
+            {updatingMovieId === movie.id ? (
+              <ActivityIndicator size="small" color="#EF4444" />
+            ) : (
+              <Heart
+                size={16}
+                color="#EF4444"
+                fill={movie.is_favorite ? '#EF4444' : 'transparent'}
+                strokeWidth={2}
+              />
+            )}
+          </TouchableOpacity>
+        </View>
+      </View>
+      
+      <View style={styles.movieInfo}>
+        <Text style={styles.movieTitle} numberOfLines={2}>{movie.title}</Text>
+        <Text style={styles.movieYear}>{movie.year}</Text>
+        
+        <View style={styles.movieMeta}>
+          {movie.rating > 0 && (
+            <View style={styles.rating}>
+              {[...Array(5)].map((_, i) => (
+                <Star
+                  key={i}
+                  size={12}
+                  color={i < movie.rating ? '#F59E0B' : '#374151'}
+                  fill={i < movie.rating ? '#F59E0B' : 'transparent'}
+                  strokeWidth={1}
+                />
+              ))}
+            </View>
+          )}
+        </View>
+      </View>
+    </TouchableOpacity>
+  );
+
+  const renderTMDBMovieCard = (movie: TMDBMovie) => {
+    const inCollection = isMovieInCollection(movie.title);
+    const collectionMovie = myMovies.find(m => 
+      m.title.toLowerCase() === movie.title.toLowerCase()
+    );
+
+    return (
+      <TouchableOpacity 
+        key={movie.id} 
+        style={styles.tmdbMovieCard}
+        onPress={() => router.push({
+          pathname: '/tmdb-movie-detail',
+          params: {
+            id: movie.id,
+            title: movie.title,
+            year: movie.release_date ? new Date(movie.release_date).getFullYear() : '',
+            poster_url: getImageUrl(movie.poster_path),
+            overview: movie.overview,
+            vote_average: movie.vote_average,
+            release_date: movie.release_date,
+            inCollection: inCollection
+          }
+        })}
+      >
+        <View style={styles.posterContainer}>
+          <Image
+            source={{ 
+              uri: getImageUrl(movie.poster_path, 'w500') || 'https://via.placeholder.com/300x450?text=No+Image'
+            }}
+            style={styles.poster}
+            resizeMode="cover"
+          />
+          
+          <View style={styles.badgeContainer}>
+            <TouchableOpacity
+              style={styles.addBadge}
+              onPress={() => handleAddMovie(movie)}
+              disabled={addingMovieId === movie.id || inCollection}
+            >
+              {addingMovieId === movie.id ? (
+                <ActivityIndicator size="small" color="#6366F1" />
+              ) : inCollection ? (
+                <Check size={16} color="#10B981" strokeWidth={2} />
+              ) : (
+                <Plus size={16} color="#6366F1" strokeWidth={2} />
+              )}
+            </TouchableOpacity>
+            
+            {inCollection && collectionMovie && (
+              <TouchableOpacity
+                style={styles.favoriteButton}
+                onPress={() => handleToggleFavorite(collectionMovie.id, collectionMovie.is_favorite)}
+                disabled={updatingMovieId === collectionMovie.id}
+              >
+                {updatingMovieId === collectionMovie.id ? (
+                  <ActivityIndicator size="small" color="#EF4444" />
+                ) : (
+                  <Heart
+                    size={16}
+                    color="#EF4444"
+                    fill={collectionMovie.is_favorite ? '#EF4444' : 'transparent'}
+                    strokeWidth={2}
+                  />
+                )}
+              </TouchableOpacity>
+            )}
+          </View>
+        </View>
+        
+        <View style={styles.movieInfo}>
+          <Text style={styles.movieTitle} numberOfLines={2}>{movie.title}</Text>
+          <Text style={styles.movieYear}>
+            {movie.release_date ? new Date(movie.release_date).getFullYear() : 'Unknown'}
+          </Text>
+          
+          <View style={styles.tmdbRating}>
+            <Star size={12} color="#F59E0B" fill="#F59E0B" strokeWidth={1} />
+            <Text style={styles.ratingText}>{movie.vote_average.toFixed(1)}</Text>
+          </View>
+        </View>
+      </TouchableOpacity>
+    );
+  };
+
+  return (
+    <SafeAreaView style={styles.container}>
+      <LinearGradient
+        colors={['#1F2937', '#111827']}
+        style={styles.gradient}
+      >
+        <View style={styles.header}>
+          <Text style={styles.title}>Movies</Text>
+          <Text style={styles.subtitle}>{filteredMyMovies.length} movies in collection</Text>
+        </View>
+
+        <View style={styles.searchContainer}>
+          <View style={styles.searchBar}>
+            <Search size={20} color="#9CA3AF" strokeWidth={2} />
+            <TextInput
+              style={styles.searchInput}
+              placeholder="Search movies..."
+              placeholderTextColor="#6B7280"
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+              onSubmitEditing={handleSearch}
+            />
+          </View>
+        </View>
+
+        <View style={styles.filters}>
+          <Text style={styles.filterTitle}>Filter:</Text>
+          {['all', 'watched', 'favorites', 'watchlist'].map((filterOption) => (
+            <TouchableOpacity
+              key={filterOption}
+              style={[
+                styles.filterButton,
+                filter === filterOption && styles.filterButtonActive
+              ]}
+              onPress={() => setFilter(filterOption)}
+            >
+              <Text style={[
+                styles.filterText,
+                filter === filterOption && styles.filterTextActive
+              ]}>
+                {filterOption === 'all' ? 'All' : 
+                 filterOption === 'watched' ? 'Watched' : 
+                 filterOption === 'favorites' ? 'Favorites' : 'Watchlist'}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+
+        <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+          {filteredMyMovies.length > 0 && (
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>My Collection</Text>
+              <View style={styles.moviesGrid}>
+                {filteredMyMovies.map(renderMyMovieCard)}
+              </View>
+            </View>
+          )}
+
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>
+              {searchQuery ? 'Search Results' : 'Popular Movies'}
+            </Text>
+            {tmdbLoading ? (
+              <View style={styles.loadingContainer}>
+                <ActivityIndicator size="large" color="#6366F1" />
+                <Text style={styles.loadingText}>Loading movies...</Text>
+              </View>
+            ) : (
+              <View style={styles.moviesGrid}>
+                {tmdbMovies.map(renderTMDBMovieCard)}
+              </View>
+            )}
+          </View>
+          
+          <View style={styles.bottomSpacer} />
+        </ScrollView>
+      </LinearGradient>
+    </SafeAreaView>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  gradient: {
+    flex: 1,
+  },
+  header: {
+    padding: 24,
+    paddingTop: 16,
+  },
+  title: {
+    fontSize: 32,
+    fontFamily: 'Inter-Bold',
+    color: 'white',
+    marginBottom: 4,
+  },
+  subtitle: {
+    fontSize: 16,
+    fontFamily: 'Inter-Medium',
+    color: '#9CA3AF',
+  },
+  searchContainer: {
+    paddingHorizontal: 24,
+    marginBottom: 20,
+  },
+  searchBar: {
+    flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: 'rgba(255, 255, 255, 0.05)',
     borderRadius: 12,
@@ -90,6 +488,11 @@
     justifyContent: 'center',
     alignItems: 'center',
   },
+  posterPlaceholderText: {
+    color: '#9CA3AF',
+    fontSize: 14,
+    fontFamily: 'Inter-Medium',
+  },
   badgeContainer: {
     position: 'absolute',
     top: 8,
@@ -98,14 +501,6 @@
     gap: 4,
   },
   addBadge: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: 'rgba(0, 0, 0, 0.7)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  favoriteBadge: {
     width: 28,
     height: 28,
     borderRadius: 14,
@@ -123,7 +518,6 @@
   },
   movieInfo: {
     flex: 1,
-    marginBottom: 12,
   },
   movieTitle: {
     fontSize: 16,
@@ -141,16 +535,6 @@
   movieMeta: {
     gap: 8,
   },
-  duration: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  durationText: {
-    fontSize: 12,
-    fontFamily: 'Inter-Medium',
-    color: '#9CA3AF',
-  },
   rating: {
     flexDirection: 'row',
     gap: 2,
@@ -164,6 +548,16 @@
     fontSize: 12,
     fontFamily: 'Inter-Medium',
     color: '#F59E0B',
+  },
+  loadingContainer: {
+    alignItems: 'center',
+    paddingVertical: 40,
+  },
+  loadingText: {
+    fontSize: 16,
+    fontFamily: 'Inter-Medium',
+    color: '#9CA3AF',
+    marginTop: 12,
   },
   bottomSpacer: {
     height: 20,
