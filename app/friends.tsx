@@ -40,6 +40,7 @@ export default function FriendsScreen() {
         Alert.alert('Error', 'Failed to load friends');
       } else {
         setFriends(data || []);
+        console.log("data", data)
       }
     } catch (error) {
       console.error('Error loading friends:', error);
