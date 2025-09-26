@@ -445,40 +445,47 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter-Medium',
     color: '#9CA3AF',
   },
-  quickActions: {
+  friendsActivity: {
     gap: 12,
   },
-  actionButton: {
-    borderRadius: 12,
-    overflow: 'hidden',
-  },
-  actionGradient: {
+  friendActivityCard: {
     flexDirection: 'row',
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    borderRadius: 12,
+    padding: 16,
     alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 16,
-    paddingHorizontal: 24,
-    gap: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
   },
-  actionText: {
+  friendAvatar: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#6366F1',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+  },
+  friendInitial: {
+    fontSize: 16,
+    fontFamily: 'Inter-Bold',
+    color: 'white',
+  },
+  friendActivityContent: {
+    flex: 1,
+  },
+  friendName: {
     fontSize: 16,
     fontFamily: 'Inter-SemiBold',
     color: 'white',
+    marginBottom: 4,
   },
-  actionSecondary: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 16,
-    paddingHorizontal: 24,
-    gap: 12,
-    backgroundColor: 'rgba(99, 102, 241, 0.1)',
-    borderWidth: 1,
-    borderColor: 'rgba(99, 102, 241, 0.3)',
+  friendActivity: {
+    fontSize: 14,
+    fontFamily: 'Inter-Medium',
+    color: '#9CA3AF',
   },
-  actionTextSecondary: {
-    fontSize: 16,
-    fontFamily: 'Inter-SemiBold',
-    color: '#6366F1',
+  bottomSpacer: {
+    height: 40,
   },
 });
