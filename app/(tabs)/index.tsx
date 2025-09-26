@@ -120,7 +120,7 @@ export default function HomeScreen() {
         });
       }
 
-      // Sort by date (newest first) and take first 10
+      // Sort by date (newest first) and take first 3
       const sortedActivities = activities
         .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
         .slice(0, 3);
@@ -137,11 +137,11 @@ export default function HomeScreen() {
     const diffTime = Math.abs(now.getTime() - date.getTime());
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     
-    if (diffDays === 1) return 'Today';
-    if (diffDays === 2) return 'Yesterday';
-    if (diffDays <= 7) return `${diffDays - 1} days ago`;
+    if (diffDays === 1) return 'bugün';
+    if (diffDays === 2) return 'dün';
+    if (diffDays <= 7) return `${diffDays - 1} gün önce`;
     
-    return date.toLocaleDateString('en-US', {
+    return date.toLocaleDateString('tr-TR', {
       month: 'short',
       day: 'numeric'
     });
@@ -234,7 +234,7 @@ export default function HomeScreen() {
                     <Text style={styles.activityTitle}>{item.title}</Text>
                     <Text style={styles.activityType}>{item.type}</Text>
                     <Text style={styles.activityAction}>
-                      {item.action === 'watched' ? '📺 Watched' : '❤️ Added to favorites'} • {formatDate(item.date)}
+                      {item.action === 'watched' ? 'izlendi' : 'favoriye eklendi'} - {formatDate(item.date)}
                     </Text>
                     {item.rating > 0 && (
                       <View style={styles.activityRating}>
@@ -345,6 +345,7 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter-SemiBold',
     color: 'white',
     marginBottom: 16,
+  },
   statsGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -382,17 +383,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     marginBottom: 32,
   },
-  sectionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  seeAll: {
-    fontSize: 14,
-    fontFamily: 'Inter-SemiBold',
-    color: '#6366F1',
-  },
   activityCard: {
     flexDirection: 'row',
     backgroundColor: 'rgba(255, 255, 255, 0.05)',
@@ -407,6 +397,42 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     marginRight: 16,
     overflow: 'hidden',
+  },
+  activityPosterImage: {
+    width: '100%',
+    height: '100%',
+  },
+  activityPosterPlaceholder: {
+    width: '100%',
+    height: '100%',
+    backgroundColor: '#374151',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  activityContent: {
+    flex: 1,
+  },
+  activityTitle: {
+    fontSize: 16,
+    fontFamily: 'Inter-SemiBold',
+    color: 'white',
+    marginBottom: 4,
+  },
+  activityType: {
+    fontSize: 14,
+    fontFamily: 'Inter-Medium',
+    color: '#9CA3AF',
+    marginBottom: 4,
+  },
+  activityAction: {
+    fontSize: 14,
+    fontFamily: 'Inter-Medium',
+    color: '#6B7280',
+    marginBottom: 8,
+  },
+  activityRating: {
+    flexDirection: 'row',
+    gap: 2,
   },
   loadingContainer: {
     flex: 1,
