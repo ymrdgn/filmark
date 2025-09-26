@@ -1,17 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, SafeAreaView, TouchableOpacity, Image, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, SafeAreaView, TouchableOpacity, Image, Alert } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { ArrowLeft, Heart, Eye, Star, Calendar, Film, Tv } from 'lucide-react-native';
+import { ArrowLeft, Heart, Star, Film, Tv } from 'lucide-react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { moviesApi, tvShowsApi } from '@/lib/api';
-
-const { width } = Dimensions.get('window');
-const cardWidth = (width - 72) / 2;
 
 export default function ListDetailScreen() {
   const params = useLocalSearchParams();
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [updatingItemId, setUpdatingItemId] = useState<string | null>(null);
 
   const listType = params.type as string;
   const listTitle = params.title as string;
@@ -55,6 +53,39 @@ export default function ListDetailScreen() {
     }
   };
 
+  const handleToggleFavorite = async (item) => {
+    setUpdatingItemId(item.id);
+    try {
+      const newFavoriteStatus = !item.is_favorite;
+      let error;
+      
+      if (item.type === 'Movie') {
+        const result = await moviesApi.update(item.id, { is_favorite: newFavoriteStatus });
+        error = result.error;
+      } else {
+        const result = await tvShowsApi.update(item.id, { is_favorite: newFavoriteStatus });
+        error = result.error;
+      }
+      
+      if (error) {
+        Alert.alert('Error', 'Failed to update favorite status.');
+      } else {
+        // Update local state
+        setItems(prevItems => 
+          prevItems.map(prevItem => 
+            prevItem.id === item.id 
+              ? { ...prevItem, is_favorite: newFavoriteStatus }
+              : prevItem
+          )
+        );
+      }
+    } catch (error) {
+      Alert.alert('Error', 'Failed to update favorite status.');
+    } finally {
+      setUpdatingItemId(null);
+    }
+  };
+
   const handleItemPress = (item) => {
     if (item.type === 'Movie') {
       router.push({
@@ -89,66 +120,99 @@ export default function ListDetailScreen() {
     }
   };
 
-  const renderItemCard = (item) => (
+  const renderListItem = (item) => (
+    <View 
+      key={item.id} 
+      style={styles.listItem}
+    >
+      <TouchableOpacity 
+        style={styles.itemContent}
+        onPress={() => handleItemPress(item)}
+      >
+        <View style={styles.posterContainer}>
+          {item.poster_url ? (
+            <Image
+              source={{ uri: item.poster_url }}
+              style={styles.poster}
+              resizeMode="cover"
+            />
+          ) : (
+            <View style={styles.posterPlaceholder}>
+              {item.type === 'Movie' ? (
+                <Film size={20} color="#9CA3AF" strokeWidth={1.5} />
+              ) : (
+                <Tv size={20} color="#9CA3AF" strokeWidth={1.5} />
+              )}
+            </View>
+          )}
+        </View>
+        
+        <View style={styles.itemInfo}>
+          <Text style={styles.itemTitle} numberOfLines={1}>{item.title}</Text>
+          <View style={styles.itemMeta}>
+            <Text style={styles.itemType}>{item.type}</Text>
+            {item.year && (
+              <>
+                <Text style={styles.separator}>•</Text>
+                <Text style={styles.itemYear}>{item.year}</Text>
+              </>
+            )}
+          </View>
+          
+          {item.rating > 0 && (
+            <View style={styles.rating}>
+              {[...Array(5)].map((_, i) => (
+                <Star
+                  key={i}
+                  size={12}
+                  color={i < item.rating ? '#F59E0B' : '#374151'}
+                  fill={i < item.rating ? '#F59E0B' : 'transparent'}
+                  strokeWidth={1}
+                />
+              ))}
+            </View>
+          )}
+        </View>
+      </TouchableOpacity>
+      
+      {/* Favorite button - always show for watched list */}
+      {listType === 'watched' && (
+        <TouchableOpacity
+          style={styles.favoriteButton}
+          onPress={() => handleToggleFavorite(item)}
+          disabled={updatingItemId === item.id}
+        >
+          <Heart
+            size={20}
+            color="#EF4444"
+            fill={item.is_favorite ? '#EF4444' : 'transparent'}
+            strokeWidth={2}
+          />
+        </TouchableOpacity>
+      )}
+    </View>
+  );
+
+  const renderOldItemCard = (item) => (
     <TouchableOpacity 
       key={item.id} 
       style={styles.itemCard}
       onPress={() => handleItemPress(item)}
     >
-      <View style={styles.posterContainer}>
+      <View style={styles.oldPosterContainer}>
         {item.poster_url ? (
           <Image
             source={{ uri: item.poster_url }}
-            style={styles.poster}
+            style={styles.oldPoster}
             resizeMode="cover"
           />
         ) : (
-          <View style={styles.posterPlaceholder}>
+          <View style={styles.oldPosterPlaceholder}>
             {item.type === 'Movie' ? (
               <Film size={24} color="#9CA3AF" strokeWidth={1.5} />
             ) : (
               <Tv size={24} color="#9CA3AF" strokeWidth={1.5} />
             )}
-          </View>
-        )}
-        
-        <View style={styles.badgeContainer}>
-          {listType === 'favorites' && (
-            <View style={styles.favoriteBadge}>
-              <Heart size={14} color="#EF4444" fill="#EF4444" strokeWidth={1} />
-            </View>
-          )}
-          {listType === 'watched' && (
-            <View style={styles.watchedBadge}>
-              <Eye size={14} color="#10B981" strokeWidth={2} />
-            </View>
-          )}
-        </View>
-      </View>
-      
-      <View style={styles.itemInfo}>
-        <Text style={styles.itemTitle} numberOfLines={2}>{item.title}</Text>
-        <View style={styles.itemMeta}>
-          <Text style={styles.itemType}>{item.type}</Text>
-          {item.year && (
-            <>
-              <Text style={styles.separator}>•</Text>
-              <Text style={styles.itemYear}>{item.year}</Text>
-            </>
-          )}
-        </View>
-        
-        {item.rating > 0 && (
-          <View style={styles.rating}>
-            {[...Array(5)].map((_, i) => (
-              <Star
-                key={i}
-                size={12}
-                color={i < item.rating ? '#F59E0B' : '#374151'}
-                fill={i < item.rating ? '#F59E0B' : 'transparent'}
-                strokeWidth={1}
-              />
-            ))}
           </View>
         )}
       </View>
@@ -177,8 +241,8 @@ export default function ListDetailScreen() {
               <Text style={styles.loadingText}>Loading...</Text>
             </View>
           ) : items.length > 0 ? (
-            <View style={styles.itemsGrid}>
-              {items.map(renderItemCard)}
+            <View style={styles.itemsList}>
+              {items.map(renderListItem)}
             </View>
           ) : (
             <View style={styles.emptyState}>
@@ -239,51 +303,40 @@ const styles = StyleSheet.create({
   scrollView: {
     flex: 1,
   },
-  itemsGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
+  itemsList: {
     paddingHorizontal: 24,
-    gap: 24,
+    paddingBottom: 20,
   },
-  itemCard: {
-    width: cardWidth,
-    marginBottom: 24,
+  listItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    borderRadius: 12,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  itemContent: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
   },
   posterContainer: {
-    position: 'relative',
-    marginBottom: 12,
+    width: 50,
+    height: 75,
+    marginRight: 16,
   },
   poster: {
     width: '100%',
-    height: cardWidth * 1.5,
-    borderRadius: 12,
+    height: '100%',
+    borderRadius: 8,
   },
   posterPlaceholder: {
     width: '100%',
-    height: cardWidth * 1.5,
+    height: '100%',
     backgroundColor: '#374151',
-    borderRadius: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  badgeContainer: {
-    position: 'absolute',
-    top: 8,
-    right: 8,
-  },
-  favoriteBadge: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: 'rgba(239, 68, 68, 0.9)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  watchedBadge: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: 'rgba(16, 185, 129, 0.9)',
+    borderRadius: 8,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -291,36 +344,40 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   itemTitle: {
-    fontSize: 16,
+    fontSize: 17,
     fontFamily: 'Inter-SemiBold',
     color: 'white',
     marginBottom: 4,
-    lineHeight: 20,
   },
   itemMeta: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: 6,
   },
   itemType: {
-    fontSize: 12,
+    fontSize: 13,
     fontFamily: 'Inter-Medium',
     color: '#6366F1',
   },
   separator: {
-    fontSize: 12,
+    fontSize: 13,
     fontFamily: 'Inter-Medium',
     color: '#6B7280',
     marginHorizontal: 6,
   },
   itemYear: {
-    fontSize: 12,
+    fontSize: 13,
     fontFamily: 'Inter-Medium',
     color: '#9CA3AF',
   },
   rating: {
     flexDirection: 'row',
-    gap: 2,
+    gap: 3,
+  },
+  favoriteButton: {
+    padding: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   loadingContainer: {
     alignItems: 'center',
