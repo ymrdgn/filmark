@@ -56,6 +56,11 @@ export default function MovieDetailScreen() {
         setIsWatched(newWatchedStatus);
         const statusText = newWatchedStatus ? 'marked as watched' : 'unmarked as watched';
         Alert.alert('Success', `Movie ${statusText}!`);
+        
+        // Navigate back to refresh the movies list
+        setTimeout(() => {
+          router.back();
+        }, 1000);
       }
     } catch (error) {
       Alert.alert('Error', 'Failed to update watched status.');
@@ -76,6 +81,11 @@ export default function MovieDetailScreen() {
         setIsFavorite(newFavoriteStatus);
         const statusText = newFavoriteStatus ? 'added to favorites' : 'removed from favorites';
         Alert.alert('Success', `Movie ${statusText}!`);
+        
+        // Navigate back to refresh the movies list
+        setTimeout(() => {
+          router.back();
+        }, 1000);
       }
     } catch (error) {
       Alert.alert('Error', 'Failed to update favorite status.');

@@ -106,7 +106,7 @@ export default function MoviesScreen() {
         title: movie.title,
         year: movie.release_date ? new Date(movie.release_date).getFullYear() : null,
         poster_url: getImageUrl(movie.poster_path),
-        is_watched: false,
+        is_watched: true, // Artık watched olarak ekliyor
         is_favorite: false,
         rating: null,
         duration: null,
@@ -115,7 +115,7 @@ export default function MoviesScreen() {
       if (error) {
         Alert.alert('Error', 'Failed to add movie to your collection.');
       } else {
-        Alert.alert('Success', `${movie.title} added to your collection!`);
+        Alert.alert('Success', `${movie.title} added as watched!`);
         loadMyMovies(); // Reload to show the new movie
       }
     } catch (error) {
