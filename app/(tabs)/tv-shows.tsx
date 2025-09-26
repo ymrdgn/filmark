@@ -119,7 +119,7 @@ export default function TVShowsScreen() {
         Alert.alert('Error', 'Failed to add TV show to your collection.');
       } else {
         Alert.alert('Success', `${show.name} added to your collection!`);
-        loadMyTVShows(); // Reload to show the new TV show
+        await loadMyTVShows(); // Reload to show the new TV show
       }
     } catch (error) {
       console.error('Add TV show error:', error);
@@ -139,7 +139,7 @@ export default function TVShowsScreen() {
       if (error) {
         Alert.alert('Error', 'Failed to update favorite status.');
       } else {
-        loadMyTVShows(); // Reload to show updated status
+        await loadMyTVShows(); // Reload to show updated status
       }
     } catch (error) {
       Alert.alert('Error', 'Failed to update favorite status.');

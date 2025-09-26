@@ -86,27 +86,19 @@ export default function TVShowDetailScreen() {
     setLoading(true);
     try {
       const newWatchedStatus = !tvShow.is_watched;
-      const updateData = { 
-        is_watched: newWatchedStatus,
-        watched_date: newWatchedStatus ? new Date().toISOString() : null
-      };
-      const { error } = await tvShowsApi.update(tvShow.id as string, updateData);
+      const { error } = await tvShowsApi.update(tvShow.id as string, { 
+        is_watched: newWatchedStatus
+      });
       
       if (error) {
         Alert.alert('Error', 'Failed to update watched status.');
       } else {
         setTVShow(prev => ({ 
           ...prev, 
-          is_watched: newWatchedStatus,
-          watched_date: newWatchedStatus ? new Date().toISOString() : null
+          is_watched: newWatchedStatus
         }));
         const statusText = newWatchedStatus ? 'marked as watched' : 'unmarked as watched';
         Alert.alert('Success', `TV show ${statusText}!`);
-        
-        // Navigate back to refresh the list
-        setTimeout(() => {
-          router.back();
-        }, 1000);
       }
     } catch (error) {
       Alert.alert('Error', 'Failed to update watched status.');
@@ -127,11 +119,6 @@ export default function TVShowDetailScreen() {
         setTVShow(prev => ({ ...prev, is_favorite: newFavoriteStatus }));
         const statusText = newFavoriteStatus ? 'added to favorites' : 'removed from favorites';
         Alert.alert('Success', `TV show ${statusText}!`);
-        
-        // Navigate back to refresh the list
-        setTimeout(() => {
-          router.back();
-        }, 1000);
       }
     } catch (error) {
       Alert.alert('Error', 'Failed to update favorite status.');
