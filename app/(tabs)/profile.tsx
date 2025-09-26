@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView, SafeAreaView, TouchableOpacity } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { User, Settings, Star, TrendingUp, Award, Clock, Film, Tv, Heart, LogOut } from 'lucide-react-native';
+import { User, Settings, Star, TrendingUp, Award, Clock, Film, Tv, Heart, LogOut, Users } from 'lucide-react-native';
 import { signOut } from '@/lib/supabase';
 import { router } from 'expo-router';
 import { Alert } from 'react-native';
@@ -40,6 +40,7 @@ export default function ProfileScreen() {
   ];
 
   const menuItems = [
+    { label: 'Friends', icon: Users, color: '#10B981', onPress: () => router.push('/friends') },
     { label: 'Account Settings', icon: Settings, color: '#6366F1' },
     { label: 'Privacy Settings', icon: User, color: '#8B5CF6' },
     { label: 'Export Data', icon: TrendingUp, color: '#10B981' },
