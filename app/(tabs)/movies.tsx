@@ -119,8 +119,7 @@ export default function MoviesScreen() {
     const matchesSearch = movie.title.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesFilter = filter === 'all' || 
       (filter === 'watched' && movie.is_watched) ||
-      (filter === 'favorites' && movie.is_favorite) ||
-      (filter === 'watchlist' && !movie.is_watched);
+      (filter === 'favorites' && movie.is_favorite);
     return matchesSearch && matchesFilter;
   });
 
@@ -314,7 +313,7 @@ export default function MoviesScreen() {
 
         <View style={styles.filters}>
           <Text style={styles.filterTitle}>Filter:</Text>
-          {['all', 'watched', 'favorites', 'watchlist'].map((filterOption) => (
+          {['all', 'watched', 'favorites'].map((filterOption) => (
             <TouchableOpacity
               key={filterOption}
               style={[
@@ -328,8 +327,7 @@ export default function MoviesScreen() {
                 filter === filterOption && styles.filterTextActive
               ]}>
                 {filterOption === 'all' ? 'All' : 
-                 filterOption === 'watched' ? 'Watched' : 
-                 filterOption === 'favorites' ? 'Favorites' : 'Watchlist'}
+                 filterOption === 'watched' ? 'Watched' : 'Favorites'}
               </Text>
             </TouchableOpacity>
           ))}
