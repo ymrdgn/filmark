@@ -42,19 +42,10 @@ export default function TVShowDetailScreen() {
 
   const loadTVShowData = async () => {
     try {
-      console.log('Loading TV show data from API...');
       const { data, error } = await tvShowsApi.getAll();
       if (!error && data) {
-        console.log('API returned data:', data.length, 'shows');
         const currentShow = data.find(s => s.id === params.id);
-        console.log('Found current show:', currentShow);
-        console.log('Params ID:', params.id);
-        console.log('Params inCollection:', params.inCollection);
         if (currentShow) {
-          console.log('Using current show data:', {
-            is_watched: currentShow.is_watched,
-            is_favorite: currentShow.is_favorite
-          });
           setTVShow({
             id: currentShow.id,
             title: currentShow.title,
@@ -72,11 +63,9 @@ export default function TVShowDetailScreen() {
             genre: currentShow.genre
           });
         } else if (params.inCollection === 'true') {
-          console.log('Show should be in collection but not found, searching by title...');
           const showByTitle = data.find(s => 
-            s.title.toLowerCase().trim() === (params.title as string).toLowerCase().trim()
+            s.title?.toLowerCase().trim() === (params.title as string)?.toLowerCase().trim()
           );
-          console.log('Found by title:', showByTitle);
           if (showByTitle) {
             setTVShow({
               id: showByTitle.id,
@@ -96,7 +85,6 @@ export default function TVShowDetailScreen() {
             });
           }
         } else {
-          console.log('TV show not found in collection, using params');
           // If not in collection, use params data
           setTVShow(prev => ({
             ...prev,
