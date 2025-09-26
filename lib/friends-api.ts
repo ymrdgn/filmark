@@ -46,7 +46,7 @@ export const friendsApi = {
       .from('friends')
       .select('*')
       .or(`and(user_id.eq.${user.id},friend_id.eq.${friendId}),and(user_id.eq.${friendId},friend_id.eq.${user.id})`)
-      .single();
+      .maybeSingle();
 
     if (existing) {
       return { data: null, error: { message: 'Friend request already exists' } };
