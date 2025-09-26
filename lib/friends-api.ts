@@ -86,15 +86,6 @@ export const friendsApi = {
           
         let friendEmail = friendUser?.email;
         
-        // If not found in users table, try to get from auth.users via RPC
-        if (!friendEmail) {
-          const { data: authUsers } = await supabase.auth.admin.listUsers();
-          const authUser = authUsers?.users?.find(u => u.id === friendUserId);
-          if (authUser) {
-            friendEmail = authUser.email;
-          }
-        }
-          
         // Get requesting user email - try users table first, then auth.users
         const { data: requestingUser, error: requestingError } = await supabase
           .from('users')
@@ -104,15 +95,6 @@ export const friendsApi = {
 
         let requestingEmail = requestingUser?.email;
         
-        // If not found in users table, try to get from auth.users via RPC
-        if (!requestingEmail) {
-          const { data: authUsers } = await supabase.auth.admin.listUsers();
-          const authUser = authUsers?.users?.find(u => u.id === requestingUserId);
-          if (authUser) {
-            requestingEmail = authUser.email;
-          }
-        }
-
         return {
           ...friend,
           friend_email: friendEmail || 'Unknown user',
