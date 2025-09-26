@@ -86,6 +86,14 @@ export const friendsApi = {
         const friendUserId = friend.user_id === user.id ? friend.friend_id : friend.user_id;
         const requestingUserId = friend.user_id;
         
+        console.log('🔍 Processing friend relationship:', {
+          friendshipId: friend.id,
+          currentUserId: user.id,
+          friendUserId,
+          requestingUserId,
+          status: friend.status
+        });
+        
         // Get friend user email from users table  
         const { data: friendUser } = await supabase
           .from('users')
@@ -93,12 +101,24 @@ export const friendsApi = {
           .eq('id', friendUserId)
           .maybeSingle();
         
+        console.log('📧 Friend user query:', {
+          friendUserId,
+          friendUser,
+          friendError: friendError?.message
+        });
+        
         // Get requesting user email from users table  
         const { data: requestingUser } = await supabase
           .from('users')
           .select('email')
           .eq('id', requestingUserId)
           .maybeSingle();
+        
+        console.log('📧 Requesting user query:', {
+          requestingUserId,
+          requestingUser,
+          requestingError: requestingError?.message
+        });
         
         return {
           ...friend,
@@ -108,6 +128,7 @@ export const friendsApi = {
       })
     );
 
+    console.log('✅ Final enriched friends:', enrichedFriends);
     return { data: enrichedFriends, error: null };
   },
 
