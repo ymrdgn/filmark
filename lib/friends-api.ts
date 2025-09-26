@@ -164,6 +164,8 @@ export const friendsApi = {
         const friendUserId = friend.user_id === user.id ? friend.friend_id : friend.user_id;
         const requestingUserId = friend.user_id;
         
+        console.log('Getting emails for accepted friends:', { friendUserId, requestingUserId });
+        
         // Get friend user email
         const { data: friendUser } = await supabase
           .from('users')
@@ -171,12 +173,16 @@ export const friendsApi = {
           .eq('id', friendUserId)
           .maybeSingle();
           
+        console.log('Friend user data:', friendUser);
+          
         // Get requesting user email
         const { data: requestingUser } = await supabase
           .from('users')
           .select('email')
           .eq('id', requestingUserId)
           .maybeSingle();
+
+        console.log('Requesting user data:', requestingUser);
 
         return {
           ...friend,
