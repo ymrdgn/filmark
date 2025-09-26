@@ -84,7 +84,7 @@ export const friendsApi = {
           .eq('id', friendUserId)
           .maybeSingle();
           
-        console.log('Getting emails for accepted friends:', { friendUserId, requestingUserId, friendUser, friendError });
+        console.log('Friend user query:', { friendUserId, friendUser, friendError });
           
         // Get requesting user email
         const { data: requestingUser, error: requestingError } = await supabase
@@ -93,7 +93,7 @@ export const friendsApi = {
           .eq('id', requestingUserId)
           .maybeSingle();
 
-        console.log('Requesting user data:', { requestingUser, requestingError });
+        console.log('Requesting user query:', { requestingUserId, requestingUser, requestingError });
 
         return {
           ...friend,
@@ -168,7 +168,7 @@ export const friendsApi = {
         const friendUserId = friend.user_id === user.id ? friend.friend_id : friend.user_id;
         const requestingUserId = friend.user_id;
         
-        console.log('Getting emails for accepted friends:', { friendUserId, requestingUserId });
+        console.log('Accepted friends - Getting emails:', { friendUserId, requestingUserId });
         
         // Get friend user email
         const { data: friendUser } = await supabase
@@ -177,7 +177,7 @@ export const friendsApi = {
           .eq('id', friendUserId)
           .maybeSingle();
           
-        console.log('Friend user data:', { friendUser, friendError });
+        console.log('Accepted friend user data:', { friendUser });
           
         // Get requesting user email
         const { data: requestingUser } = await supabase
@@ -186,7 +186,7 @@ export const friendsApi = {
           .eq('id', requestingUserId)
           .maybeSingle();
 
-        console.log('Requesting user data:', { requestingUser, requestingError });
+        console.log('Accepted requesting user data:', { requestingUser });
 
         return {
           ...friend,
