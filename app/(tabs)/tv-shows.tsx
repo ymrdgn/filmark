@@ -446,9 +446,16 @@ export default function TVShowsScreen() {
           {filter === 'watched' && (
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>Watched Shows</Text>
-              <View style={styles.showsGrid}>
-                {displayTVShows.map(renderMyTVShowCard)}
-              </View>
+              {displayTVShows.length > 0 ? (
+                <View style={styles.showsGrid}>
+                  {displayTVShows.map(renderMyTVShowCard)}
+                </View>
+              ) : (
+                <View style={styles.emptyState}>
+                  <Text style={styles.emptyStateText}>No watched shows yet</Text>
+                  <Text style={styles.emptyStateSubtext}>Mark some shows as completed to see them here</Text>
+                </View>
+              )}
             </View>
           )}
 
@@ -471,9 +478,16 @@ export default function TVShowsScreen() {
           {filter === 'favorites' && (
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>Favorite Shows</Text>
-              <View style={styles.showsGrid}>
-                {displayTVShows.map(renderMyTVShowCard)}
-              </View>
+              {displayTVShows.length > 0 ? (
+                <View style={styles.showsGrid}>
+                  {displayTVShows.map(renderMyTVShowCard)}
+                </View>
+              ) : (
+                <View style={styles.emptyState}>
+                  <Text style={styles.emptyStateText}>No favorite shows yet</Text>
+                  <Text style={styles.emptyStateSubtext}>Add some shows to favorites to see them here</Text>
+                </View>
+              )}
             </View>
           )}
 
