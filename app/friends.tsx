@@ -219,7 +219,7 @@ export default function FriendsScreen() {
     
     return (
       <View key={friend.id} style={styles.friendCard}>
-        <View style={styles.friendInfo}>
+        <View style={styles.friendHeader}>
           <View style={[
             styles.friendAvatar,
             { backgroundColor: friend.status === 'accepted' ? '#10B981' : '#F59E0B' }
@@ -521,9 +521,6 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   friendCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
     backgroundColor: 'rgba(255, 255, 255, 0.05)',
     borderRadius: 12,
     padding: 16,
@@ -531,10 +528,10 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.1)',
   },
-  friendInfo: {
+  friendHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    flex: 1,
+    marginBottom: 12,
   },
   friendAvatar: {
     width: 40,
@@ -565,7 +562,8 @@ const styles = StyleSheet.create({
   },
   friendActions: {
     flexDirection: 'row',
-    gap: 8,
+    justifyContent: 'flex-end',
+    gap: 12,
   },
   actionButton: {
     width: 36,
