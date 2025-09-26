@@ -119,8 +119,10 @@ export default function TVShowsScreen() {
         Alert.alert('Error', 'Failed to add TV show to your collection.');
       } else {
         Alert.alert('Success', `${show.name} added to your collection!`);
-        // Reload to show the new TV show and update UI
+        // Force reload and update state
         await loadMyTVShows();
+        // Force re-render by updating state
+        setMyTVShows(prev => [...prev]);
       }
     } catch (error) {
       console.error('Add TV show error:', error);
@@ -303,6 +305,8 @@ export default function TVShowsScreen() {
       s.title.toLowerCase() === show.name.toLowerCase()
     );
 
+    console.log(`TMDB Show: ${show.name}, In Collection: ${inCollection}, Collection Show:`, collectionShow);
+
     return (
       <TouchableOpacity 
         key={show.id} 
@@ -310,13 +314,16 @@ export default function TVShowsScreen() {
         onPress={() => router.push({
           pathname: '/tv-show-detail',
           params: {
-            id: show.id,
+            id: collectionShow?.id || show.id,
             title: show.name,
             year: show.first_air_date ? new Date(show.first_air_date).getFullYear() : null,
             poster_url: getImageUrl(show.poster_path),
             tmdb_rating: show.vote_average,
             overview: show.overview,
-            inCollection: inCollection
+            inCollection: inCollection,
+            is_watched: collectionShow?.is_watched || false,
+            is_favorite: collectionShow?.is_favorite || false,
+            rating: collectionShow?.rating || 0
           }
         })}
       >

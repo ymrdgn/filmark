@@ -29,8 +29,10 @@ export default function TVShowDetailScreen() {
   // Load fresh data from API on component mount
   useEffect(() => {
     loadTVShowData();
-    
-    // Listen for focus events to reload data when returning to this screen
+  }, []);
+
+  // Listen for focus events to reload data when returning to this screen
+  useEffect(() => {
     const unsubscribe = router.addListener?.('focus', () => {
       loadTVShowData();
     });
@@ -44,6 +46,7 @@ export default function TVShowDetailScreen() {
       if (!error && data) {
         const currentShow = data.find(s => s.id === params.id);
         if (currentShow) {
+          console.log('Loading TV show data:', currentShow);
           setTVShow({
             id: currentShow.id,
             title: currentShow.title,
@@ -61,6 +64,15 @@ export default function TVShowDetailScreen() {
             genre: currentShow.genre,
             watched_date: currentShow.watched_date
           });
+        } else {
+          console.log('TV show not found in collection, using params');
+          // If not in collection, use params data
+          setTVShow(prev => ({
+            ...prev,
+            is_watched: false,
+            is_favorite: false,
+            rating: 0
+          }));
         }
       }
     } catch (error) {
