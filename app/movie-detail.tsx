@@ -203,10 +203,15 @@ export default function MovieDetailScreen() {
                     styles.statusText,
                     { color: movie.is_watched ? '#10B981' : '#6366F1' }
                   ]}>
-                    {movie.is_watched ? 'Watched' : 'Want to Watch'}
+                    {movie.is_watched ? 'Watched' : 'To Watch'}
                   </Text>
                 </View>
-                
+              
+                {movie.is_favorite && (
+                  <View style={styles.favoriteBadge}>
+                    <Heart size={16} color="#EF4444" fill="#EF4444" strokeWidth={1} />
+                    <Text style={styles.favoriteText}>Favorite</Text>
+                  </View>
                 )}
               </View>
               
