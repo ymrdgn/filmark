@@ -126,7 +126,7 @@ export default function MoviesScreen() {
   const filteredMyMovies = myMovies.filter(movie => {
     const matchesSearch = movie.title.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesFilter = filter === 'all' || 
-      (filter === 'watched' && movie.is_watched) ||
+      (filter === 'watched' && movie.is_watched === true) ||
       (filter === 'favorites' && movie.is_favorite);
     return matchesSearch && matchesFilter;
   });
