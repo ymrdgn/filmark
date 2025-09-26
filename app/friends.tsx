@@ -148,8 +148,6 @@ export default function FriendsScreen() {
       (f.friend_id === user.id && f.user_id === currentUser?.id)
     );
     
-   console.log('Search result for user:', user.email, 'existing friendship:', existingFriendship);
-   
     return (
       <View key={user.id} style={styles.searchResultCard}>
         <View style={styles.userInfo}>

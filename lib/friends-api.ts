@@ -70,7 +70,6 @@ export const friendsApi = {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) throw new Error('User not authenticated');
 
-    console.log('Current user ID:', user.id);
     // First get the friends relationships
     const { data: friendsData, error: friendsError } = await supabase
       .from('friends')
@@ -81,7 +80,6 @@ export const friendsApi = {
     if (friendsError) return { data: null, error: friendsError };
     if (!friendsData) return { data: [], error: null };
 
-    console.log('Friends data:', friendsData);
     // Get user emails for each friend relationship
     const enrichedFriends = await Promise.all(
       friendsData.map(async (friend) => {
