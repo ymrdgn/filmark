@@ -63,6 +63,7 @@ export default function FriendsScreen() {
         console.error('Search error:', error);
         Alert.alert('Error', 'Failed to search users');
       } else {
+        console.log("data", data)
         setSearchResults(data || []);
       }
     } catch (error) {
