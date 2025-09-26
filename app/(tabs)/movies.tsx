@@ -4,7 +4,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Search, Star, Calendar, Plus, Check, Heart } from 'lucide-react-native';
 import { router } from 'expo-router';
 import { moviesApi } from '@/lib/api';
-import { searchMovies, getPopularMovies, TMDBMovie, getImageUrl } from '@/lib/tmdb';
+import { searchMovies, OMDBMovie } from '@/lib/omdb';
 
 const { width } = Dimensions.get('window');
 const cardWidth = (width - 72) / 2;
@@ -13,15 +13,15 @@ export default function MoviesScreen() {
   const [searchQuery, setSearchQuery] = useState('');
   const [filter, setFilter] = useState('all');
   const [myMovies, setMyMovies] = useState([]);
-  const [tmdbMovies, setTMDBMovies] = useState<TMDBMovie[]>([]);
+  const [omdbMovies, setOMDBMovies] = useState<OMDBMovie[]>([]);
   const [loading, setLoading] = useState(true);
-  const [tmdbLoading, setTmdbLoading] = useState(false);
+  const [omdbLoading, setOMDBLoading] = useState(false);
   const [addingMovieId, setAddingMovieId] = useState<number | null>(null);
   const [updatingMovieId, setUpdatingMovieId] = useState<string | null>(null);
 
   useEffect(() => {
     loadMyMovies();
-    loadTMDBMovies();
+    loadPopularMovies();
   }, []);
 
   const loadMyMovies = async () => {
@@ -61,33 +61,42 @@ export default function MoviesScreen() {
     }
   };
 
-  const loadTMDBMovies = async () => {
-    setTmdbLoading(true);
+  const loadPopularMovies = async () => {
+    setOMDBLoading(true);
     try {
-      const response = await getPopularMovies();
-      setTMDBMovies(response.results);
+      // OMDB doesn't have "popular" endpoint, so we'll search for some popular movies
+      const popularSearches = ['Avengers', 'Batman', 'Spider-Man', 'Star Wars', 'Marvel'];
+      const randomSearch = popularSearches[Math.floor(Math.random() * popularSearches.length)];
+      const response = await searchMovies(randomSearch);
+      if (response.Response === 'True') {
+        setOMDBMovies(response.Search);
+      }
     } catch (error) {
-      console.error('Error loading TMDB movies:', error);
+      console.error('Error loading OMDB movies:', error);
     } finally {
-      setTmdbLoading(false);
+      setOMDBLoading(false);
     }
   };
 
   const handleSearch = async () => {
     if (!searchQuery.trim()) {
-      loadTMDBMovies();
+      loadPopularMovies();
       return;
     }
 
-    setTmdbLoading(true);
+    setOMDBLoading(true);
     try {
       const response = await searchMovies(searchQuery);
-      setTMDBMovies(response.results);
+      if (response.Response === 'True') {
+        setOMDBMovies(response.Search);
+      } else {
+        setOMDBMovies([]);
+      }
     } catch (error) {
       console.error('Search error:', error);
       Alert.alert('Error', 'Failed to search movies. Please try again.');
     } finally {
-      setTmdbLoading(false);
+      setOMDBLoading(false);
     }
   };
 
@@ -95,17 +104,17 @@ export default function MoviesScreen() {
     setSearchQuery(text);
     // If search is cleared, reload popular movies
     if (!text.trim()) {
-      loadTMDBMovies();
+      loadPopularMovies();
     }
   };
 
-  const handleAddMovie = async (movie: TMDBMovie) => {
-    setAddingMovieId(movie.id);
+  const handleAddMovie = async (movie: OMDBMovie) => {
+    setAddingMovieId(movie.imdbID);
     try {
       const { error } = await moviesApi.add({
-        title: movie.title,
-        year: movie.release_date ? new Date(movie.release_date).getFullYear() : null,
-        poster_url: getImageUrl(movie.poster_path),
+        title: movie.Title,
+        year: parseInt(movie.Year) || null,
+        poster_url: movie.Poster !== 'N/A' ? movie.Poster : null,
         is_watched: true, // Artık watched olarak ekliyor
         is_favorite: false,
         rating: null,
@@ -115,7 +124,7 @@ export default function MoviesScreen() {
       if (error) {
         Alert.alert('Error', 'Failed to add movie to your collection.');
       } else {
-        Alert.alert('Success', `${movie.title} added as watched!`);
+        Alert.alert('Success', `${movie.Title} added as watched!`);
         loadMyMovies(); // Reload to show the new movie
       }
     } catch (error) {
@@ -252,26 +261,24 @@ export default function MoviesScreen() {
     </TouchableOpacity>
   );
 
-  const renderTMDBMovieCard = (movie: TMDBMovie) => {
-    const inCollection = isMovieInCollection(movie.title);
+  const renderOMDBMovieCard = (movie: OMDBMovie) => {
+    const inCollection = isMovieInCollection(movie.Title);
     const collectionMovie = myMovies.find(m => 
-      m.title.toLowerCase() === movie.title.toLowerCase()
+      m.title.toLowerCase() === movie.Title.toLowerCase()
     );
 
     return (
       <TouchableOpacity 
-        key={movie.id} 
-        style={styles.tmdbMovieCard}
+        key={movie.imdbID} 
+        style={styles.omdbMovieCard}
         onPress={() => router.push({
-          pathname: '/tmdb-movie-detail',
+          pathname: '/omdb-movie-detail',
           params: {
-            id: movie.id,
-            title: movie.title,
-            year: movie.release_date ? new Date(movie.release_date).getFullYear() : '',
-            poster_url: getImageUrl(movie.poster_path),
-            overview: movie.overview,
-            vote_average: movie.vote_average,
-            release_date: movie.release_date,
+            id: movie.imdbID,
+            title: movie.Title,
+            year: movie.Year,
+            poster_url: movie.Poster !== 'N/A' ? movie.Poster : null,
+            type: movie.Type,
             inCollection: inCollection
           }
         })}
@@ -279,7 +286,7 @@ export default function MoviesScreen() {
         <View style={styles.posterContainer}>
           <Image
             source={{ 
-              uri: getImageUrl(movie.poster_path, 'w500') || 'https://via.placeholder.com/300x450?text=No+Image'
+              uri: movie.Poster !== 'N/A' ? movie.Poster : 'https://via.placeholder.com/300x450?text=No+Image'
             }}
             style={styles.poster}
             resizeMode="cover"
@@ -289,9 +296,9 @@ export default function MoviesScreen() {
             <TouchableOpacity
               style={styles.addBadge}
               onPress={() => handleAddMovie(movie)}
-              disabled={addingMovieId === movie.id || inCollection}
+              disabled={addingMovieId === movie.imdbID || inCollection}
             >
-              {addingMovieId === movie.id ? (
+              {addingMovieId === movie.imdbID ? (
                 <ActivityIndicator size="small" color="#6366F1" />
               ) : inCollection ? (
                 <Check size={16} color="#10B981" strokeWidth={2} />
@@ -322,14 +329,13 @@ export default function MoviesScreen() {
         </View>
         
         <View style={styles.movieInfo}>
-          <Text style={styles.movieTitle} numberOfLines={2}>{movie.title}</Text>
+          <Text style={styles.movieTitle} numberOfLines={2}>{movie.Title}</Text>
           <Text style={styles.movieYear}>
-            {movie.release_date ? new Date(movie.release_date).getFullYear() : 'Unknown'}
+            {movie.Year}
           </Text>
           
-          <View style={styles.tmdbRating}>
-            <Star size={12} color="#F59E0B" fill="#F59E0B" strokeWidth={1} />
-            <Text style={styles.ratingText}>{movie.vote_average.toFixed(1)}</Text>
+          <View style={styles.typeInfo}>
+            <Text style={styles.typeText}>{movie.Type.charAt(0).toUpperCase() + movie.Type.slice(1)}</Text>
           </View>
         </View>
       </TouchableOpacity>
@@ -428,16 +434,16 @@ export default function MoviesScreen() {
           {filter === 'all' && (
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>
-                {searchQuery ? 'Search Results' : 'Popular Movies'}
+                {searchQuery ? 'Search Results' : 'Movies from IMDB'}
               </Text>
-              {tmdbLoading ? (
+              {omdbLoading ? (
                 <View style={styles.loadingContainer}>
                   <ActivityIndicator size="large" color="#6366F1" />
                   <Text style={styles.loadingText}>Loading movies...</Text>
                 </View>
               ) : (
                 <View style={styles.moviesGrid}>
-                  {tmdbMovies.map(renderTMDBMovieCard)}
+                  {omdbMovies.map(renderOMDBMovieCard)}
                 </View>
               )}
             </View>
@@ -549,7 +555,7 @@ const styles = StyleSheet.create({
     width: cardWidth,
     marginBottom: 24,
   },
-  tmdbMovieCard: {
+  omdbMovieCard: {
     width: cardWidth,
     marginBottom: 24,
   },
@@ -621,15 +627,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 2,
   },
-  tmdbRating: {
+  typeInfo: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
   },
-  ratingText: {
+  typeText: {
     fontSize: 12,
     fontFamily: 'Inter-Medium',
-    color: '#F59E0B',
+    color: '#9CA3AF',
   },
   loadingContainer: {
     alignItems: 'center',

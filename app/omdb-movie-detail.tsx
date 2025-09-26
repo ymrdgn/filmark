@@ -1,23 +1,36 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, SafeAreaView, TouchableOpacity, Image, Alert } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { ArrowLeft, Star, Calendar, Plus, Eye, Heart } from 'lucide-react-native';
+import { ArrowLeft, Star, Calendar, Plus, Eye, Heart, User, Clock } from 'lucide-react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { moviesApi } from '@/lib/api';
+import { getMovieDetails } from '@/lib/omdb';
 
-export default function TMDBMovieDetailScreen() {
+export default function OMDBMovieDetailScreen() {
   const params = useLocalSearchParams();
   const [loading, setLoading] = useState(false);
   const [inCollection, setInCollection] = useState(params.inCollection === 'true');
+  const [movieDetails, setMovieDetails] = useState(null);
 
   const movie = {
     id: params.id,
     title: params.title,
     year: params.year,
     poster_url: params.poster_url,
-    overview: params.overview,
-    vote_average: parseFloat(params.vote_average as string),
-    release_date: params.release_date,
+    type: params.type,
+  };
+
+  React.useEffect(() => {
+    loadMovieDetails();
+  }, []);
+
+  const loadMovieDetails = async () => {
+    try {
+      const details = await getMovieDetails(movie.id as string);
+      setMovieDetails(details);
+    } catch (error) {
+      console.error('Error loading movie details:', error);
+    }
   };
 
   const handleAddToCollection = async (isWatched: boolean = false) => {
@@ -29,8 +42,12 @@ export default function TMDBMovieDetailScreen() {
         poster_url: movie.poster_url as string,
         is_watched: isWatched,
         is_favorite: false,
-        rating: status === 'watched' ? null : null, // Rating detay sayfasında verilebilir
-        duration: null,
+        rating: null,
+        duration: movieDetails?.Runtime ? parseInt(movieDetails.Runtime.replace(' min', '')) : null,
+        // Add IMDB data if available
+        imdb_rating: movieDetails?.imdbRating !== 'N/A' ? parseFloat(movieDetails.imdbRating) : null,
+        director: movieDetails?.Director !== 'N/A' ? movieDetails.Director : null,
+        genre: movieDetails?.Genre !== 'N/A' ? movieDetails.Genre : null,
       });
 
       if (error) {
@@ -83,12 +100,28 @@ export default function TMDBMovieDetailScreen() {
                 <Text style={styles.movieYear}>{movie.year}</Text>
               </View>
               
-              <View style={styles.ratingContainer}>
-                <Star size={16} color="#F59E0B" fill="#F59E0B" strokeWidth={1} />
-                <Text style={styles.tmdbRating}>
-                  {movie.vote_average.toFixed(1)} TMDB
-                </Text>
-              </View>
+              {movieDetails?.imdbRating && movieDetails.imdbRating !== 'N/A' && (
+                <View style={styles.ratingContainer}>
+                  <Star size={16} color="#F5C518" fill="#F5C518" strokeWidth={1} />
+                  <Text style={styles.imdbRating}>
+                    {movieDetails.imdbRating} IMDB
+                  </Text>
+                </View>
+              )}
+
+              {movieDetails?.Director && movieDetails.Director !== 'N/A' && (
+                <View style={styles.movieMeta}>
+                  <User size={16} color="#9CA3AF" strokeWidth={2} />
+                  <Text style={styles.movieDirector}>{movieDetails.Director}</Text>
+                </View>
+              )}
+
+              {movieDetails?.Runtime && movieDetails.Runtime !== 'N/A' && (
+                <View style={styles.movieMeta}>
+                  <Clock size={16} color="#9CA3AF" strokeWidth={2} />
+                  <Text style={styles.movieRuntime}>{movieDetails.Runtime}</Text>
+                </View>
+              )}
 
               {inCollection && (
                 <View style={styles.inCollectionBadge}>
@@ -98,10 +131,24 @@ export default function TMDBMovieDetailScreen() {
             </View>
           </View>
 
-          {movie.overview && (
+          {movieDetails?.Plot && movieDetails.Plot !== 'N/A' && (
             <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Overview</Text>
-              <Text style={styles.overview}>{movie.overview}</Text>
+              <Text style={styles.sectionTitle}>Plot</Text>
+              <Text style={styles.overview}>{movieDetails.Plot}</Text>
+            </View>
+          )}
+
+          {movieDetails?.Genre && movieDetails.Genre !== 'N/A' && (
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Genre</Text>
+              <Text style={styles.genreText}>{movieDetails.Genre}</Text>
+            </View>
+          )}
+
+          {movieDetails?.Actors && movieDetails.Actors !== 'N/A' && (
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Cast</Text>
+              <Text style={styles.castText}>{movieDetails.Actors}</Text>
             </View>
           )}
 
@@ -215,12 +262,22 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    marginBottom: 16,
+    marginBottom: 12,
   },
-  tmdbRating: {
+  imdbRating: {
     fontSize: 16,
     fontFamily: 'Inter-SemiBold',
-    color: '#F59E0B',
+    color: '#F5C518',
+  },
+  movieDirector: {
+    fontSize: 14,
+    fontFamily: 'Inter-Medium',
+    color: '#9CA3AF',
+  },
+  movieRuntime: {
+    fontSize: 14,
+    fontFamily: 'Inter-Medium',
+    color: '#9CA3AF',
   },
   inCollectionBadge: {
     backgroundColor: 'rgba(16, 185, 129, 0.2)',
@@ -228,6 +285,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 6,
     alignSelf: 'flex-start',
+    marginTop: 12,
   },
   inCollectionText: {
     fontSize: 14,
@@ -249,6 +307,17 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter-Medium',
     color: '#D1D5DB',
     lineHeight: 24,
+  },
+  genreText: {
+    fontSize: 16,
+    fontFamily: 'Inter-Medium',
+    color: '#D1D5DB',
+  },
+  castText: {
+    fontSize: 16,
+    fontFamily: 'Inter-Medium',
+    color: '#D1D5DB',
+    lineHeight: 22,
   },
   actionButtons: {
     gap: 12,
