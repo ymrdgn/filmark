@@ -79,9 +79,7 @@ export default function FriendsScreen() {
         Alert.alert('Error', error.message || 'Failed to send friend request');
       } else {
         Alert.alert('Success', `Friend request sent to ${userEmail}!`);
-        // Remove from search results
-        setSearchResults(prev => prev.filter(user => user.id !== userId));
-        // Reload friends to show pending request
+        // Reload friends to show pending request but keep search results
         loadFriends();
       }
     } catch (error) {
@@ -171,6 +169,12 @@ export default function FriendsScreen() {
     const isIncoming = friend.friend_id === currentUser.id;
     const friendEmail = isIncoming ? friend.requesting_user?.email : friend.friend_user?.email;
     
+    // Check if user already has a pending/accepted friendship
+    const existingFriendship = friends.find(f => 
+      (f.user_id === user.id && f.friend_id === currentUser?.id) ||
+      (f.friend_id === user.id && f.user_id === currentUser?.id)
+    );
+    
     return (
       <View key={friend.id} style={styles.friendCard}>
         <View style={styles.friendInfo}>
@@ -222,17 +226,26 @@ export default function FriendsScreen() {
               >
                 <X size={16} color="white" strokeWidth={2} />
               </TouchableOpacity>
-            </>
-          )}
-          {friend.status === 'accepted' && (
-            <TouchableOpacity
-              style={styles.viewProfileButton}
-              onPress={() => handleViewFriendProfile(friend)}
-            >
-              <Text style={styles.viewProfileText}>View Lists</Text>
-            </TouchableOpacity>
-          )}
-        </View>
+        
+        {existingFriendship ? (
+          <View style={styles.statusBadge}>
+            <Text style={styles.statusBadgeText}>
+              {existingFriendship.status === 'pending' ? 'Request Sent' : 'Friends'}
+            </Text>
+          </View>
+        ) : (
+          <TouchableOpacity
+            style={[styles.addButton, sendingRequestId === user.id && styles.addButtonDisabled]}
+            onPress={() => handleSendFriendRequest(user.id, user.email)}
+            disabled={sendingRequestId === user.id}
+          >
+            {sendingRequestId === user.id ? (
+              <ActivityIndicator size="small" color="white" />
+            ) : (
+              <UserPlus size={20} color="white" strokeWidth={2} />
+            )}
+          </TouchableOpacity>
+        )}
       </View>
     );
   };
@@ -537,6 +550,17 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter-Medium',
     color: '#9CA3AF',
     textAlign: 'center',
+  },
+  statusBadge: {
+    backgroundColor: 'rgba(245, 158, 11, 0.2)',
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+  },
+  statusBadgeText: {
+    fontSize: 12,
+    fontFamily: 'Inter-SemiBold',
+    color: '#F59E0B',
   },
   bottomSpacer: {
     height: 40,
