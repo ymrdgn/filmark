@@ -342,7 +342,7 @@ export default function MoviesScreen() {
         </View>
 
         <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-          {filteredMyMovies.length > 0 && (
+          {filter === 'all' && filteredMyMovies.length > 0 && (
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>My Collection</Text>
               <View style={styles.moviesGrid}>
@@ -351,21 +351,55 @@ export default function MoviesScreen() {
             </View>
           )}
 
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>
-              {searchQuery ? 'Search Results' : 'Popular Movies'}
-            </Text>
-            {tmdbLoading ? (
-              <View style={styles.loadingContainer}>
-                <ActivityIndicator size="large" color="#6366F1" />
-                <Text style={styles.loadingText}>Loading movies...</Text>
-              </View>
-            ) : (
-              <View style={styles.moviesGrid}>
-                {tmdbMovies.map(renderTMDBMovieCard)}
-              </View>
-            )}
-          </View>
+          {filter === 'watched' && (
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Watched Movies</Text>
+              {filteredMyMovies.length > 0 ? (
+                <View style={styles.moviesGrid}>
+                  {filteredMyMovies.map(renderMyMovieCard)}
+                </View>
+              ) : (
+                <View style={styles.emptyState}>
+                  <Text style={styles.emptyStateText}>No watched movies yet</Text>
+                  <Text style={styles.emptyStateSubtext}>Mark some movies as watched to see them here</Text>
+                </View>
+              )}
+            </View>
+          )}
+
+          {filter === 'favorites' && (
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Favorite Movies</Text>
+              {filteredMyMovies.length > 0 ? (
+                <View style={styles.moviesGrid}>
+                  {filteredMyMovies.map(renderMyMovieCard)}
+                </View>
+              ) : (
+                <View style={styles.emptyState}>
+                  <Text style={styles.emptyStateText}>No favorite movies yet</Text>
+                  <Text style={styles.emptyStateSubtext}>Add some movies to favorites to see them here</Text>
+                </View>
+              )}
+            </View>
+          )}
+
+          {filter === 'all' && (
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>
+                {searchQuery ? 'Search Results' : 'Popular Movies'}
+              </Text>
+              {tmdbLoading ? (
+                <View style={styles.loadingContainer}>
+                  <ActivityIndicator size="large" color="#6366F1" />
+                  <Text style={styles.loadingText}>Loading movies...</Text>
+                </View>
+              ) : (
+                <View style={styles.moviesGrid}>
+                  {tmdbMovies.map(renderTMDBMovieCard)}
+                </View>
+              )}
+            </View>
+          )}
           
           <View style={styles.bottomSpacer} />
         </ScrollView>
@@ -568,10 +602,22 @@ const styles = StyleSheet.create({
   bottomSpacer: {
     height: 20,
   },
-  debugText: {
-    fontSize: 10,
+  emptyState: {
+    alignItems: 'center',
+    paddingVertical: 40,
+    paddingHorizontal: 24,
+  },
+  emptyStateText: {
+    fontSize: 18,
+    fontFamily: 'Inter-SemiBold',
+    color: 'white',
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  emptyStateSubtext: {
+    fontSize: 14,
     fontFamily: 'Inter-Medium',
-    color: '#6B7280',
-    marginRight: 8,
+    color: '#9CA3AF',
+    textAlign: 'center',
   },
 });
