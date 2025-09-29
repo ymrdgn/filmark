@@ -4,14 +4,31 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { ArrowLeft, Star, Calendar, Clock, Eye, Plus, Trash2, CreditCard as Edit3, Heart, User, Film } from 'lucide-react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { moviesApi } from '@/lib/api';
+import { Database } from '@/lib/database.types';
+
+type Movie = Database['public']['Tables']['movies']['Row'];
+
+interface MovieState {
+  id: string | string[];
+  title: string | string[];
+  year: string | string[] | null;
+  poster_url: string | string[] | null;
+  is_watched: boolean;
+  is_favorite: boolean;
+  rating: number;
+  imdb_rating: number | null;
+  director: string | null;
+  genre: string | null;
+  watched_date: string | null;
+}
 
 export default function MovieDetailScreen() {
   const params = useLocalSearchParams();
-  const [movie, setMovie] = useState({
-    id: params.id,
-    title: params.title,
-    year: params.year,
-    poster_url: params.poster_url,
+  const [movie, setMovie] = useState<MovieState>({
+    id: params.id || '',
+    title: params.title || '',
+    year: params.year || null,
+    poster_url: params.poster_url || null,
     is_watched: params.is_watched === 'true',
     is_favorite: params.is_favorite === 'true',
     rating: parseInt(params.rating as string) || 0,
@@ -44,7 +61,7 @@ export default function MovieDetailScreen() {
             imdb_rating: currentMovie.imdb_rating,
             director: currentMovie.director,
             genre: currentMovie.genre,
-            watched_date: currentMovie.watched_date
+            watched_date: currentMovie.watched_date || null
           });
         }
       }
@@ -56,7 +73,7 @@ export default function MovieDetailScreen() {
   const handleRatingChange = async (newRating: number) => {
     setLoading(true);
     try {
-      const { error } = await moviesApi.update(movie.id as string, { 
+      const { error } = await moviesApi.update(movie.id as string, {
         rating: newRating,
         is_watched: true // Rating verince otomatik watched yap
       });
@@ -78,7 +95,7 @@ export default function MovieDetailScreen() {
     setLoading(true);
     try {
       const newWatchedStatus = !movie.is_watched;
-      const updateData = { 
+      const updateData: Partial<Movie> = {
         is_watched: newWatchedStatus,
         watched_date: newWatchedStatus ? new Date().toISOString() : null
       };
@@ -87,7 +104,7 @@ export default function MovieDetailScreen() {
       if (error) {
         Alert.alert('Error', 'Failed to update watched status.');
       } else {
-        setMovie(prev => ({ 
+        setMovie(prev => ({
           ...prev, 
           is_watched: newWatchedStatus,
           watched_date: newWatchedStatus ? new Date().toISOString() : null
@@ -131,7 +148,6 @@ export default function MovieDetailScreen() {
       setLoading(false);
     }
   };
-
 
   return (
     <SafeAreaView style={styles.container}>

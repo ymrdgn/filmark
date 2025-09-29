@@ -6,12 +6,48 @@ import { router } from 'expo-router';
 import { supabase, getCurrentUser } from '@/lib/supabase';
 import { moviesApi, tvShowsApi, statsApi } from '@/lib/api';
 import { friendsApi } from '@/lib/friends-api';
+import { Database } from '@/lib/database.types';
+
+type Movie = Database['public']['Tables']['movies']['Row'];
+type TVShow = Database['public']['Tables']['tv_shows']['Row'];
+
+interface ActivityItem {
+  id: string;
+  title: string;
+  type: 'Movie' | 'TV Show';
+  action: 'watched' | 'favorited';
+  date: string;
+  poster: string | null;
+  rating: number | null;
+}
+
+interface FriendActivity {
+  id: string;
+  friendName: string;
+  friendEmail: string;
+  title: string;
+  type: 'Movie' | 'TV Show';
+  action: 'watched' | 'favorited';
+  date: string;
+  poster: string | null;
+  rating: number | null;
+}
+
+interface StatsData {
+  moviesWatched: number;
+  tvShows: number;
+  episodes: number;
+  hoursWatched: number;
+  averageRating: number;
+  favoriteMovies: number;
+  favoriteTVShows: number;
+}
 
 const { width } = Dimensions.get('window');
 
 export default function HomeScreen() {
-  const [user, setUser] = React.useState(null);
-  const [stats, setStats] = React.useState({
+  const [user, setUser] = React.useState<any>(null);
+  const [stats, setStats] = React.useState<StatsData>({
     moviesWatched: 0,
     tvShows: 0,
     episodes: 0,
@@ -20,8 +56,8 @@ export default function HomeScreen() {
     favoriteMovies: 0,
     favoriteTVShows: 0
   });
-  const [recentActivity, setRecentActivity] = React.useState([]);
-  const [friendsActivity, setFriendsActivity] = React.useState([]);
+  const [recentActivity, setRecentActivity] = React.useState<ActivityItem[]>([]);
+  const [friendsActivity, setFriendsActivity] = React.useState<FriendActivity[]>([]);
   const [loading, setLoading] = React.useState(true);
 
   React.useEffect(() => {
@@ -65,11 +101,10 @@ export default function HomeScreen() {
         tvShowsApi.getAll()
       ]);
 
-      const activities = [];
 
       // Movies - watched and favorites
       if (moviesResult.data) {
-        moviesResult.data.forEach(movie => {
+        moviesResult.data.forEach((movie: Movie) => {
           if (movie.is_watched) {
             activities.push({
               id: `movie-watched-${movie.id}`,
@@ -97,7 +132,7 @@ export default function HomeScreen() {
 
       // TV Shows - watched and favorites
       if (tvShowsResult.data) {
-        tvShowsResult.data.forEach(show => {
+        tvShowsResult.data.forEach((show: TVShow) => {
           if (show.is_watched) {
             activities.push({
               id: `tv-watched-${show.id}`,
@@ -128,7 +163,7 @@ export default function HomeScreen() {
         .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
         .slice(0, 3);
 
-      setRecentActivity(sortedActivities);
+      setRecentActivity(sortedActivities as ActivityItem[]);
     } catch (error) {
       console.error('Error loading recent activity:', error);
     }
@@ -143,7 +178,7 @@ export default function HomeScreen() {
         return;
       }
 
-      const allFriendsActivity = [];
+      const allFriendsActivity: FriendActivity[] = [];
 
       // Get activity for each friend
       for (const friend of friends) {
@@ -162,7 +197,7 @@ export default function HomeScreen() {
 
         // Process movies
         if (moviesResult.data) {
-          moviesResult.data.forEach(movie => {
+          moviesResult.data.forEach((movie: Movie) => {
             if (movie.is_watched) {
               allFriendsActivity.push({
                 id: `friend-movie-${friendId}-${movie.id}`,
@@ -194,7 +229,7 @@ export default function HomeScreen() {
 
         // Process TV shows
         if (tvShowsResult.data) {
-          tvShowsResult.data.forEach(show => {
+          tvShowsResult.data.forEach((show: TVShow) => {
             if (show.is_watched) {
               allFriendsActivity.push({
                 id: `friend-tv-${friendId}-${show.id}`,
@@ -236,7 +271,7 @@ export default function HomeScreen() {
     }
   };
 
-  const formatDate = (dateString) => {
+  const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     const now = new Date();
     const diffTime = Math.abs(now.getTime() - date.getTime());
@@ -252,7 +287,13 @@ export default function HomeScreen() {
     });
   };
 
-  const statsData = [
+  interface StatCardData {
+    label: string;
+    value: string;
+    icon: any;
+    color: string;
+  }
+  const statsData: StatCardData[] = [
     { label: 'Movies Watched', value: stats.moviesWatched.toString(), icon: Film, color: '#EF4444' },
     { label: 'TV Shows', value: stats.tvShows.toString(), icon: Tv, color: '#10B981' },
     { label: 'Hours Watched', value: `${stats.hoursWatched}h`, icon: Clock, color: '#F59E0B' },
