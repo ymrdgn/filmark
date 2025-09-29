@@ -70,11 +70,23 @@ export default function HomeScreen() {
       setUser(user);
       
       if (user) {
-        await Promise.all([
-          loadStats(),
-          loadRecentActivity(),
-          loadFriendsActivity()
-        ]);
+        try {
+          await loadStats();
+        } catch (error) {
+          console.error('Error loading stats:', error);
+        }
+        
+        try {
+          await loadRecentActivity();
+        } catch (error) {
+          console.error('Error loading recent activity:', error);
+        }
+        
+        try {
+          await loadFriendsActivity();
+        } catch (error) {
+          console.error('Error loading friends activity:', error);
+        }
       }
     } catch (error) {
       console.error('Error loading user data:', error);
@@ -86,7 +98,9 @@ export default function HomeScreen() {
   const loadStats = async () => {
     try {
       const { data, error } = await statsApi.getStats();
-      if (!error && data) {
+      if (error) {
+        console.error('Stats API error:', error);
+      } else if (data) {
         setStats(data);
       }
     } catch (error) {
@@ -104,7 +118,7 @@ export default function HomeScreen() {
       ]);
 
       // Movies - watched and favorites
-      if (moviesResult.data) {
+      if (!moviesResult.error && moviesResult.data) {
         moviesResult.data.forEach((movie: Movie) => {
           if (movie.is_watched) {
             activities.push({
@@ -129,10 +143,12 @@ export default function HomeScreen() {
             });
           }
         });
+      } else if (moviesResult.error) {
+        console.error('Movies API error:', moviesResult.error);
       }
 
       // TV Shows - watched and favorites
-      if (tvShowsResult.data) {
+      if (!tvShowsResult.error && tvShowsResult.data) {
         tvShowsResult.data.forEach((show: TVShow) => {
           if (show.is_watched) {
             activities.push({
@@ -157,6 +173,8 @@ export default function HomeScreen() {
             });
           }
         });
+      } else if (tvShowsResult.error) {
+        console.error('TV Shows API error:', tvShowsResult.error);
       }
 
       // Sort by date (newest first) and take first 3
@@ -164,7 +182,7 @@ export default function HomeScreen() {
         .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
         .slice(0, 3);
 
-      setRecentActivity(sortedActivities as ActivityItem[]);
+      setRecentActivity(sortedActivities);
     } catch (error) {
       console.error('Error loading recent activity:', error);
     }
@@ -175,7 +193,9 @@ export default function HomeScreen() {
       // Get accepted friends
       const { data: friends, error: friendsError } = await friendsApi.getAcceptedFriends();
       if (friendsError || !friends) {
-        console.error('Error loading friends:', friendsError);
+        if (friendsError) {
+          console.error('Error loading friends:', friendsError);
+        }
         return;
       }
 
@@ -190,74 +210,78 @@ export default function HomeScreen() {
         const friendEmail = friend.user_id === user.id ? friend.friend_email : friend.requesting_email;
         const friendName = friendEmail?.split('@')[0] || 'Unknown';
 
-        // Get friend's movies and TV shows
-        const [moviesResult, tvShowsResult] = await Promise.all([
-          friendsApi.getFriendMovies(friendId),
-          friendsApi.getFriendTVShows(friendId)
-        ]);
+        try {
+          // Get friend's movies and TV shows
+          const [moviesResult, tvShowsResult] = await Promise.all([
+            friendsApi.getFriendMovies(friendId),
+            friendsApi.getFriendTVShows(friendId)
+          ]);
 
-        // Process movies
-        if (moviesResult.data) {
-          moviesResult.data.forEach((movie: Movie) => {
-            if (movie.is_watched) {
-              allFriendsActivity.push({
-                id: `friend-movie-${friendId}-${movie.id}`,
-                friendName,
-                friendEmail,
-                title: movie.title,
-                type: 'Movie',
-                action: 'watched',
-                date: new Date().toISOString(), // We don't have exact date, use current
-                poster: movie.poster_url,
-                rating: movie.rating
-              });
-            }
-            if (movie.is_favorite) {
-              allFriendsActivity.push({
-                id: `friend-movie-fav-${friendId}-${movie.id}`,
-                friendName,
-                friendEmail,
-                title: movie.title,
-                type: 'Movie',
-                action: 'favorited',
-                date: new Date().toISOString(),
-                poster: movie.poster_url,
-                rating: movie.rating
-              });
-            }
-          });
-        }
+          // Process movies
+          if (!moviesResult.error && moviesResult.data) {
+            moviesResult.data.forEach((movie: Movie) => {
+              if (movie.is_watched) {
+                allFriendsActivity.push({
+                  id: `friend-movie-${friendId}-${movie.id}`,
+                  friendName,
+                  friendEmail,
+                  title: movie.title,
+                  type: 'Movie',
+                  action: 'watched',
+                  date: new Date().toISOString(),
+                  poster: movie.poster_url,
+                  rating: movie.rating
+                });
+              }
+              if (movie.is_favorite) {
+                allFriendsActivity.push({
+                  id: `friend-movie-fav-${friendId}-${movie.id}`,
+                  friendName,
+                  friendEmail,
+                  title: movie.title,
+                  type: 'Movie',
+                  action: 'favorited',
+                  date: new Date().toISOString(),
+                  poster: movie.poster_url,
+                  rating: movie.rating
+                });
+              }
+            });
+          }
 
-        // Process TV shows
-        if (tvShowsResult.data) {
-          tvShowsResult.data.forEach((show: TVShow) => {
-            if (show.is_watched) {
-              allFriendsActivity.push({
-                id: `friend-tv-${friendId}-${show.id}`,
-                friendName,
-                friendEmail,
-                title: show.title,
-                type: 'TV Show',
-                action: 'watched',
-                date: new Date().toISOString(),
-                poster: show.poster_url,
-                rating: show.rating
-              });
-            }
-            if (show.is_favorite) {
-              allFriendsActivity.push({
-                id: `friend-tv-fav-${friendId}-${show.id}`,
-                friendName,
-                friendEmail,
-                title: show.title,
-                type: 'TV Show',
-                action: 'favorited',
-                date: new Date().toISOString(),
-                poster: show.poster_url,
-                rating: show.rating
-              });
-            }
-          });
+          // Process TV shows
+          if (!tvShowsResult.error && tvShowsResult.data) {
+            tvShowsResult.data.forEach((show: TVShow) => {
+              if (show.is_watched) {
+                allFriendsActivity.push({
+                  id: `friend-tv-${friendId}-${show.id}`,
+                  friendName,
+                  friendEmail,
+                  title: show.title,
+                  type: 'TV Show',
+                  action: 'watched',
+                  date: new Date().toISOString(),
+                  poster: show.poster_url,
+                  rating: show.rating
+                });
+              }
+              if (show.is_favorite) {
+                allFriendsActivity.push({
+                  id: `friend-tv-fav-${friendId}-${show.id}`,
+                  friendName,
+                  friendEmail,
+                  title: show.title,
+                  type: 'TV Show',
+                  action: 'favorited',
+                  date: new Date().toISOString(),
+                  poster: show.poster_url,
+                  rating: show.rating
+                });
+              }
+            });
+          }
+        } catch (friendError) {
+          console.error(`Error loading activity for friend ${friendId}:`, friendError);
         }
       }
 
