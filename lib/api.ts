@@ -238,6 +238,50 @@ export const listsApi = {
   },
 };
 
+// Achievements API
+export const achievementsApi = {
+  // Get all achievements with user progress
+  getAchievementsWithProgress: async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error('User not authenticated');
+
+    const { data: achievements, error: achievementsError } = await supabase
+      .from('achievements')
+      .select('*')
+      .order('requirement_value', { ascending: true });
+    
+    if (achievementsError) return { data: null, error: achievementsError };
+
+    const { data: userAchievements, error: userAchievementsError } = await supabase
+      .from('user_achievements')
+      .select('achievement_id, earned_at')
+      .eq('user_id', user.id);
+    
+    if (userAchievementsError) return { data: null, error: userAchievementsError };
+
+    // Combine achievements with user progress
+    const achievementsWithProgress = achievements?.map(achievement => ({
+      ...achievement,
+      earned: userAchievements?.some(ua => ua.achievement_id === achievement.id) || false,
+      earned_at: userAchievements?.find(ua => ua.achievement_id === achievement.id)?.earned_at || null
+    }));
+
+    return { data: achievementsWithProgress, error: null };
+  },
+
+  // Manually check and award achievements for current user
+  checkAchievements: async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error('User not authenticated');
+
+    const { error } = await supabase.rpc('check_and_award_achievements', {
+      user_uuid: user.id
+    });
+
+    return { error };
+  }
+};
+
 // Stats API
 export const statsApi = {
   // Get user statistics

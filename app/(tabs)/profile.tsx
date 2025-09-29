@@ -6,7 +6,7 @@ import { User, Settings, Star, TrendingUp, Award, Clock, Film, Tv, Heart, LogOut
 import { signOut, getCurrentUser } from '@/lib/supabase';
 import { router } from 'expo-router';
 import { Alert } from 'react-native';
-import { statsApi } from '@/lib/api';
+import { statsApi, achievementsApi } from '@/lib/api';
 
 export default function ProfileScreen() {
   const [user, setUser] = useState(null);
@@ -19,6 +19,7 @@ export default function ProfileScreen() {
     favoriteMovies: 0,
     favoriteTVShows: 0
   });
+  const [achievements, setAchievements] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -31,9 +32,17 @@ export default function ProfileScreen() {
       setUser(user);
       
       if (user) {
-        const { data, error } = await statsApi.getStats();
-        if (!error && data) {
-          setStats(data);
+        const [statsResult, achievementsResult] = await Promise.all([
+          statsApi.getStats(),
+          achievementsApi.getAchievementsWithProgress()
+        ]);
+        
+        if (!statsResult.error && statsResult.data) {
+          setStats(statsResult.data);
+        }
+        
+        if (!achievementsResult.error && achievementsResult.data) {
+          setAchievements(achievementsResult.data);
         }
       }
     } catch (error) {
@@ -68,12 +77,17 @@ export default function ProfileScreen() {
     { label: 'Favorites', value: (stats.favoriteMovies + stats.favoriteTVShows).toString(), icon: Heart, color: '#EC4899' },
   ];
 
-  const achievements = [
-    { name: 'Movie Buff', description: 'Watched 100+ movies', icon: Award, earned: stats.moviesWatched >= 100 },
-    { name: 'TV Enthusiast', description: 'Watched 50+ TV shows', icon: Tv, earned: stats.tvShows >= 50 },
-    { name: 'Critic', description: 'Rated 25+ items', icon: Star, earned: (stats.moviesWatched + stats.tvShows) >= 25 },
-    { name: 'Binge Master', description: 'Watched 500+ episodes', icon: TrendingUp, earned: stats.episodes >= 500 },
-  ];
+  // Map icon names to components
+  const iconMap = {
+    Award,
+    Tv,
+    Star,
+    TrendingUp,
+    Film,
+    Heart,
+    Plus,
+    Clock
+  };
 
   const menuItems = [
     { label: 'Friends', icon: Users, color: '#10B981', onPress: () => router.push('/friends') },
@@ -140,16 +154,16 @@ export default function ProfileScreen() {
             <Text style={styles.sectionTitle}>Achievements</Text>
             <View style={styles.achievementsContainer}>
               {achievements.map((achievement, index) => (
-                <View key={index} style={[styles.achievementCard, !achievement.earned && styles.achievementLocked]}>
+                <View key={achievement.id} style={[styles.achievementCard, !achievement.earned && styles.achievementLocked]}>
                   <View style={[
                     styles.achievementIcon, 
                     { backgroundColor: achievement.earned ? '#10B98120' : '#37415120' }
                   ]}>
-                    <achievement.icon 
+                    {React.createElement(iconMap[achievement.icon] || Award, {
                       size={24} 
-                      color={achievement.earned ? '#10B981' : '#6B7280'} 
-                      strokeWidth={2} 
-                    />
+                      color: achievement.earned ? '#10B981' : '#6B7280',
+                      strokeWidth: 2
+                    })}
                   </View>
                   <View style={styles.achievementInfo}>
                     <Text style={[
@@ -166,6 +180,11 @@ export default function ProfileScreen() {
                     <View style={styles.achievementBadge}>
                       <Text style={styles.achievementBadgeText}>✓</Text>
                     </View>
+                  )}
+                  {achievement.earned && achievement.earned_at && (
+                    <Text style={styles.achievementDate}>
+                      {new Date(achievement.earned_at).toLocaleDateString()}
+                    </Text>
                   )}
                 </View>
               ))}
@@ -334,6 +353,14 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontFamily: 'Inter-Bold',
     color: 'white',
+  },
+  achievementDate: {
+    fontSize: 10,
+    fontFamily: 'Inter-Medium',
+    color: '#6B7280',
+    position: 'absolute',
+    top: 8,
+    right: 8,
   },
   menuContainer: {
     gap: 2,

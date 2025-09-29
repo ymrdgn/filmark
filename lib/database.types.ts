@@ -178,6 +178,58 @@ export interface Database {
           updated_at?: string
         }
       }
+      achievements: {
+        Row: {
+          id: string
+          name: string
+          description: string
+          icon: string
+          requirement_type: string
+          requirement_value: number
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          name: string
+          description: string
+          icon: string
+          requirement_type: string
+          requirement_value: number
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          name?: string
+          description?: string
+          icon?: string
+          requirement_type?: string
+          requirement_value?: number
+          created_at?: string
+        }
+      }
+      user_achievements: {
+        Row: {
+          id: string
+          user_id: string
+          achievement_id: string
+          earned_at: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          achievement_id: string
+          earned_at?: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          achievement_id?: string
+          earned_at?: string
+          created_at?: string
+        }
+      }
       users: {
         Row: {
           id: string
@@ -247,6 +299,12 @@ export interface Database {
           current_season: number | null
           current_episode: number | null
         }[]
+      }
+      check_and_award_achievements: {
+        Args: {
+          user_uuid: string
+        }
+        Returns: void
       }
     }
     Enums: {
