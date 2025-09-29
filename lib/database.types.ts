@@ -182,18 +182,21 @@ export interface Database {
         Row: {
           id: string
           email: string
+          username: string | null
           created_at: string
           updated_at: string
         }
         Insert: {
           id: string
           email: string
+          username?: string | null
           created_at?: string
           updated_at?: string
         }
         Update: {
           id?: string
           email?: string
+          username?: string | null
           username?: string
           created_at?: string
           updated_at?: string
