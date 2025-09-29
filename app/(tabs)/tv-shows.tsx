@@ -5,6 +5,7 @@ import { Search, Star, Calendar, Plus, Check, Heart, Play, Eye } from 'lucide-re
 import { router } from 'expo-router';
 import { tvShowsApi } from '@/lib/api';
 import { searchTVShows, TMDBTVShow, getImageUrl, getPopularTVShows } from '@/lib/tmdb';
+import { useFocusEffect } from '@react-navigation/native';
 
 const { width } = Dimensions.get('window');
 const cardWidth = (width - 72) / 2;
@@ -32,6 +33,13 @@ export default function TVShowsScreen() {
       global.refreshTVShows = null;
     };
   }, []);
+
+  // Refresh when screen comes into focus
+  useFocusEffect(
+    React.useCallback(() => {
+      loadMyTVShows();
+    }, [])
+  );
 
   const loadMyTVShows = async () => {
     // Check if Supabase is properly configured

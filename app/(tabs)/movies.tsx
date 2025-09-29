@@ -5,6 +5,7 @@ import { Search, Star, Calendar, Plus, Check, Heart } from 'lucide-react-native'
 import { router } from 'expo-router';
 import { moviesApi } from '@/lib/api';
 import { searchMovies, TMDBMovie, getImageUrl, getPopularMovies } from '@/lib/tmdb';
+import { useFocusEffect } from '@react-navigation/native';
 
 const { width } = Dimensions.get('window');
 const cardWidth = (width - 72) / 2;
@@ -22,7 +23,23 @@ export default function MoviesScreen() {
   useEffect(() => {
     loadMyMovies();
     loadPopularMovies();
+    
+    // Set up global refresh function
+    global.refreshMovies = () => {
+      loadMyMovies();
+    };
+    
+    return () => {
+      global.refreshMovies = null;
+    };
   }, []);
+
+  // Refresh when screen comes into focus
+  useFocusEffect(
+    React.useCallback(() => {
+      loadMyMovies();
+    }, [])
+  );
 
   const loadMyMovies = async () => {
     // Check if Supabase is properly configured

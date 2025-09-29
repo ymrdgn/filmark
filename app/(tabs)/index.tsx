@@ -7,6 +7,7 @@ import { supabase, getCurrentUser } from '@/lib/supabase';
 import { moviesApi, tvShowsApi, statsApi } from '@/lib/api';
 import { friendsApi } from '@/lib/friends-api';
 import { Database } from '@/lib/database.types';
+import { useFocusEffect } from '@react-navigation/native';
 
 type Movie = Database['public']['Tables']['movies']['Row'];
 type TVShow = Database['public']['Tables']['tv_shows']['Row'];
@@ -63,6 +64,17 @@ export default function HomeScreen() {
   React.useEffect(() => {
     loadUserData();
   }, []);
+
+  // Refresh data when screen comes into focus
+  useFocusEffect(
+    React.useCallback(() => {
+      if (user) {
+        loadStats();
+        loadRecentActivity();
+        loadFriendsActivity();
+      }
+    }, [user])
+  );
 
   const loadUserData = async () => {
     try {
