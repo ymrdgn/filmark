@@ -1,12 +1,48 @@
 import React from 'react';
+import { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, SafeAreaView, TouchableOpacity } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { User, Settings, Star, TrendingUp, Award, Clock, Film, Tv, Heart, LogOut, Users } from 'lucide-react-native';
-import { signOut } from '@/lib/supabase';
+import { signOut, getCurrentUser } from '@/lib/supabase';
 import { router } from 'expo-router';
 import { Alert } from 'react-native';
+import { statsApi } from '@/lib/api';
 
 export default function ProfileScreen() {
+  const [user, setUser] = useState(null);
+  const [stats, setStats] = useState({
+    moviesWatched: 0,
+    tvShows: 0,
+    episodes: 0,
+    hoursWatched: 0,
+    averageRating: 0,
+    favoriteMovies: 0,
+    favoriteTVShows: 0
+  });
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadUserData();
+  }, []);
+
+  const loadUserData = async () => {
+    try {
+      const { user } = await getCurrentUser();
+      setUser(user);
+      
+      if (user) {
+        const { data, error } = await statsApi.getStats();
+        if (!error && data) {
+          setStats(data);
+        }
+      }
+    } catch (error) {
+      console.error('Error loading user data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleSignOut = async () => {
     const { error } = await signOut();
     
@@ -25,18 +61,18 @@ export default function ProfileScreen() {
     }
   };
 
-  const stats = [
-    { label: 'Movies Watched', value: '127', icon: Film, color: '#EF4444' },
-    { label: 'TV Episodes', value: '1,453', icon: Tv, color: '#10B981' },
-    { label: 'Hours Watched', value: '284h', icon: Clock, color: '#F59E0B' },
-    { label: 'Favorites', value: '15', icon: Heart, color: '#EC4899' },
+  const statsData = [
+    { label: 'Movies Watched', value: stats.moviesWatched.toString(), icon: Film, color: '#EF4444' },
+    { label: 'TV Shows', value: stats.tvShows.toString(), icon: Tv, color: '#10B981' },
+    { label: 'Hours Watched', value: `${stats.hoursWatched}h`, icon: Clock, color: '#F59E0B' },
+    { label: 'Favorites', value: (stats.favoriteMovies + stats.favoriteTVShows).toString(), icon: Heart, color: '#EC4899' },
   ];
 
   const achievements = [
-    { name: 'Movie Buff', description: 'Watched 100+ movies', icon: Award, earned: true },
-    { name: 'Binge Watcher', description: 'Watched 10 episodes in a day', icon: TrendingUp, earned: true },
-    { name: 'Critic', description: 'Rated 50+ items', icon: Star, earned: false },
-    { name: 'Completionist', description: 'Finished 25+ TV series', icon: Film, earned: false },
+    { name: 'Movie Buff', description: 'Watched 100+ movies', icon: Award, earned: stats.moviesWatched >= 100 },
+    { name: 'TV Enthusiast', description: 'Watched 50+ TV shows', icon: Tv, earned: stats.tvShows >= 50 },
+    { name: 'Critic', description: 'Rated 25+ items', icon: Star, earned: (stats.moviesWatched + stats.tvShows) >= 25 },
+    { name: 'Binge Master', description: 'Watched 500+ episodes', icon: TrendingUp, earned: stats.episodes >= 500 },
   ];
 
   const menuItems = [
@@ -46,6 +82,21 @@ export default function ProfileScreen() {
     { label: 'Export Data', icon: TrendingUp, color: '#10B981' },
     { label: 'Sign Out', icon: LogOut, color: '#EF4444', onPress: handleSignOut },
   ];
+
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <LinearGradient
+          colors={['#1F2937', '#111827']}
+          style={styles.gradient}
+        >
+          <View style={styles.loadingContainer}>
+            <Text style={styles.loadingText}>Loading profile...</Text>
+          </View>
+        </LinearGradient>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -58,15 +109,22 @@ export default function ProfileScreen() {
             <View style={styles.avatar}>
               <User size={48} color="#6366F1" strokeWidth={1.5} />
             </View>
-            <Text style={styles.name}>Alex Johnson</Text>
-            <Text style={styles.email}>alex.johnson@email.com</Text>
-            <Text style={styles.joinDate}>Member since March 2023</Text>
+            <Text style={styles.name}>
+              {user?.email?.split('@')[0] || 'User'}
+            </Text>
+            <Text style={styles.email}>{user?.email || 'No email'}</Text>
+            <Text style={styles.joinDate}>
+              Member since {user?.created_at ? new Date(user.created_at).toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'long'
+              }) : 'Unknown'}
+            </Text>
           </View>
 
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Your Stats</Text>
             <View style={styles.statsContainer}>
-              {stats.map((stat, index) => (
+              {statsData.map((stat, index) => (
                 <View key={index} style={styles.statCard}>
                   <View style={[styles.statIcon, { backgroundColor: `${stat.color}20` }]}>
                     <stat.icon size={20} color={stat.color} strokeWidth={2} />
@@ -304,5 +362,15 @@ const styles = StyleSheet.create({
   },
   bottomSpacer: {
     height: 40,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    fontSize: 18,
+    fontFamily: 'Inter-Medium',
+    color: '#9CA3AF',
   },
 });
