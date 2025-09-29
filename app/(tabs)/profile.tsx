@@ -160,7 +160,7 @@ export default function ProfileScreen() {
                     { backgroundColor: achievement.earned ? '#10B98120' : '#37415120' }
                   ]}>
                     {React.createElement(iconMap[achievement.icon] || Award, {
-                      size={24} 
+                      size: 24,
                       color: achievement.earned ? '#10B981' : '#6B7280',
                       strokeWidth: 2
                     })}
