@@ -242,21 +242,25 @@ export const listsApi = {
 export const statsApi = {
   // Get user statistics
   getStats: async () => {
-    const [moviesResult, tvShowsResult] = await Promise.all([
+    const [moviesResult, tvShowsResult, allMoviesResult, allTVShowsResult] = await Promise.all([
       supabase.from('movies').select('is_watched, is_favorite, rating').eq('is_watched', true),
-      supabase.from('tv_shows').select('is_watched, is_favorite, rating, episodes').eq('is_watched', true)
+      supabase.from('tv_shows').select('is_watched, is_favorite, rating, episodes').eq('is_watched', true),
+      supabase.from('movies').select('is_favorite'),
+      supabase.from('tv_shows').select('is_favorite')
     ]);
 
     const watchedMovies = moviesResult.data || [];
     const tvShows = tvShowsResult.data || [];
+    const allMovies = allMoviesResult.data || [];
+    const allTVShows = allTVShowsResult.data || [];
     
     const totalMovies = watchedMovies.length;
     const totalTVShows = tvShows.length;
     const totalEpisodes = tvShows.reduce((sum, show) => sum + (show.episodes || 0), 0);
     
     // Calculate favorites
-    const favoriteMovies = watchedMovies.filter(m => m.is_favorite).length;
-    const favoriteTVShows = tvShows.filter(s => s.is_favorite).length;
+    const favoriteMovies = allMovies.filter(m => m.is_favorite).length;
+    const favoriteTVShows = allTVShows.filter(s => s.is_favorite).length;
     
     // Calculate average rating
     const allRatings = [
