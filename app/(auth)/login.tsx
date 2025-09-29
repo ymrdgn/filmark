@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, SafeAreaView, Alert, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
-import { Mail, Lock, Eye, EyeOff, Film } from 'lucide-react-native';
+import { Mail, Lock, Eye, EyeOff, Film, User } from 'lucide-react-native';
 import { signUp, signIn } from '@/lib/supabase';
 
 export default function LoginScreen() {
