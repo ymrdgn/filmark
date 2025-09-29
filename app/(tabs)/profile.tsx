@@ -2,7 +2,7 @@ import React from 'react';
 import { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, SafeAreaView, TouchableOpacity } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { User, Settings, Star, TrendingUp, Award, Clock, Film, Tv, Heart, LogOut, Users } from 'lucide-react-native';
+import { User, Settings, Star, TrendingUp, Award, Clock, Film, Tv, Heart, LogOut, Users, Plus } from 'lucide-react-native';
 import { signOut, getCurrentUser } from '@/lib/supabase';
 import { router } from 'expo-router';
 import { Alert } from 'react-native';
