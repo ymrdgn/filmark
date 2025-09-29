@@ -10,6 +10,7 @@ export default function LoginScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [username, setUsername] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
@@ -22,6 +23,10 @@ export default function LoginScreen() {
       return;
     }
 
+    if (!isLogin && !username.trim()) {
+      Alert.alert('Hata', 'Lütfen kullanıcı adınızı girin');
+      return;
+    }
     if (!isLogin && password !== confirmPassword) {
       console.log('Passwords do not match');
       Alert.alert('Hata', 'Şifreler eşleşmiyor');
@@ -44,7 +49,7 @@ export default function LoginScreen() {
         result = await signIn(email, password);
       } else {
         console.log('Attempting signup...');
-        result = await signUp(email, password);
+        result = await signUp(email, password, username.trim());
       }
 
       console.log('Auth result:', result);
@@ -87,6 +92,7 @@ export default function LoginScreen() {
                   setIsLogin(true);
                   setPassword('');
                   setConfirmPassword('');
+                  setUsername('');
                 }
               }
             ]
@@ -142,6 +148,20 @@ export default function LoginScreen() {
                   autoCapitalize="none"
                 />
               </View>
+
+              {!isLogin && (
+                <View style={styles.inputContainer}>
+                  <User size={20} color="#9CA3AF" style={styles.inputIcon} />
+                  <TextInput
+                    style={styles.input}
+                    placeholder="Username"
+                    placeholderTextColor="#6B7280"
+                    value={username}
+                    onChangeText={setUsername}
+                    autoCapitalize="none"
+                  />
+                </View>
+              )}
 
               <View style={styles.inputContainer}>
                 <Lock size={20} color="#9CA3AF" style={styles.inputIcon} />

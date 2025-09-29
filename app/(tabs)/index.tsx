@@ -325,7 +325,7 @@ export default function HomeScreen() {
         <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
           <View style={styles.header}>
             <Text style={styles.greeting}>
-              {user ? `Welcome back, ${user.email?.split('@')[0]}!` : 'Welcome to WatchTracker!'}
+              {user ? `Welcome back, ${user.user_metadata?.username || user.email?.split('@')[0]}!` : 'Welcome to WatchTracker!'}
             </Text>
             <Text style={styles.subtitle}>What would you like to watch today?</Text>
             

@@ -194,6 +194,7 @@ export interface Database {
         Update: {
           id?: string
           email?: string
+          username?: string
           created_at?: string
           updated_at?: string
         }

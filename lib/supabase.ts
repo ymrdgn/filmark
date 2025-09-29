@@ -76,11 +76,16 @@ const testConnection = async () => {
 testConnection();
 
 // Auth helper functions
-export const signUp = async (email: string, password: string) => {
+export const signUp = async (email: string, password: string, username: string) => {
   console.log('SignUp attempt for:', email);
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
+    options: {
+      data: {
+        username: username
+      }
+    }
   });
   console.log('SignUp result:', { data: !!data, error: error?.message });
   return { data, error };

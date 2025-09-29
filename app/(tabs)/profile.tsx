@@ -110,7 +110,7 @@ export default function ProfileScreen() {
               <User size={48} color="#6366F1" strokeWidth={1.5} />
             </View>
             <Text style={styles.name}>
-              {user?.email?.split('@')[0] || 'User'}
+              {user?.user_metadata?.username || user?.email?.split('@')[0] || 'User'}
             </Text>
             <Text style={styles.email}>{user?.email || 'No email'}</Text>
             <Text style={styles.joinDate}>
