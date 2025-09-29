@@ -96,11 +96,12 @@ export default function HomeScreen() {
 
   const loadRecentActivity = async () => {
     try {
+      const activities: ActivityItem[] = [];
+      
       const [moviesResult, tvShowsResult] = await Promise.all([
         moviesApi.getAll(),
         tvShowsApi.getAll()
       ]);
-
 
       // Movies - watched and favorites
       if (moviesResult.data) {
