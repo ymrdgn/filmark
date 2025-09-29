@@ -112,7 +112,8 @@ export default function MovieDetailScreen() {
         const statusText = newWatchedStatus ? 'marked as watched' : 'unmarked as watched';
         Alert.alert('Success', `Movie ${statusText}!`);
         
-        // Navigate back to refresh the movies list
+        // Trigger refresh and navigate back
+        global.refreshMovies?.();
         setTimeout(() => {
           router.back();
         }, 1000);
@@ -137,7 +138,8 @@ export default function MovieDetailScreen() {
         const statusText = newFavoriteStatus ? 'added to favorites' : 'removed from favorites';
         Alert.alert('Success', `Movie ${statusText}!`);
         
-        // Navigate back to refresh the movies list
+        // Trigger refresh and navigate back
+        global.refreshMovies?.();
         setTimeout(() => {
           router.back();
         }, 1000);
