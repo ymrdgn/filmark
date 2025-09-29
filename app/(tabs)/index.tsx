@@ -5,6 +5,7 @@ import { TrendingUp, Clock, Star, Plus, Eye, Film, Tv } from 'lucide-react-nativ
 import { router } from 'expo-router';
 import { supabase, getCurrentUser } from '@/lib/supabase';
 import { moviesApi, tvShowsApi, statsApi } from '@/lib/api';
+import { friendsApi } from '@/lib/friends-api';
 
 const { width } = Dimensions.get('window');
 
@@ -20,6 +21,7 @@ export default function HomeScreen() {
     favoriteTVShows: 0
   });
   const [recentActivity, setRecentActivity] = React.useState([]);
+  const [friendsActivity, setFriendsActivity] = React.useState([]);
   const [loading, setLoading] = React.useState(true);
 
   React.useEffect(() => {
@@ -34,7 +36,8 @@ export default function HomeScreen() {
       if (user) {
         await Promise.all([
           loadStats(),
-          loadRecentActivity()
+          loadRecentActivity(),
+          loadFriendsActivity()
         ]);
       }
     } catch (error) {
@@ -131,17 +134,119 @@ export default function HomeScreen() {
     }
   };
 
+  const loadFriendsActivity = async () => {
+    try {
+      // Get accepted friends
+      const { data: friends, error: friendsError } = await friendsApi.getAcceptedFriends();
+      if (friendsError || !friends) {
+        console.error('Error loading friends:', friendsError);
+        return;
+      }
+
+      const allFriendsActivity = [];
+
+      // Get activity for each friend
+      for (const friend of friends) {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) continue;
+
+        const friendId = friend.user_id === user.id ? friend.friend_id : friend.user_id;
+        const friendEmail = friend.user_id === user.id ? friend.friend_email : friend.requesting_email;
+        const friendName = friendEmail?.split('@')[0] || 'Unknown';
+
+        // Get friend's movies and TV shows
+        const [moviesResult, tvShowsResult] = await Promise.all([
+          friendsApi.getFriendMovies(friendId),
+          friendsApi.getFriendTVShows(friendId)
+        ]);
+
+        // Process movies
+        if (moviesResult.data) {
+          moviesResult.data.forEach(movie => {
+            if (movie.is_watched) {
+              allFriendsActivity.push({
+                id: `friend-movie-${friendId}-${movie.id}`,
+                friendName,
+                friendEmail,
+                title: movie.title,
+                type: 'Movie',
+                action: 'watched',
+                date: new Date().toISOString(), // We don't have exact date, use current
+                poster: movie.poster_url,
+                rating: movie.rating
+              });
+            }
+            if (movie.is_favorite) {
+              allFriendsActivity.push({
+                id: `friend-movie-fav-${friendId}-${movie.id}`,
+                friendName,
+                friendEmail,
+                title: movie.title,
+                type: 'Movie',
+                action: 'favorited',
+                date: new Date().toISOString(),
+                poster: movie.poster_url,
+                rating: movie.rating
+              });
+            }
+          });
+        }
+
+        // Process TV shows
+        if (tvShowsResult.data) {
+          tvShowsResult.data.forEach(show => {
+            if (show.is_watched) {
+              allFriendsActivity.push({
+                id: `friend-tv-${friendId}-${show.id}`,
+                friendName,
+                friendEmail,
+                title: show.title,
+                type: 'TV Show',
+                action: 'watched',
+                date: new Date().toISOString(),
+                poster: show.poster_url,
+                rating: show.rating
+              });
+            }
+            if (show.is_favorite) {
+              allFriendsActivity.push({
+                id: `friend-tv-fav-${friendId}-${show.id}`,
+                friendName,
+                friendEmail,
+                title: show.title,
+                type: 'TV Show',
+                action: 'favorited',
+                date: new Date().toISOString(),
+                poster: show.poster_url,
+                rating: show.rating
+              });
+            }
+          });
+        }
+      }
+
+      // Sort by date and take first 3
+      const sortedActivity = allFriendsActivity
+        .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+        .slice(0, 3);
+
+      setFriendsActivity(sortedActivity);
+    } catch (error) {
+      console.error('Error loading friends activity:', error);
+    }
+  };
+
   const formatDate = (dateString) => {
     const date = new Date(dateString);
     const now = new Date();
     const diffTime = Math.abs(now.getTime() - date.getTime());
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     
-    if (diffDays === 1) return 'bugün';
-    if (diffDays === 2) return 'dün';
-    if (diffDays <= 7) return `${diffDays - 1} gün önce`;
+    if (diffDays === 1) return 'today';
+    if (diffDays === 2) return 'yesterday';
+    if (diffDays <= 7) return `${diffDays - 1} days ago`;
     
-    return date.toLocaleDateString('tr-TR', {
+    return date.toLocaleDateString('en-US', {
       month: 'short',
       day: 'numeric'
     });
@@ -255,40 +360,31 @@ export default function HomeScreen() {
             </View>
           )}
 
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Friends Activity</Text>
-            <View style={styles.friendsActivity}>
-              <View style={styles.friendActivityCard}>
-                <View style={styles.friendAvatar}>
-                  <Text style={styles.friendInitial}>A</Text>
-                </View>
-                <View style={styles.friendActivityContent}>
-                  <Text style={styles.friendName}>Alex Johnson</Text>
-                  <Text style={styles.friendActivity}>The Dark Knight izlendi - 2 gün önce</Text>
-                </View>
-              </View>
-              
-              <View style={styles.friendActivityCard}>
-                <View style={[styles.friendAvatar, { backgroundColor: '#10B981' }]}>
-                  <Text style={styles.friendInitial}>S</Text>
-                </View>
-                <View style={styles.friendActivityContent}>
-                  <Text style={styles.friendName}>Sarah Wilson</Text>
-                  <Text style={styles.friendActivity}>Breaking Bad favoriye eklendi - 3 gün önce</Text>
-                </View>
-              </View>
-              
-              <View style={styles.friendActivityCard}>
-                <View style={[styles.friendAvatar, { backgroundColor: '#F59E0B' }]}>
-                  <Text style={styles.friendInitial}>M</Text>
-                </View>
-                <View style={styles.friendActivityContent}>
-                  <Text style={styles.friendName}>Mike Davis</Text>
-                  <Text style={styles.friendActivity}>Inception izlendi - 1 hafta önce</Text>
-                </View>
+          {friendsActivity.length > 0 && (
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Friends Activity</Text>
+              <View style={styles.friendsActivity}>
+                {friendsActivity.map((activity, index) => (
+                  <View key={activity.id} style={styles.friendActivityCard}>
+                    <View style={[
+                      styles.friendAvatar, 
+                      { backgroundColor: ['#6366F1', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6'][index % 5] }
+                    ]}>
+                      <Text style={styles.friendInitial}>
+                        {activity.friendName?.charAt(0)?.toUpperCase() || 'U'}
+                      </Text>
+                    </View>
+                    <View style={styles.friendActivityContent}>
+                      <Text style={styles.friendName}>{activity.friendName}</Text>
+                      <Text style={styles.friendActivity}>
+                        {activity.title} {activity.action} - {formatDate(activity.date)}
+                      </Text>
+                    </View>
+                  </View>
+                ))}
               </View>
             </View>
-          </View>
+          )}
           
           <View style={styles.bottomSpacer} />
         </ScrollView>
