@@ -72,45 +72,41 @@ export const friendsApi = {
 
     const enrichedFriends = await Promise.all(
       friendsData.map(async (friend) => {
-        // Current user is the one who sent the request if user_id matches
-        const isCurrentUserRequester = friend.user_id === user.id;
+        // Determine who is the friend (not current user)
+        const friendUserId = friend.user_id === user.id ? friend.friend_id : friend.user_id;
+        const requestingUserId = friend.user_id; // Who sent the request
         
-        // Get the other person's ID (the friend)
-        const otherUserId = isCurrentUserRequester ? friend.friend_id : friend.user_id;
-        
-        // Get current user's email
-        const { data: currentUserData, error: currentUserError } = await supabase
-          .from('users')
-          .select('email')
-          .eq('id', user.id)
-          .maybeSingle();
-        
-        // Get other user's email
-        const { data: otherUserData, error: otherUserError } = await supabase
-          .from('users')
-          .select('email')
-          .eq('id', otherUserId)
-          .maybeSingle();
-        
-        console.log('Friend relationship:', {
+        console.log('Processing friend relationship:', {
           friendshipId: friend.id,
           currentUserId: user.id,
-          otherUserId,
-          isCurrentUserRequester,
-          currentUserEmail: currentUserData?.email,
-          otherUserEmail: otherUserData?.email,
-          currentUserError,
-          otherUserError
+          friendUserId,
+          requestingUserId,
+          status: friend.status
+        });
+        
+        // Get friend's email (the other person)
+        const { data: friendUserData } = await supabase
+          .from('users')
+          .select('email')
+          .eq('id', friendUserId)
+          .maybeSingle();
+        
+        // Get requesting user's email
+        const { data: requestingUserData } = await supabase
+          .from('users')
+          .select('email')
+          .eq('id', requestingUserId)
+          .maybeSingle();
+        
+        console.log('Email data:', {
+          friendEmail: friendUserData?.email,
+          requestingEmail: requestingUserData?.email
         });
         
         return {
           ...friend,
-          // friend_email is always the other person's email
-          friend_email: otherUserData?.email || 'Unknown user',
-          // requesting_email is the person who sent the request
-          requesting_email: isCurrentUserRequester 
-            ? (currentUserData?.email || 'Unknown user')
-            : (otherUserData?.email || 'Unknown user')
+          friend_email: friendUserData?.email || 'Unknown user',
+          requesting_email: requestingUserData?.email || 'Unknown user'
         };
       })
     );
