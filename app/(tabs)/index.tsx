@@ -210,14 +210,17 @@ export default function HomeScreen() {
         }
         return;
       }
-
       const allFriendsActivity: FriendActivity[] = [];
 
       // Get activity for each friend
       for (const friend of friends) {
+        console.log("friedns dataaa", friends);
+
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) continue;
 
+        console.log("friend", friend.user_id, "friend id",friend.friend_id);
+        console.log("Current user ID:", user.id);
         const friendId = friend.user_id === user.id ? friend.friend_id : friend.user_id;
         const friendEmail = friend.user_id === user.id ? friend.friend_email : friend.requesting_email;
         const friendName = friendEmail?.split('@')[0] || 'Unknown';
@@ -231,7 +234,8 @@ export default function HomeScreen() {
 
           // Process movies
           if (!moviesResult.error && moviesResult.data) {
-            moviesResult.data.forEach((movie: Movie) => {
+            const movies = moviesResult.data as Movie[]; // Type assertion to ensure it's treated as an array
+            movies.forEach((movie: Movie) => {
               if (movie.is_watched) {
                 allFriendsActivity.push({
                   id: `friend-movie-${friendId}-${movie.id}`,
@@ -263,7 +267,8 @@ export default function HomeScreen() {
 
           // Process TV shows
           if (!tvShowsResult.error && tvShowsResult.data) {
-            tvShowsResult.data.forEach((show: TVShow) => {
+            const tvShows = tvShowsResult.data as TVShow[]; // Ensure correct typing
+            tvShows.forEach((show: TVShow) => {
               if (show.is_watched) {
                 allFriendsActivity.push({
                   id: `friend-tv-${friendId}-${show.id}`,
@@ -302,6 +307,7 @@ export default function HomeScreen() {
         .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
         .slice(0, 3);
 
+        console.log("Friends Activity:", sortedActivity);
       setFriendsActivity(sortedActivity);
     } catch (error) {
       console.error('Error loading friends activity:', error);
@@ -419,14 +425,14 @@ export default function HomeScreen() {
                     <Text style={styles.activityAction}>
                       {item.action === 'watched' ? 'izlendi' : 'favoriye eklendi'} - {formatDate(item.date)}
                     </Text>
-                    {item.rating > 0 && (
+                    {item.rating != null && item.rating > 0 && (
                       <View style={styles.activityRating}>
                         {[...Array(5)].map((_, i) => (
                           <Star
                             key={i}
                             size={12}
-                            color={i < item.rating ? '#F59E0B' : '#374151'}
-                            fill={i < item.rating ? '#F59E0B' : 'transparent'}
+                            color={item.rating != null && i < item.rating ? '#F59E0B' : '#374151'}
+                            fill={item.rating != null && i < item.rating ? '#F59E0B' : 'transparent'}
                             strokeWidth={1.5}
                           />
                         ))}
