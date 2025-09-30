@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, SafeAreaView, TouchableOpacity } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { BookMarked, Heart, Clock, Star, Film, Tv } from 'lucide-react-native';
+import { BookMarked, Heart, Clock, Star, Film, Tv, Plus } from 'lucide-react-native';
 import { router } from 'expo-router';
 import { moviesApi, tvShowsApi } from '@/lib/api';
 
