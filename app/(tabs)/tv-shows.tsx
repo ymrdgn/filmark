@@ -125,6 +125,7 @@ export default function TVShowsScreen() {
         poster_url: getImageUrl(show.poster_path),
         is_watched: false,
         is_favorite: false,
+        is_watchlist: false,
         rating: null,
         seasons: 1,
         episodes: 1,
@@ -232,10 +233,12 @@ export default function TVShowsScreen() {
           poster_url: show.poster_url,
           is_watched: show.is_watched,
           is_favorite: show.is_favorite,
+          is_watchlist: show.is_watchlist,
           rating: show.rating,
           seasons: show.seasons,
           episodes: show.episodes,
           current_season: show.current_season,
+          is_watchlist: collectionShow?.is_watchlist || false,
           current_episode: show.current_episode
         }
       })}

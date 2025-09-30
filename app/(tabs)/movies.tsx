@@ -125,6 +125,7 @@ export default function MoviesScreen() {
         poster_url: getImageUrl(movie.poster_path),
         is_watched: false,
         is_favorite: false,
+        is_watchlist: false,
         rating: null,
         duration: null,
       });
@@ -209,6 +210,9 @@ export default function MoviesScreen() {
           poster_url: movie.poster_url,
           is_watched: movie.is_watched,
           is_favorite: movie.is_favorite,
+          is_watchlist: movie.is_watchlist,
+          is_watchlist: movie.is_watchlist,
+          is_watchlist: false,
           rating: movie.rating
         }
       })}

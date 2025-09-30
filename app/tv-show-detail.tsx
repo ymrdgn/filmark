@@ -631,6 +631,10 @@ const styles = StyleSheet.create({
     backgroundColor: '#EF4444',
     borderColor: '#EF4444',
   },
+  watchlistButtonActive: {
+    backgroundColor: '#8B5CF6',
+    borderColor: '#8B5CF6',
+  },
   actionButtonText: {
     fontSize: 16,
     fontFamily: 'Inter-SemiBold',
