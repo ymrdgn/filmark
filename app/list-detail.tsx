@@ -41,6 +41,13 @@ export default function ListDetailScreen() {
           ...watchedMovies.map(m => ({ ...m, type: 'Movie' })),
           ...watchedTVShows.map(s => ({ ...s, type: 'TV Show' }))
         ];
+      } else if (listType === 'watchlist') {
+        const watchlistMovies = moviesResult.data?.filter(m => m.is_watchlist) || [];
+        const watchlistTVShows = tvShowsResult.data?.filter(s => s.is_watchlist) || [];
+        filteredItems = [
+          ...watchlistMovies.map(m => ({ ...m, type: 'Movie' })),
+          ...watchlistTVShows.map(s => ({ ...s, type: 'TV Show' }))
+        ];
       }
 
       // Sort by updated_at (newest first)
@@ -176,7 +183,7 @@ export default function ListDetailScreen() {
       </TouchableOpacity>
       
       {/* Favorite button - always show for watched list */}
-      {listType === 'watched' && (
+      {(listType === 'watched' || listType === 'watchlist') && (
         <TouchableOpacity
           style={styles.favoriteButton}
           onPress={() => handleToggleFavorite(item)}
@@ -248,9 +255,9 @@ export default function ListDetailScreen() {
             <View style={styles.emptyState}>
               <Text style={styles.emptyStateText}>No items in this list</Text>
               <Text style={styles.emptyStateSubtext}>
-                {listType === 'favorites' 
-                  ? 'Add some movies or shows to favorites to see them here'
-                  : 'Mark some movies or shows as watched to see them here'
+                {listType === 'favorites' ? 'Add some movies or shows to favorites to see them here' :
+                 listType === 'watched' ? 'Mark some movies or shows as watched to see them here' :
+                 'Add some movies or shows to your watchlist to see them here'
                 }
               </Text>
             </View>

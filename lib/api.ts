@@ -75,6 +75,17 @@ export const moviesApi = {
     
     return { data, error };
   },
+
+  // Get watchlist movies
+  getWatchlist: async () => {
+    const { data, error } = await supabase
+      .from('movies')
+      .select('*')
+      .eq('is_watchlist', true)
+      .order('created_at', { ascending: false });
+    
+    return { data, error };
+  },
 };
 
 // TV Shows API
@@ -142,6 +153,17 @@ export const tvShowsApi = {
       .from('tv_shows')
       .select('*')
       .eq('is_favorite', true)
+      .order('created_at', { ascending: false });
+    
+    return { data, error };
+  },
+
+  // Get watchlist TV shows
+  getWatchlist: async () => {
+    const { data, error } = await supabase
+      .from('tv_shows')
+      .select('*')
+      .eq('is_watchlist', true)
       .order('created_at', { ascending: false });
     
     return { data, error };

@@ -15,6 +15,7 @@ interface MovieState {
   poster_url: string | string[] | null;
   is_watched: boolean;
   is_favorite: boolean;
+  is_watchlist: boolean;
   rating: number;
   imdb_rating: number | null;
   director: string | null;
@@ -31,6 +32,7 @@ export default function MovieDetailScreen() {
     poster_url: params.poster_url || null,
     is_watched: params.is_watched === 'true',
     is_favorite: params.is_favorite === 'true',
+    is_watchlist: params.is_watchlist === 'true',
     rating: parseInt(params.rating as string) || 0,
     imdb_rating: null,
     director: null,
@@ -57,6 +59,7 @@ export default function MovieDetailScreen() {
             poster_url: currentMovie.poster_url,
             is_watched: currentMovie.is_watched,
             is_favorite: currentMovie.is_favorite,
+            is_watchlist: currentMovie.is_watchlist || false,
             rating: currentMovie.rating || 0,
             imdb_rating: currentMovie.imdb_rating,
             director: currentMovie.director,
@@ -146,6 +149,32 @@ export default function MovieDetailScreen() {
       }
     } catch (error) {
       Alert.alert('Error', 'Failed to update favorite status.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleWatchlistToggle = async () => {
+    setLoading(true);
+    try {
+      const newWatchlistStatus = !movie.is_watchlist;
+      const { error } = await moviesApi.update(movie.id as string, { is_watchlist: newWatchlistStatus });
+      
+      if (error) {
+        Alert.alert('Error', 'Failed to update watchlist status.');
+      } else {
+        setMovie(prev => ({ ...prev, is_watchlist: newWatchlistStatus }));
+        const statusText = newWatchlistStatus ? 'added to watchlist' : 'removed from watchlist';
+        Alert.alert('Success', `Movie ${statusText}!`);
+        
+        // Trigger refresh and navigate back
+        global.refreshMovies?.();
+        setTimeout(() => {
+          router.back();
+        }, 1000);
+      }
+    } catch (error) {
+      Alert.alert('Error', 'Failed to update watchlist status.');
     } finally {
       setLoading(false);
     }
@@ -311,6 +340,27 @@ export default function MovieDetailScreen() {
                   movie.is_favorite && styles.actionButtonTextActive
                 ]}>
                   {movie.is_favorite ? 'Favorite ❤️' : 'Add to Favorites'}
+                </Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity
+                style={[
+                  styles.actionButton,
+                  movie.is_watchlist && styles.watchlistButtonActive
+                ]}
+                onPress={handleWatchlistToggle}
+                disabled={loading}
+              >
+                <Plus 
+                  size={20} 
+                  color={movie.is_watchlist ? 'white' : '#8B5CF6'} 
+                  strokeWidth={2} 
+                />
+                <Text style={[
+                  styles.actionButtonText,
+                  movie.is_watchlist && styles.actionButtonTextActive
+                ]}>
+                  {movie.is_watchlist ? 'In Watchlist 📝' : 'Add to Watchlist'}
                 </Text>
               </TouchableOpacity>
             </View>
@@ -507,6 +557,10 @@ const styles = StyleSheet.create({
   favoriteButtonActive: {
     backgroundColor: '#EF4444',
     borderColor: '#EF4444',
+  },
+  watchlistButtonActive: {
+    backgroundColor: '#8B5CF6',
+    borderColor: '#8B5CF6',
   },
   actionButtonText: {
     fontSize: 16,

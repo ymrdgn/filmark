@@ -19,6 +19,7 @@ export interface Database {
           poster_url: string | null
           is_watched: boolean
           is_favorite: boolean
+          is_watchlist: boolean
           rating: number | null
           watched_date: string | null
           created_at: string
@@ -33,6 +34,7 @@ export interface Database {
           poster_url?: string | null
           is_watched?: boolean
           is_favorite?: boolean
+          is_watchlist?: boolean
           rating?: number | null
           watched_date?: string | null
           created_at?: string
@@ -47,6 +49,7 @@ export interface Database {
           poster_url?: string | null
           is_watched?: boolean
           is_favorite?: boolean
+          is_watchlist?: boolean
           rating?: number | null
           watched_date?: string | null
           created_at?: string
@@ -64,6 +67,7 @@ export interface Database {
           poster_url: string | null
           is_watched: boolean
           is_favorite: boolean
+          is_watchlist: boolean
           rating: number | null
           current_season: number | null
           current_episode: number | null
@@ -80,6 +84,7 @@ export interface Database {
           poster_url?: string | null
           is_watched?: boolean
           is_favorite?: boolean
+          is_watchlist?: boolean
           rating?: number | null
           current_season?: number | null
           current_episode?: number | null
@@ -96,6 +101,7 @@ export interface Database {
           poster_url?: string | null
           is_watched?: boolean
           is_favorite?: boolean
+          is_watchlist?: boolean
           rating?: number | null
           current_season?: number | null
           current_episode?: number | null

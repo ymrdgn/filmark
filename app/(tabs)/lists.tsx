@@ -8,6 +8,7 @@ import { moviesApi, tvShowsApi } from '@/lib/api';
 export default function ListsScreen() {
   const [favorites, setFavorites] = useState([]);
   const [watchedItems, setWatchedItems] = useState([]);
+  const [watchlistItems, setWatchlistItems] = useState([]);
   const [loading, setLoading] = useState(true);
 
   React.useEffect(() => {
@@ -38,6 +39,15 @@ export default function ListsScreen() {
         ...watchedTVShows.map(s => ({ ...s, type: 'TV Show' }))
       ];
       setWatchedItems(allWatched);
+
+      // Watchlist
+      const watchlistMovies = moviesResult.data?.filter(m => m.is_watchlist) || [];
+      const watchlistTVShows = tvShowsResult.data?.filter(s => s.is_watchlist) || [];
+      const allWatchlist = [
+        ...watchlistMovies.map(m => ({ ...m, type: 'Movie' })),
+        ...watchlistTVShows.map(s => ({ ...s, type: 'TV Show' }))
+      ];
+      setWatchlistItems(allWatchlist);
     } catch (error) {
       console.error('Error loading lists:', error);
     } finally {
@@ -66,6 +76,16 @@ export default function ListsScreen() {
       items: watchedItems.slice(0, 3).map(item => item.title),
       type: 'system'
     },
+    {
+      id: 3,
+      name: 'Watchlist',
+      description: 'Movies and shows I want to watch',
+      icon: Plus,
+      color: '#8B5CF6',
+      itemCount: watchlistItems.length,
+      items: watchlistItems.slice(0, 3).map(item => item.title),
+      type: 'system'
+    },
   ];
 
   const renderListCard = (list) => (
@@ -77,6 +97,8 @@ export default function ListsScreen() {
           router.push('/list-detail?type=favorites&title=Favorites');
         } else if (list.name === 'Watched') {
           router.push('/list-detail?type=watched&title=Watched');
+        } else if (list.name === 'Watchlist') {
+          router.push('/list-detail?type=watchlist&title=Watchlist');
         }
       }}
     >
@@ -112,7 +134,7 @@ export default function ListsScreen() {
       >
         <View style={styles.header}>
           <Text style={styles.title}>My Lists</Text>
-          <Text style={styles.subtitle}>{favorites.length + watchedItems.length} items in your lists</Text>
+          <Text style={styles.subtitle}>{favorites.length + watchedItems.length + watchlistItems.length} items in your lists</Text>
         </View>
 
         <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
