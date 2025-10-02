@@ -301,7 +301,6 @@ export default function FriendsScreen() {
   const pendingRequests = friends.filter(f => f.status === 'pending');
   const acceptedFriends = friends.filter(f => f.status === 'accepted');
 
-  console.log("acceptedFriends", acceptedFriends)
   return (
     <SafeAreaView style={styles.container}>
       <LinearGradient
