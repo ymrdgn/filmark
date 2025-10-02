@@ -293,7 +293,8 @@ export const friendsApi = {
       const enrichedFriends = friendsData.map(friend => {
         const isCurrentUserRequester = friend.user_id === user.id;
         const otherUserId = isCurrentUserRequester ? friend.friend_id : friend.user_id;
-        
+
+        console.log("emailMap.get(user.id)", emailMap.get(user.id))
         const currentUserEmail = emailMap.get(user.id) || 'Unknown user';
         const otherUserEmail = emailMap.get(otherUserId) || 'Unknown user';
         
