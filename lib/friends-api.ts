@@ -130,6 +130,7 @@ export const friendsApi = {
         const requestingUserId = friend.user_id;
 
         console.log("**********friendUserId", friendUserId)
+        console.log("emailMap.get(friendUserId)", emailMap.get(friendUserId))
         const friendEmail = emailMap.get(friendUserId) || 'Unknown user';
         const requestingEmail = emailMap.get(requestingUserId) || 'Unknown user';
         
@@ -283,7 +284,6 @@ export const friendsApi = {
       if (!publicError && publicUsers) {
         publicUsers.forEach(user => {
           if (user.email) {
-            console.log("user email map", user, user?.email)
             emailMap.set(user.id, user.email);
           }
         });
