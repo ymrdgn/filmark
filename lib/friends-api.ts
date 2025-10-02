@@ -132,7 +132,7 @@ export const friendsApi = {
         const friendEmail = emailMap.get(friendUserId) || 'Unknown user';
         const requestingEmail = emailMap.get(requestingUserId) || 'Unknown user';
         
-        console.log('Enriching friend:', {
+        console.log('Enriching frienddwedede:', {
           friendshipId: friend.id,
           friend: friend
           currentUserId: user.id,
