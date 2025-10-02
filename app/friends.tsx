@@ -40,7 +40,7 @@ export default function FriendsScreen() {
         Alert.alert('Error', 'Failed to load friends');
       } else {
         setFriends(data || []);
-        console.log("data", data)
+        console.log("data setFriends", data)
       }
     } catch (error) {
       console.error('Error loading friends:', error);
@@ -74,7 +74,6 @@ export default function FriendsScreen() {
     }
   };
 
-  console.log("search resault", searchResults)
 
   const handleSendFriendRequest = async (userId: string, userEmail: string) => {
     setSendingRequestId(userId);
