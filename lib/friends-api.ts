@@ -120,7 +120,7 @@ export const friendsApi = {
                   console.log("publicUserspublicUsers", publicUsers)
 
       if (!publicError && publicUsers) {
-        publicUsers.forEach(user => {
+        publicUsers.forEach(user => {swswqdwq
           if (user.email) {
             emailMap.set(user.id, user.email);
           }
