@@ -283,6 +283,7 @@ export const friendsApi = {
       if (!publicError && publicUsers) {
         publicUsers.forEach(user => {
           if (user.email) {
+            console.log("user email map", user, user?.email)
             emailMap.set(user.id, user.email);
           }
         });
