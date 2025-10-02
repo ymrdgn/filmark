@@ -109,41 +109,21 @@ export const friendsApi = {
         userIds.add(friend.friend_id);
       });
 
-      // Get emails from auth.users via admin API
+      // Get emails from public.users table
       const emailMap = new Map<string, string>();
       
-      for (const userId of userIds) {
-        try {
-          const { data: userData, error: userError } = await supabase.auth.admin.getUserById(userId);
-          if (!userError && userData?.user?.email) {
-            emailMap.set(userId, userData.user.email);
+      // Get emails from public.users table
+      const { data: publicUsers, error: publicError } = await supabase
+        .from('users')
+        .select('id, email')
+        .in('id', Array.from(userIds));
+      
+      if (!publicError && publicUsers) {
+        publicUsers.forEach(user => {
+          if (user.email) {
+            emailMap.set(user.id, user.email);
           }
-        } catch (error) {
-          console.error(`Error fetching user ${userId}:`, error);
-          // Continue with other users even if one fails
-        }
-      }
-
-      // If admin API doesn't work, try RPC function approach
-      if (emailMap.size === 0) {
-        console.log('Admin API failed, trying alternative approach...');
-        
-        // Try to get emails from public.users table if it exists and has email
-        const { data: publicUsers, error: publicError } = await supabase
-          .from('users')
-          .select('id, email')
-          .in('id', Array.from(userIds));
-        
-        if (!publicError && publicUsers) {
-          publicUsers.forEach(user => {
-            if (user.email) {
-              emailMap.set(user.id, user.email);
-            }
-          });
-        }
-      }
-
-      // Enrich friends data with emails
+        });
       const enrichedFriends = friendsData.map(friend => {
         const friendUserId = friend.user_id === user.id ? friend.friend_id : friend.user_id;
         const requestingUserId = friend.user_id;
@@ -288,35 +268,21 @@ export const friendsApi = {
         userIds.add(friend.friend_id);
       });
 
-      // Get emails from auth.users via admin API or fallback methods
+      // Get emails from public.users table
       const emailMap = new Map<string, string>();
       
-      // Try admin API first
-      for (const userId of userIds) {
-        try {
-          const { data: userData, error: userError } = await supabase.auth.admin.getUserById(userId);
-          if (!userError && userData?.user?.email) {
-            emailMap.set(userId, userData.user.email);
+      // Get emails from public.users table
+      const { data: publicUsers, error: publicError } = await supabase
+        .from('users')
+        .select('id, email')
+        .in('id', Array.from(userIds));
+      
+      if (!publicError && publicUsers) {
+        publicUsers.forEach(user => {
+          if (user.email) {
+            emailMap.set(user.id, user.email);
           }
-        } catch (error) {
-          console.error(`Error fetching user ${userId}:`, error);
-        }
-      }
-
-      // Fallback to public.users if admin API doesn't work
-      if (emailMap.size === 0) {
-        const { data: publicUsers, error: publicError } = await supabase
-          .from('users')
-          .select('id, email')
-          .in('id', Array.from(userIds));
-        
-        if (!publicError && publicUsers) {
-          publicUsers.forEach(user => {
-            if (user.email) {
-              emailMap.set(user.id, user.email);
-            }
-          });
-        }
+        });
       }
 
       // Enrich friends data with emails
