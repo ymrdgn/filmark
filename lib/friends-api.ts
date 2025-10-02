@@ -134,7 +134,7 @@ export const friendsApi = {
         
         console.log('Enriching frienddwedede:', {
           friendshipId: friend.id,
-          friend: friend
+          friend: friend,
           currentUserId: user.id,
           friendUserId,
           requestingUserId,
