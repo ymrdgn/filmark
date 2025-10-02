@@ -123,10 +123,7 @@ export const friendsApi = {
         userEmails.forEach(user => {
             emailMap.set(user.id, user.email);
           }
-        });
-      }
-      const enrichedFriends = friendsData.map(friend => {
-        const friendUserId = friend.user_id === user.id ? friend.friend_id : friend.user_id;
+        );
       } else {
         console.error('RPC error getting user emails:', rpcError);
         
@@ -135,7 +132,7 @@ export const friendsApi = {
           .from('users')
           .select('id, email')
           .in('id', Array.from(userIds));
-        const requestingUserId = friend.user_id;
+        
         console.log("publicUsers fallback", publicUsers)
         if (!publicError && publicUsers) {
           publicUsers.forEach(user => {
@@ -145,6 +142,11 @@ export const friendsApi = {
             }
           });
         }
+      }
+
+      const enrichedFriends = friendsData.map(friend => {
+        const friendUserId = friend.user_id === user.id ? friend.friend_id : friend.user_id;
+        const requestingUserId = friend.user_id;
 
         console.log("**********friendUserId", friendUserId, requestingUserId)
         console.log("emailMap.get(friendUserId)", emailMap.get(friendUserId), emailMap.get(requestingUserId))
