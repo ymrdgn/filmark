@@ -129,9 +129,9 @@ export const friendsApi = {
         const friendUserId = friend.user_id === user.id ? friend.friend_id : friend.user_id;
         const requestingUserId = friend.user_id;
 
-        console.log("**********friendUserId", friendUserId)
-        console.log("emailMap.get(friendUserId)", emailMap.get(friendUserId.toString()))
-        const friendEmail = emailMap.get(friendUserId.toString()) || 'Unknown user';
+        console.log("**********friendUserId", friendUserId, requestingUserId)
+        console.log("emailMap.get(friendUserId)", emailMap.get(friendUserId))
+        const friendEmail = emailMap.get(friendUserId) || 'Unknown user';
         const requestingEmail = emailMap.get(requestingUserId) || 'Unknown user';
         
         console.log('Enriching frienddwedede:', {
