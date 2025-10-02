@@ -130,7 +130,7 @@ export const friendsApi = {
         const requestingUserId = friend.user_id;
 
         console.log("**********friendUserId", friendUserId, requestingUserId)
-        console.log("emailMap.get(friendUserId)", emailMap.get(friendUserId))
+        console.log("emailMap.get(friendUserId)", emailMap.get(friendUserId), emailMap.get(requestingUserId))
         const friendEmail = emailMap.get(friendUserId) || 'Unknown user';
         const requestingEmail = emailMap.get(requestingUserId) || 'Unknown user';
         
