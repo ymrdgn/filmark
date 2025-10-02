@@ -117,10 +117,9 @@ export const friendsApi = {
         .from('users')
         .select('id, email')
         .in('id', Array.from(userIds));
-                  console.log("publicUserspublicUsers", publicUsers)
 
       if (!publicError && publicUsers) {
-        publicUsers.forEach(user => {swswqdwq
+        publicUsers.forEach(user => {
           if (user.email) {
             emailMap.set(user.id, user.email);
           }
@@ -130,12 +129,12 @@ export const friendsApi = {
         const friendUserId = friend.user_id === user.id ? friend.friend_id : friend.user_id;
         const requestingUserId = friend.user_id;
 
-        console.log("√friendfriendfriend", {friend})
         const friendEmail = emailMap.get(friendUserId) || 'Unknown user';
         const requestingEmail = emailMap.get(requestingUserId) || 'Unknown user';
         
         console.log('Enriching friend:', {
           friendshipId: friend.id,
+          friend: friend
           currentUserId: user.id,
           friendUserId,
           requestingUserId,
