@@ -112,22 +112,39 @@ export const friendsApi = {
       // Get emails from public.users table
       const emailMap = new Map<string, string>();
       
-      // Get emails from public.users table
-      const { data: publicUsers, error: publicError } = await supabase
-        .from('users')
-        .select('id, email')
-        .in('id', Array.from(userIds));
+      
+      // Try to get emails using RPC function that can access auth.users
+      const { data: userEmails, error: rpcError } = await supabase.rpc('get_user_emails_by_ids', {
+        user_ids: Array.from(userIds)
+      });
 
-      if (!publicError && publicUsers) {
-        publicUsers.forEach(user => {
-          if (user.email) {
+      console.log("userEmails from RPC", userEmails)
+      if (!rpcError && userEmails) {
+        userEmails.forEach(user => {
             emailMap.set(user.id, user.email);
           }
         });
       }
       const enrichedFriends = friendsData.map(friend => {
         const friendUserId = friend.user_id === user.id ? friend.friend_id : friend.user_id;
+      } else {
+        console.error('RPC error getting user emails:', rpcError);
+        
+        // Fallback: try public.users table
+        const { data: publicUsers, error: publicError } = await supabase
+          .from('users')
+          .select('id, email')
+          .in('id', Array.from(userIds));
         const requestingUserId = friend.user_id;
+        console.log("publicUsers fallback", publicUsers)
+        if (!publicError && publicUsers) {
+          publicUsers.forEach(user => {
+            console.log("Mapping email from fallback:", user, user.email);
+            if (user.email) {
+              emailMap.set(user.id, user.email);
+            }
+          });
+        }
 
         console.log("**********friendUserId", friendUserId, requestingUserId)
         console.log("emailMap.get(friendUserId)", emailMap.get(friendUserId), emailMap.get(requestingUserId))
