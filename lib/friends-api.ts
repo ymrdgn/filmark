@@ -124,6 +124,7 @@ export const friendsApi = {
             emailMap.set(user.id, user.email);
           }
         });
+      }
       const enrichedFriends = friendsData.map(friend => {
         const friendUserId = friend.user_id === user.id ? friend.friend_id : friend.user_id;
         const requestingUserId = friend.user_id;
