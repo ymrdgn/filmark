@@ -117,11 +117,11 @@ export const friendsApi = {
         .from('users')
         .select('id, email')
         .in('id', Array.from(userIds));
-      
+                  console.log("publicUserspublicUsers", publicUsers)
+
       if (!publicError && publicUsers) {
         publicUsers.forEach(user => {
           if (user.email) {
-            console.log("publicUserspublicUsers", publicUsers)
             emailMap.set(user.id, user.email);
           }
         });
