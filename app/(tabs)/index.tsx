@@ -8,6 +8,7 @@ import { moviesApi, tvShowsApi, statsApi } from '@/lib/api';
 import { friendsApi } from '@/lib/friends-api';
 import { Database } from '@/lib/database.types';
 import { useFocusEffect } from '@react-navigation/native';
+import NotificationBell from '@/components/NotificationBell';
 
 type Movie = Database['public']['Tables']['movies']['Row'];
 type TVShow = Database['public']['Tables']['tv_shows']['Row'];
@@ -366,10 +367,15 @@ export default function HomeScreen() {
       >
         <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
           <View style={styles.header}>
-            <Text style={styles.greeting}>
-              {user ? `Welcome back, ${user.user_metadata?.username || user.email?.split('@')[0]}!` : 'Welcome to WatchTracker!'}
-            </Text>
-            <Text style={styles.subtitle}>What would you like to watch today?</Text>
+            <View style={styles.headerTop}>
+              <View style={styles.headerTextContainer}>
+                <Text style={styles.greeting}>
+                  {user ? `Welcome back, ${user.user_metadata?.username || user.email?.split('@')[0]}!` : 'Welcome to WatchTracker!'}
+                </Text>
+                <Text style={styles.subtitle}>What would you like to watch today?</Text>
+              </View>
+              {user && <NotificationBell />}
+            </View>
             
             {!user && (
               <TouchableOpacity 
@@ -491,6 +497,15 @@ const styles = StyleSheet.create({
     padding: 24,
     paddingTop: 16,
   },
+  headerTop: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 20,
+  },
+  headerTextContainer: {
+    flex: 1,
+  },
   greeting: {
     fontSize: 28,
     fontFamily: 'Inter-Bold',
@@ -501,7 +516,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontFamily: 'Inter-Medium',
     color: '#9CA3AF',
-    marginBottom: 20,
   },
   authButton: {
     backgroundColor: 'rgba(99, 102, 241, 0.2)',
