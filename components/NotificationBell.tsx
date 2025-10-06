@@ -11,7 +11,7 @@ export default function NotificationBell() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [modalVisible, setModalVisible] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [processingId, setProcessingId] = useState<string | null>(null);
 
   useEffect(() => {
     loadNotifications();
@@ -87,7 +87,7 @@ export default function NotificationBell() {
   const handleAcceptFriend = async (notification: Notification) => {
     if (!notification.related_id) return;
 
-    setLoading(true);
+    setProcessingId(notification.id);
     try {
       const { error } = await friendsApi.respondToRequest(notification.related_id, 'accepted');
 
@@ -100,14 +100,14 @@ export default function NotificationBell() {
     } catch (error) {
       console.error('Error accepting friend request:', error);
     } finally {
-      setLoading(false);
+      setProcessingId(null);
     }
   };
 
   const handleRejectFriend = async (notification: Notification) => {
     if (!notification.related_id) return;
 
-    setLoading(true);
+    setProcessingId(notification.id);
     try {
       const { error } = await friendsApi.respondToRequest(notification.related_id, 'rejected');
 
@@ -120,7 +120,7 @@ export default function NotificationBell() {
     } catch (error) {
       console.error('Error rejecting friend request:', error);
     } finally {
-      setLoading(false);
+      setProcessingId(null);
     }
   };
 
@@ -147,7 +147,7 @@ export default function NotificationBell() {
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Bildirimler</Text>
+              <Text style={styles.modalTitle}>Notifications</Text>
               <TouchableOpacity
                 onPress={() => setModalVisible(false)}
                 style={styles.closeButton}
@@ -159,7 +159,7 @@ export default function NotificationBell() {
             <ScrollView style={styles.notificationsList}>
               {notifications.length === 0 ? (
                 <View style={styles.emptyState}>
-                  <Text style={styles.emptyText}>Yeni bildiriminiz yok</Text>
+                  <Text style={styles.emptyText}>No new notifications</Text>
                 </View>
               ) : (
                 notifications.map((notification) => (
@@ -174,28 +174,28 @@ export default function NotificationBell() {
                         <TouchableOpacity
                           style={[styles.actionButton, styles.acceptButton]}
                           onPress={() => handleAcceptFriend(notification)}
-                          disabled={loading}
+                          disabled={processingId !== null}
                         >
-                          {loading ? (
+                          {processingId === notification.id ? (
                             <ActivityIndicator size="small" color="white" />
                           ) : (
                             <>
                               <Check size={18} color="white" strokeWidth={2} />
-                              <Text style={styles.buttonText}>Kabul Et</Text>
+                              <Text style={styles.buttonText}>Accept</Text>
                             </>
                           )}
                         </TouchableOpacity>
                         <TouchableOpacity
                           style={[styles.actionButton, styles.rejectButton]}
                           onPress={() => handleRejectFriend(notification)}
-                          disabled={loading}
+                          disabled={processingId !== null}
                         >
-                          {loading ? (
+                          {processingId === notification.id ? (
                             <ActivityIndicator size="small" color="white" />
                           ) : (
                             <>
                               <X size={18} color="white" strokeWidth={2} />
-                              <Text style={styles.buttonText}>Reddet</Text>
+                              <Text style={styles.buttonText}>Reject</Text>
                             </>
                           )}
                         </TouchableOpacity>

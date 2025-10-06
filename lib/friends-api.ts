@@ -258,12 +258,12 @@ export const friendsApi = {
         .or(`user_id.eq.${user.id},friend_id.eq.${user.id}`)
         .eq('status', 'accepted')
         .order('created_at', { ascending: false });
-      
+
       if (friendsError) {
         console.error('Get accepted friends error:', friendsError);
         return { data: [], error: friendsError };
       }
-      
+
       if (!friendsData || friendsData.length === 0) {
         return { data: [], error: null };
       }
@@ -277,13 +277,13 @@ export const friendsApi = {
 
       // Get emails from public.users table
       const emailMap = new Map<string, string>();
-      
+
       // Get emails from public.users table
       const { data: publicUsers, error: publicError } = await supabase
         .from('users')
         .select('id, email')
         .in('id', Array.from(userIds));
-      
+
       if (!publicError && publicUsers) {
         publicUsers.forEach(user => {
           if (user.email) {
@@ -300,7 +300,7 @@ export const friendsApi = {
         console.log("emailMap.get(user.id)", emailMap.get(user.id))
         const currentUserEmail = emailMap.get(user.id) || 'Unknown user';
         const otherUserEmail = emailMap.get(otherUserId) || 'Unknown user';
-        
+
         return {
           ...friend,
           friend_email: otherUserEmail,
@@ -312,6 +312,42 @@ export const friendsApi = {
     } catch (error) {
       console.error('Get accepted friends error:', error);
       return { data: [], error };
+    }
+  },
+
+  // Respond to friend request (accept or reject)
+  respondToRequest: async (friendshipId: string, response: 'accepted' | 'rejected') => {
+    try {
+      if (response === 'accepted') {
+        const { data, error } = await supabase
+          .from('friends')
+          .update({ status: 'accepted' })
+          .eq('id', friendshipId)
+          .select()
+          .single();
+
+        if (error) {
+          console.error('Accept friend request error:', error);
+          return { data: null, error };
+        }
+
+        return { data, error: null };
+      } else {
+        const { error } = await supabase
+          .from('friends')
+          .delete()
+          .eq('id', friendshipId);
+
+        if (error) {
+          console.error('Reject friend request error:', error);
+          return { error };
+        }
+
+        return { error: null };
+      }
+    } catch (error) {
+      console.error('Respond to friend request error:', error);
+      return { error };
     }
   }
 };
