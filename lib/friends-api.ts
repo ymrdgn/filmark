@@ -112,31 +112,31 @@ export const friendsApi = {
       // Get emails from public.users table
       const emailMap = new Map<string, string>();
       
-      
-      // Try to get emails using RPC function that can access auth.users
+      // Try to get emails using RPC function that can access auth.users (bypasses RLS)
       const { data: userEmails, error: rpcError } = await supabase.rpc('get_user_emails_by_ids', {
         user_ids: Array.from(userIds)
       });
 
-      console.log("userEmails from RPC", userEmails)
+      console.log("userEmails from RPC (should have all users):", userEmails);
       if (!rpcError && userEmails) {
         userEmails.forEach(user => {
-            emailMap.set(user.id, user.email);
-          }
-        );
+          console.log("Mapping email from RPC:", user.id, user.email);
+          emailMap.set(user.id, user.email);
+        });
       } else {
         console.error('RPC error getting user emails:', rpcError);
+        console.warn('Falling back to public.users table (will only get current user due to RLS)');
         
-        // Fallback: try public.users table
+        // Fallback: try public.users table (limited by RLS)
         const { data: publicUsers, error: publicError } = await supabase
           .from('users')
           .select('id, email')
           .in('id', Array.from(userIds));
         
-        console.log("publicUsers fallback", publicUsers)
+        console.log("publicUsers fallback (limited by RLS):", publicUsers);
         if (!publicError && publicUsers) {
           publicUsers.forEach(user => {
-            console.log("Mapping email from fallback:", user, user.email);
+            console.log("Mapping email from fallback:", user.id, user.email);
             if (user.email) {
               emailMap.set(user.id, user.email);
             }
@@ -144,25 +144,23 @@ export const friendsApi = {
         }
       }
 
+      console.log("Final emailMap:", Array.from(emailMap.entries()));
+
       const enrichedFriends = friendsData.map(friend => {
         const friendUserId = friend.user_id === user.id ? friend.friend_id : friend.user_id;
         const requestingUserId = friend.user_id;
 
-        console.log("**********friendUserId", friendUserId, requestingUserId)
-        console.log("emailMap.get(friendUserId)", emailMap.get(friendUserId), emailMap.get(requestingUserId))
-        const friendEmail = emailMap.get(friendUserId) || 'Unknown user';
-        const requestingEmail = emailMap.get(requestingUserId) || 'Unknown user';
-        
-        console.log('Enriching frienddwedede:', {
+        console.log("Processing friend:", {
           friendshipId: friend.id,
-          friend: friend,
           currentUserId: user.id,
           friendUserId,
           requestingUserId,
-          friendEmail,
-          requestingEmail,
-          status: friend.status
+          friendEmail: emailMap.get(friendUserId),
+          requestingEmail: emailMap.get(requestingUserId)
         });
+        
+        const friendEmail = emailMap.get(friendUserId) || 'Unknown user';
+        const requestingEmail = emailMap.get(requestingUserId) || 'Unknown user';
         
         return {
           ...friend,
