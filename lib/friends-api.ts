@@ -112,36 +112,22 @@ export const friendsApi = {
       // Get emails from public.users table
       const emailMap = new Map<string, string>();
       
-      // Try to get emails using RPC function that can access auth.users (bypasses RLS)
-      const { data: userEmails, error: rpcError } = await supabase.rpc('get_user_emails_by_ids', {
-        user_ids: Array.from(userIds)
-      });
-
-      console.log("userEmails from RPC (should have all users):", userEmails);
-      if (!rpcError && userEmails) {
-        userEmails.forEach(user => {
-          console.log("Mapping email from RPC:", user.id, user.email);
-          emailMap.set(user.id, user.email);
+      // Get emails from public.users table (now includes friends due to RLS policy)
+      const { data: publicUsers, error: publicError } = await supabase
+        .from('users')
+        .select('id, email')
+        .in('id', Array.from(userIds));
+      
+      console.log("publicUsers (should include friends now):", publicUsers);
+      if (!publicError && publicUsers) {
+        publicUsers.forEach(user => {
+          console.log("Mapping email:", user.id, user.email);
+          if (user.email) {
+            emailMap.set(user.id, user.email);
+          }
         });
       } else {
-        console.error('RPC error getting user emails:', rpcError);
-        console.warn('Falling back to public.users table (will only get current user due to RLS)');
-        
-        // Fallback: try public.users table (limited by RLS)
-        const { data: publicUsers, error: publicError } = await supabase
-          .from('users')
-          .select('id, email')
-          .in('id', Array.from(userIds));
-        
-        console.log("publicUsers fallback (limited by RLS):", publicUsers);
-        if (!publicError && publicUsers) {
-          publicUsers.forEach(user => {
-            console.log("Mapping email from fallback:", user.id, user.email);
-            if (user.email) {
-              emailMap.set(user.id, user.email);
-            }
-          });
-        }
+        console.error('Error getting user emails:', publicError);
       }
 
       console.log("Final emailMap:", Array.from(emailMap.entries()));
