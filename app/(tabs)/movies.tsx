@@ -404,14 +404,14 @@ export default function MoviesScreen() {
         </View>
 
         <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-          {filter === 'all' && displayMovies.length > 0 && (
+          {/* {filter === 'all' && displayMovies.length > 0 && (
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>My Collection</Text>
               <View style={styles.moviesGrid}>
                 {displayMovies.map(renderMyMovieCard)}
               </View>
             </View>
-          )}
+          )} */}
 
           {filter === 'watched' && (
             <View style={styles.section}>

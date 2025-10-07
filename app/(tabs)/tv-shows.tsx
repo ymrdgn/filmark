@@ -463,7 +463,7 @@ export default function TVShowsScreen() {
         </View>
 
         <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-          {filter === 'all' && (
+          {/* {filter === 'all' && (
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>My Collection</Text>
               {displayTVShows.length > 0 ? (
@@ -477,7 +477,7 @@ export default function TVShowsScreen() {
                 </View>
               )}
             </View>
-          )}
+          )} */}
 
           {filter === 'watched' && (
             <View style={styles.section}>
