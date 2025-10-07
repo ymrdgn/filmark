@@ -119,7 +119,7 @@ export default function MoviesScreen() {
   const handleAddMovie = async (movie: TMDBMovie) => {
     setAddingMovieId(movie.id);
     try {
-      const { error } = await moviesApi.add({
+      const { data, error } = await moviesApi.add({
         title: movie.title,
         year: movie.release_date ? new Date(movie.release_date).getFullYear() : null,
         poster_url: getImageUrl(movie.poster_path),
@@ -133,8 +133,8 @@ export default function MoviesScreen() {
       if (error) {
         Alert.alert('Error', 'Failed to add movie to your collection.');
       } else {
+        await loadMyMovies();
         Alert.alert('Success', `${movie.title} added to your collection!`);
-        loadMyMovies(); // Reload to show the new movie
       }
     } catch (error) {
       console.error('Add movie error:', error);
@@ -147,14 +147,14 @@ export default function MoviesScreen() {
   const handleToggleFavorite = async (movieId: string, currentFavoriteStatus: boolean) => {
     setUpdatingMovieId(movieId);
     try {
-      const { error } = await moviesApi.update(movieId, { 
-        is_favorite: !currentFavoriteStatus 
+      const { error } = await moviesApi.update(movieId, {
+        is_favorite: !currentFavoriteStatus
       });
-      
+
       if (error) {
         Alert.alert('Error', 'Failed to update favorite status.');
       } else {
-        loadMyMovies(); // Reload to show updated status
+        await loadMyMovies();
       }
     } catch (error) {
       Alert.alert('Error', 'Failed to update favorite status.');
