@@ -275,26 +275,44 @@ export default function MoviesScreen() {
 
   const renderTMDBMovieCard = (movie: TMDBMovie) => {
     const inCollection = isMovieInCollection(movie.title);
-    const collectionMovie = myMovies.find(m => 
+    const collectionMovie = myMovies.find(m =>
       m.title.toLowerCase() === movie.title.toLowerCase()
     );
 
     return (
-      <TouchableOpacity 
-        key={movie.id} 
+      <TouchableOpacity
+        key={movie.id}
         style={styles.tmdbMovieCard}
-        onPress={() => router.push({
-          pathname: '/movie-detail',
-          params: {
-            id: movie.id,
-            title: movie.title,
-            year: movie.release_date ? new Date(movie.release_date).getFullYear() : null,
-            poster_url: getImageUrl(movie.poster_path),
-            tmdb_rating: movie.vote_average,
-            overview: movie.overview,
-            inCollection: inCollection
+        onPress={() => {
+          if (inCollection && collectionMovie) {
+            router.push({
+              pathname: '/movie-detail',
+              params: {
+                id: collectionMovie.id,
+                title: collectionMovie.title,
+                year: collectionMovie.year,
+                poster_url: collectionMovie.poster_url,
+                is_watched: collectionMovie.is_watched,
+                is_favorite: collectionMovie.is_favorite,
+                is_watchlist: collectionMovie.is_watchlist,
+                rating: collectionMovie.rating
+              }
+            });
+          } else {
+            router.push({
+              pathname: '/movie-detail',
+              params: {
+                id: movie.id,
+                title: movie.title,
+                year: movie.release_date ? new Date(movie.release_date).getFullYear() : null,
+                poster_url: getImageUrl(movie.poster_path),
+                tmdb_rating: movie.vote_average,
+                overview: movie.overview,
+                inCollection: false
+              }
+            });
           }
-        })}
+        }}
       >
         <View style={styles.posterContainer}>
           <Image

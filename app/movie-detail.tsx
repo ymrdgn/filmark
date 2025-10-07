@@ -47,6 +47,8 @@ export default function MovieDetailScreen() {
   }, []);
 
   const loadMovieData = async () => {
+    if (!params.id) return;
+
     try {
       const { data, error } = await moviesApi.getAll();
       if (!error && data) {
@@ -78,14 +80,16 @@ export default function MovieDetailScreen() {
     try {
       const { error } = await moviesApi.update(movie.id as string, {
         rating: newRating,
-        is_watched: true // Rating verince otomatik watched yap
+        is_watched: true,
+        watched_date: movie.watched_date || new Date().toISOString()
       });
-      
+
       if (error) {
         Alert.alert('Error', 'Failed to update rating.');
       } else {
-        setMovie(prev => ({ ...prev, rating: newRating, is_watched: true }));
+        await loadMovieData();
         Alert.alert('Success', 'Rating updated!');
+        global.refreshMovies?.();
       }
     } catch (error) {
       Alert.alert('Error', 'Failed to update rating.');
@@ -103,23 +107,14 @@ export default function MovieDetailScreen() {
         watched_date: newWatchedStatus ? new Date().toISOString() : null
       };
       const { error } = await moviesApi.update(movie.id as string, updateData);
-      
+
       if (error) {
         Alert.alert('Error', 'Failed to update watched status.');
       } else {
-        setMovie(prev => ({
-          ...prev, 
-          is_watched: newWatchedStatus,
-          watched_date: newWatchedStatus ? new Date().toISOString() : null
-        }));
+        await loadMovieData();
         const statusText = newWatchedStatus ? 'marked as watched' : 'unmarked as watched';
         Alert.alert('Success', `Movie ${statusText}!`);
-        
-        // Trigger refresh and navigate back
         global.refreshMovies?.();
-        setTimeout(() => {
-          router.back();
-        }, 1000);
       }
     } catch (error) {
       Alert.alert('Error', 'Failed to update watched status.');
@@ -133,19 +128,14 @@ export default function MovieDetailScreen() {
     try {
       const newFavoriteStatus = !movie.is_favorite;
       const { error } = await moviesApi.update(movie.id as string, { is_favorite: newFavoriteStatus });
-      
+
       if (error) {
         Alert.alert('Error', 'Failed to update favorite status.');
       } else {
-        setMovie(prev => ({ ...prev, is_favorite: newFavoriteStatus }));
+        await loadMovieData();
         const statusText = newFavoriteStatus ? 'added to favorites' : 'removed from favorites';
         Alert.alert('Success', `Movie ${statusText}!`);
-        
-        // Trigger refresh and navigate back
         global.refreshMovies?.();
-        setTimeout(() => {
-          router.back();
-        }, 1000);
       }
     } catch (error) {
       Alert.alert('Error', 'Failed to update favorite status.');
@@ -159,19 +149,14 @@ export default function MovieDetailScreen() {
     try {
       const newWatchlistStatus = !movie.is_watchlist;
       const { error } = await moviesApi.update(movie.id as string, { is_watchlist: newWatchlistStatus });
-      
+
       if (error) {
         Alert.alert('Error', 'Failed to update watchlist status.');
       } else {
-        setMovie(prev => ({ ...prev, is_watchlist: newWatchlistStatus }));
+        await loadMovieData();
         const statusText = newWatchlistStatus ? 'added to watchlist' : 'removed from watchlist';
         Alert.alert('Success', `Movie ${statusText}!`);
-        
-        // Trigger refresh and navigate back
         global.refreshMovies?.();
-        setTimeout(() => {
-          router.back();
-        }, 1000);
       }
     } catch (error) {
       Alert.alert('Error', 'Failed to update watchlist status.');
