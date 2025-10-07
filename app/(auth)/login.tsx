@@ -129,7 +129,7 @@ export default function LoginScreen() {
               <View style={styles.iconContainer}>
                 <Film size={48} color="#6366F1" strokeWidth={1.5} />
               </View>
-              <Text style={styles.title}>WatchTracker</Text>
+              <Text style={styles.title}>WatchBase / WatchTracker</Text>
               <Text style={styles.subtitle}>
                 {isLogin ? 'Welcome back!' : 'Create your account'}
               </Text>
