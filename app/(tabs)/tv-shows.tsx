@@ -123,7 +123,7 @@ export default function TVShowsScreen() {
         title: show.name,
         year: show.first_air_date ? new Date(show.first_air_date).getFullYear() : null,
         poster_url: getImageUrl(show.poster_path),
-        is_watched: false,
+        is_watched: true,
         is_favorite: false,
         is_watchlist: false,
         rating: null,
@@ -136,11 +136,8 @@ export default function TVShowsScreen() {
       if (error) {
         Alert.alert('Error', 'Failed to add TV show to your collection.');
       } else {
-        Alert.alert('Success', `${show.name} added to your collection!`);
-        // Reload collection data and force UI update
         await loadMyTVShows();
-        // Force complete re-render
-        setTMDBTVShows([...tmdbTVShows]);
+        Alert.alert('Success', `${show.name} added to your watched list!`);
       }
     } catch (error) {
       console.error('Add TV show error:', error);
