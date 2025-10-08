@@ -140,9 +140,25 @@ export default function AccountSettingsScreen() {
     setError('');
 
     try {
-      const { error: deleteError } = await supabase.rpc('delete_user_account');
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error('Not authenticated');
 
-      if (deleteError) throw deleteError;
+      const response = await fetch(
+        `${process.env.EXPO_PUBLIC_SUPABASE_URL}/functions/v1/delete-account`,
+        {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${session.access_token}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+
+      const result = await response.json();
+
+      if (!response.ok || result.error) {
+        throw new Error(result.error || 'Failed to delete account');
+      }
 
       await signOut();
       router.replace('/(auth)/login');
