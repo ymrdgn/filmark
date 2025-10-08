@@ -26,6 +26,7 @@ export default function TVShowDetailScreen() {
     genre: null
   });
   const [loading, setLoading] = useState(false);
+  const [inCollection, setInCollection] = useState(params.inCollection === 'true');
 
   // Auto refresh parent screen when going back
   useFocusEffect(
@@ -76,6 +77,7 @@ export default function TVShowDetailScreen() {
 
         console.log('Found current show:', currentShow);
         if (currentShow) {
+          setInCollection(true);
           setTVShow({
             id: currentShow.id,
             title: currentShow.title,
@@ -93,6 +95,8 @@ export default function TVShowDetailScreen() {
             director: currentShow.director,
             genre: currentShow.genre
           });
+        } else {
+          setInCollection(false);
         }
       }
     } catch (error) {
@@ -101,14 +105,12 @@ export default function TVShowDetailScreen() {
   };
 
   const handleRatingChange = async (newRating: number) => {
+    if (!inCollection) {
+      Alert.alert('Not in Collection', 'Please add this TV show to your collection first using the + button.');
+      return;
+    }
     setLoading(true);
     try {
-      if (!tvShow.id || typeof tvShow.id !== 'string' || tvShow.id.length < 30) {
-        Alert.alert('Error', 'Please add this TV show to your collection first.');
-        setLoading(false);
-        return;
-      }
-
       const { error } = await tvShowsApi.update(tvShow.id as string, {
         rating: newRating,
         is_watched: true
@@ -129,14 +131,12 @@ export default function TVShowDetailScreen() {
   };
 
   const handleWatchedToggle = async () => {
+    if (!inCollection) {
+      Alert.alert('Not in Collection', 'Please add this TV show to your collection first using the + button.');
+      return;
+    }
     setLoading(true);
     try {
-      if (!tvShow.id || typeof tvShow.id !== 'string' || tvShow.id.length < 30) {
-        Alert.alert('Error', 'Please add this TV show to your collection first.');
-        setLoading(false);
-        return;
-      }
-
       const newWatchedStatus = !tvShow.is_watched;
       const updateData = { is_watched: newWatchedStatus };
       const { error } = await tvShowsApi.update(tvShow.id as string, updateData);
@@ -157,14 +157,12 @@ export default function TVShowDetailScreen() {
   };
 
   const handleFavoriteToggle = async () => {
+    if (!inCollection) {
+      Alert.alert('Not in Collection', 'Please add this TV show to your collection first using the + button.');
+      return;
+    }
     setLoading(true);
     try {
-      if (!tvShow.id || typeof tvShow.id !== 'string' || tvShow.id.length < 30) {
-        Alert.alert('Error', 'Please add this TV show to your collection first.');
-        setLoading(false);
-        return;
-      }
-
       const newFavoriteStatus = !tvShow.is_favorite;
       const { error } = await tvShowsApi.update(tvShow.id as string, { is_favorite: newFavoriteStatus });
 
@@ -184,14 +182,12 @@ export default function TVShowDetailScreen() {
   };
 
   const handleWatchlistToggle = async () => {
+    if (!inCollection) {
+      Alert.alert('Not in Collection', 'Please add this TV show to your collection first using the + button.');
+      return;
+    }
     setLoading(true);
     try {
-      if (!tvShow.id || typeof tvShow.id !== 'string' || tvShow.id.length < 30) {
-        Alert.alert('Error', 'Please add this TV show to your collection first.');
-        setLoading(false);
-        return;
-      }
-
       const newWatchlistStatus = !tvShow.is_watchlist;
       const { error } = await tvShowsApi.update(tvShow.id as string, { is_watchlist: newWatchlistStatus });
 
