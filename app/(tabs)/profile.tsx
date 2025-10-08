@@ -2,7 +2,7 @@ import React from 'react';
 import { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, SafeAreaView, TouchableOpacity } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { User, Settings, Star, TrendingUp, Award, Clock, Film, Tv, Heart, LogOut, Users, Plus } from 'lucide-react-native';
+import { User, Settings, Star, TrendingUp, Award, Clock, Film, Tv, Heart, LogOut, Users, Plus, Shield } from 'lucide-react-native';
 import { signOut, getCurrentUser } from '@/lib/supabase';
 import { router } from 'expo-router';
 import { Alert } from 'react-native';
@@ -92,8 +92,7 @@ export default function ProfileScreen() {
   const menuItems = [
     { label: 'Friends', icon: Users, color: '#10B981', onPress: () => router.push('/friends') },
     { label: 'Account Settings', icon: Settings, color: '#6366F1', onPress: () => router.push('/account-settings') },
-    { label: 'Privacy Settings', icon: User, color: '#8B5CF6' },
-    //{ label: 'Export Data', icon: TrendingUp, color: '#10B981' },
+    { label: 'Privacy Settings', icon: Shield, color: '#8B5CF6', onPress: () => router.push('/privacy-settings') },
     { label: 'Sign Out', icon: LogOut, color: '#EF4444', onPress: handleSignOut },
   ];
 

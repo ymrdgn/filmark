@@ -11,7 +11,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { ArrowLeft, User, Lock, Trash2, Shield, ChevronRight } from 'lucide-react-native';
+import { ArrowLeft, User, Lock, Trash2 } from 'lucide-react-native';
 import { router } from 'expo-router';
 import { supabase, getCurrentUser, signOut } from '@/lib/supabase';
 import Toast from '@/components/Toast';
@@ -294,22 +294,6 @@ export default function AccountSettingsScreen() {
 
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
-              <Shield size={20} color="#6366F1" strokeWidth={2} />
-              <Text style={styles.sectionTitle}>Privacy</Text>
-            </View>
-            <View style={styles.card}>
-              <TouchableOpacity
-                style={styles.settingRow}
-                onPress={() => router.push('/privacy-settings')}
-              >
-                <Text style={styles.settingText}>Privacy Settings</Text>
-                <ChevronRight size={20} color="#9CA3AF" strokeWidth={2} />
-              </TouchableOpacity>
-            </View>
-          </View>
-
-          <View style={styles.section}>
-            <View style={styles.sectionHeader}>
               <Trash2 size={20} color="#EF4444" strokeWidth={2} />
               <Text style={[styles.sectionTitle, styles.dangerText]}>Danger Zone</Text>
             </View>
@@ -475,17 +459,6 @@ const styles = StyleSheet.create({
   },
   dangerButton: {
     backgroundColor: '#EF4444',
-  },
-  settingRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingVertical: 4,
-  },
-  settingText: {
-    fontSize: 16,
-    fontFamily: 'Inter-Medium',
-    color: 'white',
   },
   bottomSpacer: {
     height: 40,
