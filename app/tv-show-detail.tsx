@@ -60,11 +60,20 @@ export default function TVShowDetailScreen() {
 
   const loadTVShowData = async () => {
     console.log('Loading TV show data for ID:', params.id);
+    if (!params.id) return;
+
     try {
       const { data, error } = await tvShowsApi.getAll();
       console.log('API response:', { data: data?.length, error });
       if (!error && data) {
-        const currentShow = data.find(s => s.id === params.id);
+        let currentShow = data.find(s => s.id === params.id);
+
+        if (!currentShow) {
+          currentShow = data.find(s =>
+            s.title?.toLowerCase().trim() === (params.title as string)?.toLowerCase().trim()
+          );
+        }
+
         console.log('Found current show:', currentShow);
         if (currentShow) {
           setTVShow({
@@ -84,39 +93,6 @@ export default function TVShowDetailScreen() {
             director: currentShow.director,
             genre: currentShow.genre
           });
-        } else if (params.inCollection === 'true') {
-          const showByTitle = data.find(s => 
-            s.title?.toLowerCase().trim() === (params.title as string)?.toLowerCase().trim()
-          );
-          console.log('Found show by title:', showByTitle);
-          if (showByTitle) {
-            setTVShow({
-              id: showByTitle.id,
-              title: showByTitle.title,
-              year: showByTitle.year,
-              poster_url: showByTitle.poster_url,
-              is_watched: showByTitle.is_watched,
-              is_favorite: showByTitle.is_favorite,
-              is_watchlist: showByTitle.is_watchlist || false,
-              rating: showByTitle.rating || 0,
-              seasons: showByTitle.seasons || 1,
-              episodes: showByTitle.episodes || 1,
-              current_season: showByTitle.current_season || 1,
-              current_episode: showByTitle.current_episode || 1,
-              imdb_rating: showByTitle.imdb_rating,
-              director: showByTitle.director,
-              genre: showByTitle.genre
-            });
-          }
-        } else {
-          // If not in collection, use params data
-          setTVShow(prev => ({
-            ...prev,
-            is_watched: false,
-            is_favorite: false,
-            is_watchlist: false,
-            rating: 0
-          }));
         }
       }
     } catch (error) {
@@ -127,16 +103,23 @@ export default function TVShowDetailScreen() {
   const handleRatingChange = async (newRating: number) => {
     setLoading(true);
     try {
-      const { error } = await tvShowsApi.update(tvShow.id as string, { 
+      if (!tvShow.id || typeof tvShow.id !== 'string' || tvShow.id.length < 30) {
+        Alert.alert('Error', 'Please add this TV show to your collection first.');
+        setLoading(false);
+        return;
+      }
+
+      const { error } = await tvShowsApi.update(tvShow.id as string, {
         rating: newRating,
-        is_watched: true // Rating verince otomatik watched yap
+        is_watched: true
       });
-      
+
       if (error) {
         Alert.alert('Error', 'Failed to update rating.');
       } else {
-        setTVShow(prev => ({ ...prev, rating: newRating, is_watched: true }));
+        await loadTVShowData();
         Alert.alert('Success', 'Rating updated!');
+        global.refreshTVShows?.();
       }
     } catch (error) {
       Alert.alert('Error', 'Failed to update rating.');
@@ -148,28 +131,23 @@ export default function TVShowDetailScreen() {
   const handleWatchedToggle = async () => {
     setLoading(true);
     try {
+      if (!tvShow.id || typeof tvShow.id !== 'string' || tvShow.id.length < 30) {
+        Alert.alert('Error', 'Please add this TV show to your collection first.');
+        setLoading(false);
+        return;
+      }
+
       const newWatchedStatus = !tvShow.is_watched;
       const updateData = { is_watched: newWatchedStatus };
       const { error } = await tvShowsApi.update(tvShow.id as string, updateData);
-      
+
       if (error) {
         Alert.alert('Error', 'Failed to update watched status.');
       } else {
-        setTVShow(prev => ({ 
-          ...prev, 
-          is_watched: newWatchedStatus
-        }));
+        await loadTVShowData();
         const statusText = newWatchedStatus ? 'marked as watched' : 'unmarked as watched';
-        Alert.alert('Success', `TV show ${statusText}!`, [
-          {
-            text: 'OK',
-            onPress: () => {
-              // Trigger refresh and go back
-              global.refreshTVShows?.();
-              router.back();
-            }
-          }
-        ]);
+        Alert.alert('Success', `TV show ${statusText}!`);
+        global.refreshTVShows?.();
       }
     } catch (error) {
       Alert.alert('Error', 'Failed to update watched status.');
@@ -181,23 +159,22 @@ export default function TVShowDetailScreen() {
   const handleFavoriteToggle = async () => {
     setLoading(true);
     try {
+      if (!tvShow.id || typeof tvShow.id !== 'string' || tvShow.id.length < 30) {
+        Alert.alert('Error', 'Please add this TV show to your collection first.');
+        setLoading(false);
+        return;
+      }
+
       const newFavoriteStatus = !tvShow.is_favorite;
       const { error } = await tvShowsApi.update(tvShow.id as string, { is_favorite: newFavoriteStatus });
 
       if (error) {
         Alert.alert('Error', 'Failed to update favorite status.');
       } else {
-        setTVShow(prev => ({ ...prev, is_favorite: newFavoriteStatus }));
+        await loadTVShowData();
         const statusText = newFavoriteStatus ? 'added to favorites' : 'removed from favorites';
-        Alert.alert('Success', `TV show ${statusText}!`, [
-          {
-            text: 'OK',
-            onPress: () => {
-              global.refreshTVShows?.();
-              router.back();
-            }
-          }
-        ]);
+        Alert.alert('Success', `TV show ${statusText}!`);
+        global.refreshTVShows?.();
       }
     } catch (error) {
       Alert.alert('Error', 'Failed to update favorite status.');
@@ -209,23 +186,22 @@ export default function TVShowDetailScreen() {
   const handleWatchlistToggle = async () => {
     setLoading(true);
     try {
+      if (!tvShow.id || typeof tvShow.id !== 'string' || tvShow.id.length < 30) {
+        Alert.alert('Error', 'Please add this TV show to your collection first.');
+        setLoading(false);
+        return;
+      }
+
       const newWatchlistStatus = !tvShow.is_watchlist;
       const { error } = await tvShowsApi.update(tvShow.id as string, { is_watchlist: newWatchlistStatus });
 
       if (error) {
         Alert.alert('Error', 'Failed to update watchlist status.');
       } else {
-        setTVShow(prev => ({ ...prev, is_watchlist: newWatchlistStatus }));
+        await loadTVShowData();
         const statusText = newWatchlistStatus ? 'added to watchlist' : 'removed from watchlist';
-        Alert.alert('Success', `TV show ${statusText}!`, [
-          {
-            text: 'OK',
-            onPress: () => {
-              global.refreshTVShows?.();
-              router.back();
-            }
-          }
-        ]);
+        Alert.alert('Success', `TV show ${statusText}!`);
+        global.refreshTVShows?.();
       }
     } catch (error) {
       Alert.alert('Error', 'Failed to update watchlist status.');
