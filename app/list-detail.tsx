@@ -41,14 +41,8 @@ export default function ListDetailScreen() {
           ...watchedMovies.map(m => ({ ...m, type: 'Movie' })),
           ...watchedTVShows.map(s => ({ ...s, type: 'TV Show' }))
         ];
-      } else if (listType === 'watchlist') {
-        const watchlistMovies = moviesResult.data?.filter(m => m.is_watchlist) || [];
-        const watchlistTVShows = tvShowsResult.data?.filter(s => s.is_watchlist) || [];
-        filteredItems = [
-          ...watchlistMovies.map(m => ({ ...m, type: 'Movie' })),
-          ...watchlistTVShows.map(s => ({ ...s, type: 'TV Show' }))
-        ];
-      }
+      } 
+
 
       // Sort by updated_at (newest first)
       filteredItems.sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime());
