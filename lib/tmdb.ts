@@ -149,14 +149,30 @@ export const getPopularTVShows = async (page: number = 1): Promise<TMDBTVSearchR
   return response.json();
 };
 
-// Get movie details
-export const getMovieDetails = async (movieId: number) => {
+export interface TMDBMovieDetails {
+  id: number;
+  title: string;
+  overview: string;
+  release_date: string;
+  poster_path: string | null;
+  backdrop_path: string | null;
+  vote_average: number;
+  runtime: number | null;
+  genres: { id: number; name: string }[];
+  imdb_id: string | null;
+  credits?: {
+    crew: { job: string; name: string }[];
+  };
+}
+
+// Get movie details with credits
+export const getMovieDetails = async (movieId: number): Promise<TMDBMovieDetails> => {
   if (!TMDB_API_KEY) {
     throw new Error('TMDB API key not configured. Please add EXPO_PUBLIC_TMDB_API_KEY to your .env file');
   }
 
   const response = await fetch(
-    `${TMDB_BASE_URL}/movie/${movieId}?api_key=${TMDB_API_KEY}`
+    `${TMDB_BASE_URL}/movie/${movieId}?api_key=${TMDB_API_KEY}&append_to_response=credits`
   );
 
   if (!response.ok) {

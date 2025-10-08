@@ -4,7 +4,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Search, Star, Calendar, Plus, Check, Heart } from 'lucide-react-native';
 import { router } from 'expo-router';
 import { moviesApi } from '@/lib/api';
-import { searchMovies, TMDBMovie, getImageUrl, getPopularMovies } from '@/lib/tmdb';
+import { searchMovies, TMDBMovie, getImageUrl, getPopularMovies, getMovieDetails } from '@/lib/tmdb';
 import { useFocusEffect } from '@react-navigation/native';
 
 const { width } = Dimensions.get('window');
@@ -119,6 +119,11 @@ export default function MoviesScreen() {
   const handleAddMovie = async (movie: TMDBMovie) => {
     setAddingMovieId(movie.id);
     try {
+      const details = await getMovieDetails(movie.id);
+
+      const director = details.credits?.crew.find((c: any) => c.job === 'Director')?.name || null;
+      const genres = details.genres.map((g: any) => g.name).join(', ');
+
       const { data, error } = await moviesApi.add({
         title: movie.title,
         year: movie.release_date ? new Date(movie.release_date).getFullYear() : null,
@@ -127,8 +132,13 @@ export default function MoviesScreen() {
         is_favorite: false,
         is_watchlist: false,
         rating: null,
-        duration: null,
+        duration: details.runtime,
         watched_date: new Date().toISOString(),
+        director,
+        genre: genres,
+        imdb_rating: details.vote_average ? Number(details.vote_average.toFixed(1)) : null,
+        tmdb_id: movie.id,
+        imdb_id: details.imdb_id,
       });
 
       if (error) {

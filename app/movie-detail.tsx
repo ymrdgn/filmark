@@ -195,29 +195,30 @@ export default function MovieDetailScreen() {
             
             <View style={styles.movieInfo}>
               <Text style={styles.movieTitle}>{movie.title}</Text>
+
               <View style={styles.movieMeta}>
-                <Calendar size={16} color="#9CA3AF" strokeWidth={2} />
-                <Text style={styles.movieYear}>{movie.year}</Text>
+                <Calendar size={14} color="#9CA3AF" strokeWidth={2} />
+                <Text style={styles.movieMetaText}>{movie.year}</Text>
               </View>
-              
-              {movie.imdb_rating && (
-                <View style={styles.imdbRating}>
-                  <Star size={16} color="#F5C518" fill="#F5C518" strokeWidth={1} />
-                  <Text style={styles.imdbRatingText}>{movie.imdb_rating} IMDB</Text>
-                </View>
-              )}
-              
+
               {movie.director && (
                 <View style={styles.movieMeta}>
-                  <User size={16} color="#9CA3AF" strokeWidth={2} />
-                  <Text style={styles.movieDirector}>{movie.director}</Text>
+                  <User size={14} color="#9CA3AF" strokeWidth={2} />
+                  <Text style={styles.movieMetaText}>{movie.director}</Text>
                 </View>
               )}
-              
+
+              {movie.imdb_rating && (
+                <View style={styles.movieMeta}>
+                  <Star size={14} color="#F5C518" fill="#F5C518" strokeWidth={1} />
+                  <Text style={styles.imdbRatingText}>{movie.imdb_rating}/10</Text>
+                </View>
+              )}
+
               {movie.genre && (
                 <View style={styles.movieMeta}>
-                  <Film size={16} color="#9CA3AF" strokeWidth={2} />
-                  <Text style={styles.movieGenre}>{movie.genre}</Text>
+                  <Film size={14} color="#9CA3AF" strokeWidth={2} />
+                  <Text style={styles.movieMetaText}>{movie.genre}</Text>
                 </View>
               )}
               
@@ -437,34 +438,18 @@ const styles = StyleSheet.create({
   movieMeta: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    marginBottom: 16,
-  },
-  movieYear: {
-    fontSize: 16,
-    fontFamily: 'Inter-Medium',
-    color: '#9CA3AF',
-  },
-  imdbRating: {
-    flexDirection: 'row',
-    alignItems: 'center',
     gap: 6,
     marginBottom: 8,
   },
+  movieMetaText: {
+    fontSize: 13,
+    fontFamily: 'Inter-Medium',
+    color: '#9CA3AF',
+  },
   imdbRatingText: {
-    fontSize: 16,
+    fontSize: 13,
     fontFamily: 'Inter-SemiBold',
     color: '#F5C518',
-  },
-  movieDirector: {
-    fontSize: 14,
-    fontFamily: 'Inter-Medium',
-    color: '#9CA3AF',
-  },
-  movieGenre: {
-    fontSize: 14,
-    fontFamily: 'Inter-Medium',
-    color: '#9CA3AF',
   },
   statusContainer: {
     marginTop: 8,

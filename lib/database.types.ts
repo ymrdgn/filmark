@@ -22,6 +22,11 @@ export interface Database {
           is_watchlist: boolean
           rating: number | null
           watched_date: string | null
+          director: string | null
+          genre: string | null
+          imdb_rating: number | null
+          tmdb_id: number | null
+          imdb_id: string | null
           created_at: string
           updated_at: string
         }
@@ -37,6 +42,11 @@ export interface Database {
           is_watchlist?: boolean
           rating?: number | null
           watched_date?: string | null
+          director?: string | null
+          genre?: string | null
+          imdb_rating?: number | null
+          tmdb_id?: number | null
+          imdb_id?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -52,6 +62,11 @@ export interface Database {
           is_watchlist?: boolean
           rating?: number | null
           watched_date?: string | null
+          director?: string | null
+          genre?: string | null
+          imdb_rating?: number | null
+          tmdb_id?: number | null
+          imdb_id?: string | null
           created_at?: string
           updated_at?: string
         }
