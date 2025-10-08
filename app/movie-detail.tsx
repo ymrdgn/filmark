@@ -4,6 +4,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { ArrowLeft, Star, Calendar, Clock, Eye, Plus, Trash2, CreditCard as Edit3, Heart, User, Film, ExternalLink } from 'lucide-react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { moviesApi } from '@/lib/api';
+import { getMovieDetails as getTMDBMovieDetails } from '@/lib/tmdb';
 import { Database } from '@/lib/database.types';
 
 type Movie = Database['public']['Tables']['movies']['Row'];
@@ -48,6 +49,31 @@ export default function MovieDetailScreen() {
 
   const loadMovieData = async () => {
     if (!params.id) return;
+
+    // Check if this is a TMDB movie (not in collection)
+    const inCollection = params.inCollection !== 'false';
+
+    if (!inCollection) {
+      console.log('TMDB movie - fetching details from TMDB');
+      try {
+        const tmdbId = parseInt(params.id as string);
+        const details = await getTMDBMovieDetails(tmdbId);
+        console.log('TMDB details:', details);
+
+        const director = details.credits?.crew.find((c: any) => c.job === 'Director')?.name || null;
+        const genres = details.genres.map((g: any) => g.name).join(', ');
+
+        setMovie(prev => ({
+          ...prev,
+          director,
+          genre: genres,
+          imdb_rating: details.vote_average ? Number(details.vote_average.toFixed(1)) : null,
+        }));
+      } catch (error) {
+        console.error('Error loading TMDB data:', error);
+      }
+      return;
+    }
 
     try {
       const { data, error } = await moviesApi.getAll();
