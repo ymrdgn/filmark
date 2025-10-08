@@ -41,7 +41,6 @@ export default function MovieDetailScreen() {
     watched_date: null
   });
   const [loading, setLoading] = useState(false);
-  const [inCollection, setInCollection] = useState(params.inCollection !== 'false');
 
   // Load fresh data from API on component mount
   useEffect(() => {
@@ -130,58 +129,22 @@ export default function MovieDetailScreen() {
   const handleWatchedToggle = async () => {
     setLoading(true);
     try {
-      // If not in collection, add it first
-      if (!inCollection) {
-        const tmdbId = parseInt(movie.id as string);
-        const details = await getTMDBMovieDetails(tmdbId);
+      const newWatchedStatus = !movie.is_watched;
+      const updateData: Partial<Movie> = {
+        is_watched: newWatchedStatus,
+        watched_date: newWatchedStatus ? new Date().toISOString() : null
+      };
+      const { error } = await moviesApi.update(movie.id as string, updateData);
 
-        const director = details.credits?.crew.find((c: any) => c.job === 'Director')?.name || null;
-        const genres = details.genres.map((g: any) => g.name).join(', ');
-
-        const { data, error } = await moviesApi.add({
-          title: movie.title as string,
-          year: movie.year ? parseInt(movie.year as string) : null,
-          poster_url: movie.poster_url as string,
-          is_watched: true,
-          is_favorite: false,
-          is_watchlist: false,
-          rating: null,
-          duration: details.runtime,
-          watched_date: new Date().toISOString(),
-          director,
-          genre: genres,
-          imdb_rating: details.vote_average ? Number(details.vote_average.toFixed(1)) : null,
-          tmdb_id: tmdbId,
-          imdb_id: details.imdb_id,
-        });
-
-        if (error) {
-          Alert.alert('Error', 'Failed to add movie.');
-        } else if (data) {
-          setMovie(prev => ({ ...prev, id: data.id, is_watched: true }));
-          setInCollection(true);
-          Alert.alert('Success', 'Movie added to watched!');
-          global.refreshMovies?.();
-        }
+      if (error) {
+        Alert.alert('Error', 'Failed to update watched status.');
       } else {
-        const newWatchedStatus = !movie.is_watched;
-        const updateData: Partial<Movie> = {
-          is_watched: newWatchedStatus,
-          watched_date: newWatchedStatus ? new Date().toISOString() : null
-        };
-        const { error } = await moviesApi.update(movie.id as string, updateData);
-
-        if (error) {
-          Alert.alert('Error', 'Failed to update watched status.');
-        } else {
-          await loadMovieData();
-          const statusText = newWatchedStatus ? 'marked as watched' : 'unmarked as watched';
-          Alert.alert('Success', `Movie ${statusText}!`);
-          global.refreshMovies?.();
-        }
+        await loadMovieData();
+        const statusText = newWatchedStatus ? 'marked as watched' : 'unmarked as watched';
+        Alert.alert('Success', `Movie ${statusText}!`);
+        global.refreshMovies?.();
       }
     } catch (error) {
-      console.error('Watched toggle error:', error);
       Alert.alert('Error', 'Failed to update watched status.');
     } finally {
       setLoading(false);
@@ -191,54 +154,18 @@ export default function MovieDetailScreen() {
   const handleFavoriteToggle = async () => {
     setLoading(true);
     try {
-      // If not in collection, add it first as favorite
-      if (!inCollection) {
-        const tmdbId = parseInt(movie.id as string);
-        const details = await getTMDBMovieDetails(tmdbId);
+      const newFavoriteStatus = !movie.is_favorite;
+      const { error } = await moviesApi.update(movie.id as string, { is_favorite: newFavoriteStatus });
 
-        const director = details.credits?.crew.find((c: any) => c.job === 'Director')?.name || null;
-        const genres = details.genres.map((g: any) => g.name).join(', ');
-
-        const { data, error } = await moviesApi.add({
-          title: movie.title as string,
-          year: movie.year ? parseInt(movie.year as string) : null,
-          poster_url: movie.poster_url as string,
-          is_watched: false,
-          is_favorite: true,
-          is_watchlist: false,
-          rating: null,
-          duration: details.runtime,
-          watched_date: null,
-          director,
-          genre: genres,
-          imdb_rating: details.vote_average ? Number(details.vote_average.toFixed(1)) : null,
-          tmdb_id: tmdbId,
-          imdb_id: details.imdb_id,
-        });
-
-        if (error) {
-          Alert.alert('Error', 'Failed to add movie.');
-        } else if (data) {
-          setMovie(prev => ({ ...prev, id: data.id, is_favorite: true }));
-          setInCollection(true);
-          Alert.alert('Success', 'Movie added to favorites!');
-          global.refreshMovies?.();
-        }
+      if (error) {
+        Alert.alert('Error', 'Failed to update favorite status.');
       } else {
-        const newFavoriteStatus = !movie.is_favorite;
-        const { error } = await moviesApi.update(movie.id as string, { is_favorite: newFavoriteStatus });
-
-        if (error) {
-          Alert.alert('Error', 'Failed to update favorite status.');
-        } else {
-          await loadMovieData();
-          const statusText = newFavoriteStatus ? 'added to favorites' : 'removed from favorites';
-          Alert.alert('Success', `Movie ${statusText}!`);
-          global.refreshMovies?.();
-        }
+        await loadMovieData();
+        const statusText = newFavoriteStatus ? 'added to favorites' : 'removed from favorites';
+        Alert.alert('Success', `Movie ${statusText}!`);
+        global.refreshMovies?.();
       }
     } catch (error) {
-      console.error('Favorite toggle error:', error);
       Alert.alert('Error', 'Failed to update favorite status.');
     } finally {
       setLoading(false);
@@ -248,54 +175,18 @@ export default function MovieDetailScreen() {
   const handleWatchlistToggle = async () => {
     setLoading(true);
     try {
-      // If not in collection, add it first to watchlist
-      if (!inCollection) {
-        const tmdbId = parseInt(movie.id as string);
-        const details = await getTMDBMovieDetails(tmdbId);
+      const newWatchlistStatus = !movie.is_watchlist;
+      const { error } = await moviesApi.update(movie.id as string, { is_watchlist: newWatchlistStatus });
 
-        const director = details.credits?.crew.find((c: any) => c.job === 'Director')?.name || null;
-        const genres = details.genres.map((g: any) => g.name).join(', ');
-
-        const { data, error } = await moviesApi.add({
-          title: movie.title as string,
-          year: movie.year ? parseInt(movie.year as string) : null,
-          poster_url: movie.poster_url as string,
-          is_watched: false,
-          is_favorite: false,
-          is_watchlist: true,
-          rating: null,
-          duration: details.runtime,
-          watched_date: null,
-          director,
-          genre: genres,
-          imdb_rating: details.vote_average ? Number(details.vote_average.toFixed(1)) : null,
-          tmdb_id: tmdbId,
-          imdb_id: details.imdb_id,
-        });
-
-        if (error) {
-          Alert.alert('Error', 'Failed to add movie.');
-        } else if (data) {
-          setMovie(prev => ({ ...prev, id: data.id, is_watchlist: true }));
-          setInCollection(true);
-          Alert.alert('Success', 'Movie added to watchlist!');
-          global.refreshMovies?.();
-        }
+      if (error) {
+        Alert.alert('Error', 'Failed to update watchlist status.');
       } else {
-        const newWatchlistStatus = !movie.is_watchlist;
-        const { error } = await moviesApi.update(movie.id as string, { is_watchlist: newWatchlistStatus });
-
-        if (error) {
-          Alert.alert('Error', 'Failed to update watchlist status.');
-        } else {
-          await loadMovieData();
-          const statusText = newWatchlistStatus ? 'added to watchlist' : 'removed from watchlist';
-          Alert.alert('Success', `Movie ${statusText}!`);
-          global.refreshMovies?.();
-        }
+        await loadMovieData();
+        const statusText = newWatchlistStatus ? 'added to watchlist' : 'removed from watchlist';
+        Alert.alert('Success', `Movie ${statusText}!`);
+        global.refreshMovies?.();
       }
     } catch (error) {
-      console.error('Watchlist toggle error:', error);
       Alert.alert('Error', 'Failed to update watchlist status.');
     } finally {
       setLoading(false);
