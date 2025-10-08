@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, SafeAreaView, TouchableOpacity, Image, Alert } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, SafeAreaView, TouchableOpacity, Image, Alert, Linking } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { ArrowLeft, Star, Calendar, Clock, Eye, Plus, Trash2, CreditCard as Edit3, Heart, User, Film } from 'lucide-react-native';
+import { ArrowLeft, Star, Calendar, Clock, Eye, Plus, Trash2, CreditCard as Edit3, Heart, User, Film, ExternalLink } from 'lucide-react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { moviesApi } from '@/lib/api';
 import { Database } from '@/lib/database.types';
@@ -314,11 +314,11 @@ export default function MovieDetailScreen() {
                 onPress={handleFavoriteToggle}
                 disabled={loading}
               >
-                <Heart 
-                  size={20} 
-                  color={movie.is_favorite ? 'white' : '#EF4444'} 
+                <Heart
+                  size={20}
+                  color={movie.is_favorite ? 'white' : '#EF4444'}
                   fill={movie.is_favorite ? 'white' : 'none'}
-                  strokeWidth={2} 
+                  strokeWidth={2}
                 />
                 <Text style={[
                   styles.actionButtonText,
@@ -326,6 +326,21 @@ export default function MovieDetailScreen() {
                 ]}>
                   {movie.is_favorite ? 'Favorite ❤️' : 'Add to Favorites'}
                 </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.imdbButton}
+                onPress={() => {
+                  const searchQuery = `${movie.title} ${movie.year || ''}`;
+                  const imdbUrl = `https://www.imdb.com/find?q=${encodeURIComponent(searchQuery)}`;
+                  Linking.openURL(imdbUrl);
+                }}
+              >
+                <View style={styles.imdbLogo}>
+                  <Text style={styles.imdbLogoText}>IMDb</Text>
+                </View>
+                <Text style={styles.imdbButtonText}>View on IMDb</Text>
+                <ExternalLink size={16} color="#F5C518" strokeWidth={2} />
               </TouchableOpacity>
               
               <TouchableOpacity
@@ -554,5 +569,34 @@ const styles = StyleSheet.create({
   },
   actionButtonTextActive: {
     color: 'white',
+  },
+  imdbButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 12,
+    paddingVertical: 16,
+    paddingHorizontal: 24,
+    borderRadius: 12,
+    backgroundColor: 'rgba(245, 197, 24, 0.1)',
+    borderWidth: 1,
+    borderColor: 'rgba(245, 197, 24, 0.3)',
+  },
+  imdbLogo: {
+    backgroundColor: '#F5C518',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 4,
+  },
+  imdbLogoText: {
+    fontSize: 14,
+    fontFamily: 'Inter-Bold',
+    color: '#000000',
+  },
+  imdbButtonText: {
+    fontSize: 16,
+    fontFamily: 'Inter-SemiBold',
+    color: '#F5C518',
+    flex: 1,
   },
 });
