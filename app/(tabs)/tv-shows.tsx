@@ -444,7 +444,7 @@ export default function TVShowsScreen() {
 
         <View style={styles.filters}>
           <Text style={styles.filterTitle}>Filter:</Text>
-          {['all', 'watched', 'favorites', 'watchlist'].map((filterOption) => (
+          {['all', 'watched', 'favorites'].map((filterOption) => (
             <TouchableOpacity
               key={filterOption}
               style={[
