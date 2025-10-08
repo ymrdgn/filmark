@@ -143,7 +143,6 @@ export default function AccountSettingsScreen() {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) throw new Error('Not authenticated');
 
-      console.log('Calling delete-account edge function...');
       const response = await fetch(
         `${process.env.EXPO_PUBLIC_SUPABASE_URL}/functions/v1/delete-account`,
         {
@@ -155,16 +154,23 @@ export default function AccountSettingsScreen() {
         }
       );
 
-      console.log('Response status:', response.status);
-      const result = await response.json();
-      console.log('Response data:', result);
-
-      if (!response.ok || result.error) {
-        throw new Error(result.error || 'Failed to delete account');
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Server error: ${errorText}`);
       }
 
-      await signOut();
-      router.replace('/(auth)/login');
+      const result = await response.json();
+
+      if (result.error) {
+        throw new Error(result.error);
+      }
+
+      setToast({ visible: true, message: 'Account deleted successfully', type: 'success' });
+
+      setTimeout(async () => {
+        await signOut();
+        router.replace('/(auth)/login');
+      }, 1000);
     } catch (err: any) {
       console.error('Delete account error:', err);
       setError(err.message || 'Failed to delete account');

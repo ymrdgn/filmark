@@ -1,3 +1,4 @@
+import 'jsr:@supabase/functions-js/edge-runtime.d.ts';
 import { createClient } from 'jsr:@supabase/supabase-js@2';
 
 const corsHeaders = {
@@ -73,8 +74,9 @@ Deno.serve(async (req: Request) => {
       }
     );
   } catch (error: any) {
+    console.error('Delete account error:', error);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: error.message || 'Internal server error' }),
       {
         status: 400,
         headers: {
