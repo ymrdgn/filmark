@@ -120,9 +120,12 @@ export default function MoviesScreen() {
     setAddingMovieId(movie.id);
     try {
       const details = await getMovieDetails(movie.id);
+      console.log('TMDB Movie Details:', details);
 
       const director = details.credits?.crew.find((c: any) => c.job === 'Director')?.name || null;
       const genres = details.genres.map((g: any) => g.name).join(', ');
+
+      console.log('Extracted data:', { director, genres, imdb_rating: details.vote_average, imdb_id: details.imdb_id });
 
       const { data, error } = await moviesApi.add({
         title: movie.title,
@@ -142,8 +145,10 @@ export default function MoviesScreen() {
       });
 
       if (error) {
+        console.error('Database error:', error);
         Alert.alert('Error', 'Failed to add movie to your collection.');
       } else {
+        console.log('Movie added successfully:', data);
         await loadMyMovies();
         Alert.alert('Success', `${movie.title} added to your watched list!`);
       }

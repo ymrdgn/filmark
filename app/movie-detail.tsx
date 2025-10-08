@@ -53,6 +53,7 @@ export default function MovieDetailScreen() {
       const { data, error } = await moviesApi.getAll();
       if (!error && data) {
         const currentMovie = data.find(m => m.id === params.id);
+        console.log('Current movie from DB:', currentMovie);
         if (currentMovie) {
           setMovie({
             id: currentMovie.id,
@@ -75,7 +76,7 @@ export default function MovieDetailScreen() {
     }
   };
 
-  console.log("movie", movie)
+  console.log("movie state:", movie)
   const handleRatingChange = async (newRating: number) => {
     setLoading(true);
     try {

@@ -13,7 +13,7 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { X, Search, Plus, Star } from 'lucide-react-native';
-import { searchMovies, OMDBMovie } from '@/lib/omdb';
+import { searchMovies, getMovieDetails, OMDBMovie } from '@/lib/omdb';
 import { moviesApi } from '@/lib/api';
 
 interface OMDBMovieSearchModalProps {
@@ -51,16 +51,32 @@ export default function OMDBMovieSearchModal({ visible, onClose, onMovieAdded }:
   const handleAddMovie = async (movie: OMDBMovie) => {
     setAddingMovieId(movie.imdbID);
     try {
+      // Get full movie details from OMDB
+      const details = await getMovieDetails(movie.imdbID);
+      console.log('OMDB Movie Details:', details);
+
+      const runtime = details.Runtime ? parseInt(details.Runtime.replace(' min', '')) : null;
+      const imdbRating = details.imdbRating && details.imdbRating !== 'N/A' ? parseFloat(details.imdbRating) : null;
+
       const { error } = await moviesApi.add({
         title: movie.Title,
         year: parseInt(movie.Year) || null,
         poster_url: movie.Poster !== 'N/A' ? movie.Poster : null,
-        status: 'watchlist',
+        is_watched: false,
+        is_favorite: false,
+        is_watchlist: true,
         rating: null,
-        duration: null,
+        duration: runtime,
+        watched_date: null,
+        director: details.Director && details.Director !== 'N/A' ? details.Director : null,
+        genre: details.Genre && details.Genre !== 'N/A' ? details.Genre : null,
+        imdb_rating: imdbRating,
+        tmdb_id: null,
+        imdb_id: movie.imdbID,
       });
 
       if (error) {
+        console.error('Database error:', error);
         Alert.alert('Error', 'Failed to add movie to your list.');
       } else {
         Alert.alert('Success', `${movie.Title} added to your watchlist!`);
