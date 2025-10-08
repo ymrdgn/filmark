@@ -75,6 +75,7 @@ export default function MovieDetailScreen() {
     }
   };
 
+  console.log("movie", movie)
   const handleRatingChange = async (newRating: number) => {
     setLoading(true);
     try {
