@@ -14,6 +14,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { ArrowLeft, User, Lock, Trash2 } from 'lucide-react-native';
 import { router } from 'expo-router';
 import { supabase, getCurrentUser, signOut } from '@/lib/supabase';
+import Toast from '@/components/Toast';
 
 export default function AccountSettingsScreen() {
   const [loading, setLoading] = useState(true);
@@ -24,6 +25,7 @@ export default function AccountSettingsScreen() {
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
+  const [toast, setToast] = useState({ visible: false, message: '', type: 'success' as 'success' | 'error' | 'info' });
 
   useEffect(() => {
     loadUserData();
@@ -66,11 +68,11 @@ export default function AccountSettingsScreen() {
 
       if (dbError) throw dbError;
 
-      Alert.alert('Success', 'Username updated successfully');
+      setToast({ visible: true, message: 'Username updated successfully', type: 'success' });
       loadUserData();
     } catch (err: any) {
       setError(err.message || 'Failed to update username');
-      Alert.alert('Error', err.message || 'Failed to update username');
+      setToast({ visible: true, message: err.message || 'Failed to update username', type: 'error' });
     } finally {
       setSaving(false);
     }
@@ -103,13 +105,13 @@ export default function AccountSettingsScreen() {
 
       if (updateError) throw updateError;
 
-      Alert.alert('Success', 'Password changed successfully');
+      setToast({ visible: true, message: 'Password changed successfully', type: 'success' });
       setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
     } catch (err: any) {
       setError(err.message || 'Failed to change password');
-      Alert.alert('Error', err.message || 'Failed to change password');
+      setToast({ visible: true, message: err.message || 'Failed to change password', type: 'error' });
     } finally {
       setSaving(false);
     }
@@ -146,7 +148,7 @@ export default function AccountSettingsScreen() {
       router.replace('/(auth)/login');
     } catch (err: any) {
       setError(err.message || 'Failed to delete account');
-      Alert.alert('Error', err.message || 'Failed to delete account');
+      setToast({ visible: true, message: err.message || 'Failed to delete account', type: 'error' });
       setSaving(false);
     }
   };
@@ -165,6 +167,12 @@ export default function AccountSettingsScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
+      <Toast
+        visible={toast.visible}
+        message={toast.message}
+        type={toast.type}
+        onHide={() => setToast({ ...toast, visible: false })}
+      />
       <LinearGradient colors={['#1F2937', '#111827']} style={styles.gradient}>
         <View style={styles.header}>
           <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
