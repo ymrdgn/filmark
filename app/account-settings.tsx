@@ -118,7 +118,6 @@ export default function AccountSettingsScreen() {
   };
 
   const handleDeleteAccount = () => {
-    console.log('Delete Account button pressed');
     Alert.alert(
       'Delete Account',
       'Are you sure you want to delete your account? This action cannot be undone and all your data will be permanently deleted.',
@@ -126,40 +125,28 @@ export default function AccountSettingsScreen() {
         {
           text: 'Cancel',
           style: 'cancel',
-          onPress: () => console.log('Delete cancelled'),
         },
         {
           text: 'Delete',
           style: 'destructive',
-          onPress: () => {
-            console.log('Delete confirmed');
-            confirmDeleteAccount();
-          },
+          onPress: confirmDeleteAccount,
         },
       ]
     );
   };
 
   const confirmDeleteAccount = async () => {
-    console.log('confirmDeleteAccount called');
     setSaving(true);
     setError('');
 
     try {
-      console.log('Calling delete_user_account RPC');
-      const { data, error: deleteError } = await supabase.rpc('delete_user_account');
-      console.log('RPC result:', { data, error: deleteError });
+      const { error: deleteError } = await supabase.rpc('delete_user_account');
 
-      if (deleteError) {
-        console.error('Delete error:', deleteError);
-        throw deleteError;
-      }
+      if (deleteError) throw deleteError;
 
-      console.log('Account deleted successfully, signing out');
       await signOut();
       router.replace('/(auth)/login');
     } catch (err: any) {
-      console.error('Delete account failed:', err);
       setError(err.message || 'Failed to delete account');
       setToast({ visible: true, message: err.message || 'Failed to delete account', type: 'error' });
       setSaving(false);
