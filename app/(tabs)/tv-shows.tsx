@@ -169,7 +169,6 @@ export default function TVShowsScreen() {
     }
   };
 
-  // Filter TV shows based on current tab
   const getFilteredTVShows = () => {
     if (filter === 'watched') {
       return myTVShows.filter(show => {
@@ -183,9 +182,15 @@ export default function TVShowsScreen() {
         return matchesSearch && show.is_favorite === true;
       });
     }
-    return myTVShows.filter(show => 
+    if (filter === 'watchlist') {
+      return myTVShows.filter(show => {
+        const matchesSearch = show.title.toLowerCase().includes(searchQuery.toLowerCase());
+        return matchesSearch && show.is_watchlist === true;
+      });
+    }
+    return myTVShows.filter(show =>
       show.title.toLowerCase().includes(searchQuery.toLowerCase())
-    ); // 'all' case
+    );
   };
 
   const displayTVShows = getFilteredTVShows();
@@ -238,7 +243,6 @@ export default function TVShowsScreen() {
           seasons: show.seasons,
           episodes: show.episodes,
           current_season: show.current_season,
-          is_watchlist: collectionShow?.is_watchlist || false,
           current_episode: show.current_episode
         }
       })}
@@ -351,6 +355,7 @@ export default function TVShowsScreen() {
             inCollection: inCollection,
             is_watched: collectionShow?.is_watched || false,
             is_favorite: collectionShow?.is_favorite || false,
+            is_watchlist: collectionShow?.is_watchlist || false,
             rating: collectionShow?.rating || 0
           }
         })}
@@ -442,7 +447,7 @@ export default function TVShowsScreen() {
 
         <View style={styles.filters}>
           <Text style={styles.filterTitle}>Filter:</Text>
-          {['all', 'watched', 'favorites'].map((filterOption) => (
+          {['all', 'watched', 'favorites', 'watchlist'].map((filterOption) => (
             <TouchableOpacity
               key={filterOption}
               style={[
@@ -455,8 +460,9 @@ export default function TVShowsScreen() {
                 styles.filterText,
                 filter === filterOption && styles.filterTextActive
               ]}>
-                {filterOption === 'all' ? 'All' : 
-                 filterOption === 'watched' ? 'Watched' : 'Favorites'}
+                {filterOption === 'all' ? 'All' :
+                 filterOption === 'watched' ? 'Watched' :
+                 filterOption === 'favorites' ? 'Favorites' : 'Watchlist'}
               </Text>
             </TouchableOpacity>
           ))}
@@ -506,6 +512,22 @@ export default function TVShowsScreen() {
                 <View style={styles.emptyState}>
                   <Text style={styles.emptyStateText}>No favorite shows yet</Text>
                   <Text style={styles.emptyStateSubtext}>Add some shows to favorites to see them here</Text>
+                </View>
+              )}
+            </View>
+          )}
+
+          {filter === 'watchlist' && (
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Watchlist</Text>
+              {displayTVShows.length > 0 ? (
+                <View style={styles.showsGrid}>
+                  {displayTVShows.map(renderMyTVShowCard)}
+                </View>
+              ) : (
+                <View style={styles.emptyState}>
+                  <Text style={styles.emptyStateText}>No shows in watchlist yet</Text>
+                  <Text style={styles.emptyStateSubtext}>Add some shows to your watchlist to see them here</Text>
                 </View>
               )}
             </View>

@@ -169,7 +169,6 @@ export default function MoviesScreen() {
     return matchesSearch;
   });
 
-  // Filter movies based on current tab
   const getFilteredMovies = () => {
     if (filter === 'watched') {
       const watchedMovies = myMovies.filter(movie => {
@@ -185,9 +184,15 @@ export default function MoviesScreen() {
         return matchesSearch && movie.is_favorite === true;
       });
     }
-    return myMovies.filter(movie => 
+    if (filter === 'watchlist') {
+      return myMovies.filter(movie => {
+        const matchesSearch = movie.title.toLowerCase().includes(searchQuery.toLowerCase());
+        return matchesSearch && movie.is_watchlist === true;
+      });
+    }
+    return myMovies.filter(movie =>
       movie.title.toLowerCase().includes(searchQuery.toLowerCase())
-    ); // 'all' case
+    );
   };
 
   const displayMovies = getFilteredMovies();
@@ -212,8 +217,6 @@ export default function MoviesScreen() {
           is_watched: movie.is_watched,
           is_favorite: movie.is_favorite,
           is_watchlist: movie.is_watchlist,
-          is_watchlist: movie.is_watchlist,
-          is_watchlist: false,
           rating: movie.rating
         }
       })}
@@ -402,7 +405,7 @@ export default function MoviesScreen() {
 
         <View style={styles.filters}>
           <Text style={styles.filterTitle}>Filter:</Text>
-          {['all', 'watched', 'favorites'].map((filterOption) => (
+          {['all', 'watched', 'favorites', 'watchlist'].map((filterOption) => (
             <TouchableOpacity
               key={filterOption}
               style={[
@@ -415,8 +418,9 @@ export default function MoviesScreen() {
                 styles.filterText,
                 filter === filterOption && styles.filterTextActive
               ]}>
-                {filterOption === 'all' ? 'All' : 
-                 filterOption === 'watched' ? 'Watched' : 'Favorites'}
+                {filterOption === 'all' ? 'All' :
+                 filterOption === 'watched' ? 'Watched' :
+                 filterOption === 'favorites' ? 'Favorites' : 'Watchlist'}
               </Text>
             </TouchableOpacity>
           ))}
@@ -459,6 +463,22 @@ export default function MoviesScreen() {
                 <View style={styles.emptyState}>
                   <Text style={styles.emptyStateText}>No favorite movies yet</Text>
                   <Text style={styles.emptyStateSubtext}>Add some movies to favorites to see them here</Text>
+                </View>
+              )}
+            </View>
+          )}
+
+          {filter === 'watchlist' && (
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Watchlist</Text>
+              {displayMovies.length > 0 ? (
+                <View style={styles.moviesGrid}>
+                  {displayMovies.map(renderMyMovieCard)}
+                </View>
+              ) : (
+                <View style={styles.emptyState}>
+                  <Text style={styles.emptyStateText}>No movies in watchlist yet</Text>
+                  <Text style={styles.emptyStateSubtext}>Add some movies to your watchlist to see them here</Text>
                 </View>
               )}
             </View>

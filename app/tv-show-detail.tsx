@@ -15,6 +15,7 @@ export default function TVShowDetailScreen() {
     poster_url: params.poster_url,
     is_watched: params.is_watched === 'true',
     is_favorite: params.is_favorite === 'true',
+    is_watchlist: params.is_watchlist === 'true',
     rating: parseInt(params.rating as string) || 0,
     seasons: parseInt(params.seasons as string) || 1,
     episodes: parseInt(params.episodes as string) || 1,
@@ -73,6 +74,7 @@ export default function TVShowDetailScreen() {
             poster_url: currentShow.poster_url,
             is_watched: currentShow.is_watched,
             is_favorite: currentShow.is_favorite,
+            is_watchlist: currentShow.is_watchlist || false,
             rating: currentShow.rating || 0,
             seasons: currentShow.seasons || 1,
             episodes: currentShow.episodes || 1,
@@ -95,6 +97,7 @@ export default function TVShowDetailScreen() {
               poster_url: showByTitle.poster_url,
               is_watched: showByTitle.is_watched,
               is_favorite: showByTitle.is_favorite,
+              is_watchlist: showByTitle.is_watchlist || false,
               rating: showByTitle.rating || 0,
               seasons: showByTitle.seasons || 1,
               episodes: showByTitle.episodes || 1,
@@ -111,6 +114,7 @@ export default function TVShowDetailScreen() {
             ...prev,
             is_watched: false,
             is_favorite: false,
+            is_watchlist: false,
             rating: 0
           }));
         }
@@ -179,7 +183,7 @@ export default function TVShowDetailScreen() {
     try {
       const newFavoriteStatus = !tvShow.is_favorite;
       const { error } = await tvShowsApi.update(tvShow.id as string, { is_favorite: newFavoriteStatus });
-      
+
       if (error) {
         Alert.alert('Error', 'Failed to update favorite status.');
       } else {
@@ -189,7 +193,6 @@ export default function TVShowDetailScreen() {
           {
             text: 'OK',
             onPress: () => {
-              // Trigger refresh and go back
               global.refreshTVShows?.();
               router.back();
             }
@@ -198,6 +201,34 @@ export default function TVShowDetailScreen() {
       }
     } catch (error) {
       Alert.alert('Error', 'Failed to update favorite status.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleWatchlistToggle = async () => {
+    setLoading(true);
+    try {
+      const newWatchlistStatus = !tvShow.is_watchlist;
+      const { error } = await tvShowsApi.update(tvShow.id as string, { is_watchlist: newWatchlistStatus });
+
+      if (error) {
+        Alert.alert('Error', 'Failed to update watchlist status.');
+      } else {
+        setTVShow(prev => ({ ...prev, is_watchlist: newWatchlistStatus }));
+        const statusText = newWatchlistStatus ? 'added to watchlist' : 'removed from watchlist';
+        Alert.alert('Success', `TV show ${statusText}!`, [
+          {
+            text: 'OK',
+            onPress: () => {
+              global.refreshTVShows?.();
+              router.back();
+            }
+          }
+        ]);
+      }
+    } catch (error) {
+      Alert.alert('Error', 'Failed to update watchlist status.');
     } finally {
       setLoading(false);
     }
@@ -388,17 +419,38 @@ export default function TVShowDetailScreen() {
                 onPress={handleFavoriteToggle}
                 disabled={loading}
               >
-                <Heart 
-                  size={20} 
-                  color={tvShow.is_favorite ? 'white' : '#EF4444'} 
+                <Heart
+                  size={20}
+                  color={tvShow.is_favorite ? 'white' : '#EF4444'}
                   fill={tvShow.is_favorite ? 'white' : 'none'}
-                  strokeWidth={2} 
+                  strokeWidth={2}
                 />
                 <Text style={[
                   styles.actionButtonText,
                   tvShow.is_favorite && styles.actionButtonTextActive
                 ]}>
                   {tvShow.is_favorite ? 'Favorite ❤️' : 'Add to Favorites'}
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[
+                  styles.actionButton,
+                  tvShow.is_watchlist && styles.watchlistButtonActive
+                ]}
+                onPress={handleWatchlistToggle}
+                disabled={loading}
+              >
+                <Plus
+                  size={20}
+                  color={tvShow.is_watchlist ? 'white' : '#8B5CF6'}
+                  strokeWidth={2}
+                />
+                <Text style={[
+                  styles.actionButtonText,
+                  tvShow.is_watchlist && styles.actionButtonTextActive
+                ]}>
+                  {tvShow.is_watchlist ? 'In Watchlist 📝' : 'Add to Watchlist'}
                 </Text>
               </TouchableOpacity>
             </View>
