@@ -32,22 +32,22 @@ export default function PrivacySettingsScreen() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
 
-      const { data, error } = await supabase
-        .from('user_privacy_settings')
-        .select('*')
-        .eq('user_id', user.id)
-        .maybeSingle();
+      const { data, error } = await supabase.rpc('get_user_privacy_settings', {
+        p_user_id: user.id
+      });
 
       if (error) throw error;
 
-      if (data) {
+      if (data && data.length > 0) {
+        const settingsData = data[0];
         setSettings({
-          profile_visibility: data.profile_visibility,
-          show_activity: data.show_activity,
-          allow_friend_requests: data.allow_friend_requests,
+          profile_visibility: settingsData.profile_visibility,
+          show_activity: settingsData.show_activity,
+          allow_friend_requests: settingsData.allow_friend_requests,
         });
       }
     } catch (error: any) {
+      console.error('Privacy settings load error:', error);
       setToast({ visible: true, message: error.message, type: 'error' });
     } finally {
       setLoading(false);
@@ -62,19 +62,19 @@ export default function PrivacySettingsScreen() {
 
       const updatedSettings = { ...settings, ...newSettings };
 
-      const { error } = await supabase
-        .from('user_privacy_settings')
-        .upsert({
-          user_id: user.id,
-          ...updatedSettings,
-          updated_at: new Date().toISOString(),
-        });
+      const { error } = await supabase.rpc('update_user_privacy_settings', {
+        p_user_id: user.id,
+        p_profile_visibility: updatedSettings.profile_visibility,
+        p_show_activity: updatedSettings.show_activity,
+        p_allow_friend_requests: updatedSettings.allow_friend_requests
+      });
 
       if (error) throw error;
 
       setSettings(updatedSettings);
       setToast({ visible: true, message: 'Settings saved', type: 'success' });
     } catch (error: any) {
+      console.error('Privacy settings update error:', error);
       setToast({ visible: true, message: error.message, type: 'error' });
     } finally {
       setSaving(false);
