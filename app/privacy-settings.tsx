@@ -29,23 +29,29 @@ export default function PrivacySettingsScreen() {
 
   const loadPrivacySettings = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('Not authenticated');
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error('Not authenticated');
 
-      const { data, error } = await supabase.rpc('get_user_privacy_settings', {
-        p_user_id: user.id
+      const apiUrl = `${process.env.EXPO_PUBLIC_SUPABASE_URL}/functions/v1/privacy-settings`;
+      const response = await fetch(apiUrl, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`,
+          'Content-Type': 'application/json',
+        },
       });
 
-      if (error) throw error;
-
-      if (data && data.length > 0) {
-        const settingsData = data[0];
-        setSettings({
-          profile_visibility: settingsData.profile_visibility,
-          show_activity: settingsData.show_activity,
-          allow_friend_requests: settingsData.allow_friend_requests,
-        });
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to load settings');
       }
+
+      const data = await response.json();
+      setSettings({
+        profile_visibility: data.profile_visibility,
+        show_activity: data.show_activity,
+        allow_friend_requests: data.allow_friend_requests,
+      });
     } catch (error: any) {
       console.error('Privacy settings load error:', error);
       setToast({ visible: true, message: error.message, type: 'error' });
@@ -57,19 +63,25 @@ export default function PrivacySettingsScreen() {
   const updateSettings = async (newSettings: Partial<PrivacySettings>) => {
     setSaving(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('Not authenticated');
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error('Not authenticated');
 
       const updatedSettings = { ...settings, ...newSettings };
 
-      const { error } = await supabase.rpc('update_user_privacy_settings', {
-        p_user_id: user.id,
-        p_profile_visibility: updatedSettings.profile_visibility,
-        p_show_activity: updatedSettings.show_activity,
-        p_allow_friend_requests: updatedSettings.allow_friend_requests
+      const apiUrl = `${process.env.EXPO_PUBLIC_SUPABASE_URL}/functions/v1/privacy-settings`;
+      const response = await fetch(apiUrl, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(updatedSettings),
       });
 
-      if (error) throw error;
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to update settings');
+      }
 
       setSettings(updatedSettings);
       setToast({ visible: true, message: 'Settings saved', type: 'success' });
