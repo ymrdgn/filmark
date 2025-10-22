@@ -4,7 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { ChevronLeft } from 'lucide-react-native';
-import { supabase } from '@/lib/supabase';
+import { privacyApi } from '@/lib/api';
 import Toast from '@/components/Toast';
 
 type PrivacySettings = {
@@ -29,29 +29,17 @@ export default function PrivacySettingsScreen() {
 
   const loadPrivacySettings = async () => {
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) throw new Error('Not authenticated');
+      const { data, error } = await privacyApi.get();
 
-      const apiUrl = `${process.env.EXPO_PUBLIC_SUPABASE_URL}/functions/v1/privacy-settings`;
-      const response = await fetch(apiUrl, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${session.access_token}`,
-          'Content-Type': 'application/json',
-        },
-      });
+      if (error) throw error;
 
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Failed to load settings');
+      if (data) {
+        setSettings({
+          profile_visibility: data.profile_visibility,
+          show_activity: data.show_activity,
+          allow_friend_requests: data.allow_friend_requests,
+        });
       }
-
-      const data = await response.json();
-      setSettings({
-        profile_visibility: data.profile_visibility,
-        show_activity: data.show_activity,
-        allow_friend_requests: data.allow_friend_requests,
-      });
     } catch (error: any) {
       console.error('Privacy settings load error:', error);
       setToast({ visible: true, message: error.message, type: 'error' });
@@ -63,25 +51,11 @@ export default function PrivacySettingsScreen() {
   const updateSettings = async (newSettings: Partial<PrivacySettings>) => {
     setSaving(true);
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) throw new Error('Not authenticated');
-
       const updatedSettings = { ...settings, ...newSettings };
 
-      const apiUrl = `${process.env.EXPO_PUBLIC_SUPABASE_URL}/functions/v1/privacy-settings`;
-      const response = await fetch(apiUrl, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${session.access_token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(updatedSettings),
-      });
+      const { data, error } = await privacyApi.update(updatedSettings);
 
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Failed to update settings');
-      }
+      if (error) throw error;
 
       setSettings(updatedSettings);
       setToast({ visible: true, message: 'Settings saved', type: 'success' });

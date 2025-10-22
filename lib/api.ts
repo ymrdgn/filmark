@@ -319,22 +319,22 @@ export const statsApi = {
     const tvShows = tvShowsResult.data || [];
     const allMovies = allMoviesResult.data || [];
     const allTVShows = allTVShowsResult.data || [];
-    
+
     const totalMovies = watchedMovies.length;
     const totalTVShows = tvShows.length;
     const totalEpisodes = tvShows.reduce((sum, show) => sum + (show.episodes || 0), 0);
-    
+
     // Calculate favorites
     const favoriteMovies = allMovies.filter(m => m.is_favorite).length;
     const favoriteTVShows = allTVShows.filter(s => s.is_favorite).length;
-    
+
     // Calculate average rating
     const allRatings = [
       ...watchedMovies.filter(m => m.rating).map(m => m.rating!),
       ...tvShows.filter(s => s.rating).map(s => s.rating!)
     ];
-    const averageRating = allRatings.length > 0 
-      ? allRatings.reduce((sum, rating) => sum + rating, 0) / allRatings.length 
+    const averageRating = allRatings.length > 0
+      ? allRatings.reduce((sum, rating) => sum + rating, 0) / allRatings.length
       : 0;
 
     // Estimate hours watched (assuming 2h per movie, 45min per episode)
@@ -354,5 +354,71 @@ export const statsApi = {
       },
       error: null
     };
+  }
+};
+
+// Privacy Settings API
+export const privacyApi = {
+  // Get privacy settings
+  get: async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+      return { data: null, error: new Error('Not authenticated') };
+    }
+
+    try {
+      const apiUrl = `${process.env.EXPO_PUBLIC_SUPABASE_URL}/functions/v1/privacy-settings`;
+      const response = await fetch(apiUrl, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        return { data: null, error: new Error(error.error || 'Failed to load settings') };
+      }
+
+      const data = await response.json();
+      return { data, error: null };
+    } catch (error: any) {
+      return { data: null, error };
+    }
+  },
+
+  // Update privacy settings
+  update: async (settings: {
+    profile_visibility: 'public' | 'friends' | 'private';
+    show_activity: boolean;
+    allow_friend_requests: boolean;
+  }) => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+      return { data: null, error: new Error('Not authenticated') };
+    }
+
+    try {
+      const apiUrl = `${process.env.EXPO_PUBLIC_SUPABASE_URL}/functions/v1/privacy-settings`;
+      const response = await fetch(apiUrl, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(settings),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        return { data: null, error: new Error(error.error || 'Failed to update settings') };
+      }
+
+      const data = await response.json();
+      return { data, error: null };
+    } catch (error: any) {
+      return { data: null, error };
+    }
   }
 };
