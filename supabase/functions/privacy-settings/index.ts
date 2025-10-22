@@ -18,7 +18,16 @@ Deno.serve(async (req: Request) => {
   try {
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
-      throw new Error('Missing authorization header');
+      return new Response(
+        JSON.stringify({ error: 'Missing authorization header' }),
+        {
+          status: 401,
+          headers: {
+            ...corsHeaders,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
     }
 
     const supabaseClient = createClient(
@@ -33,7 +42,16 @@ Deno.serve(async (req: Request) => {
 
     const { data: { user }, error: userError } = await supabaseClient.auth.getUser();
     if (userError || !user) {
-      throw new Error('Unauthorized');
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized' }),
+        {
+          status: 401,
+          headers: {
+            ...corsHeaders,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
     }
 
     const supabaseAdmin = createClient(
@@ -42,7 +60,6 @@ Deno.serve(async (req: Request) => {
     );
 
     if (req.method === 'GET') {
-      // Get privacy settings
       const { data, error } = await supabaseAdmin
         .from('user_privacy_settings')
         .select('*')
@@ -50,10 +67,18 @@ Deno.serve(async (req: Request) => {
         .single();
 
       if (error && error.code !== 'PGRST116') {
-        throw error;
+        return new Response(
+          JSON.stringify({ error: error.message }),
+          {
+            status: 500,
+            headers: {
+              ...corsHeaders,
+              'Content-Type': 'application/json',
+            },
+          }
+        );
       }
 
-      // If no settings exist, create default
       if (!data) {
         const { data: newData, error: insertError } = await supabaseAdmin
           .from('user_privacy_settings')
@@ -66,7 +91,18 @@ Deno.serve(async (req: Request) => {
           .select()
           .single();
 
-        if (insertError) throw insertError;
+        if (insertError) {
+          return new Response(
+            JSON.stringify({ error: insertError.message }),
+            {
+              status: 500,
+              headers: {
+                ...corsHeaders,
+                'Content-Type': 'application/json',
+              },
+            }
+          );
+        }
 
         return new Response(
           JSON.stringify(newData),
@@ -93,13 +129,20 @@ Deno.serve(async (req: Request) => {
     }
 
     if (req.method === 'POST') {
-      // Update privacy settings
       const body = await req.json();
       const { profile_visibility, show_activity, allow_friend_requests } = body;
 
-      // Validate profile_visibility
       if (profile_visibility && !['public', 'friends', 'private'].includes(profile_visibility)) {
-        throw new Error('Invalid profile_visibility value');
+        return new Response(
+          JSON.stringify({ error: 'Invalid profile_visibility value' }),
+          {
+            status: 400,
+            headers: {
+              ...corsHeaders,
+              'Content-Type': 'application/json',
+            },
+          }
+        );
       }
 
       const { data, error } = await supabaseAdmin
@@ -114,7 +157,18 @@ Deno.serve(async (req: Request) => {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        return new Response(
+          JSON.stringify({ error: error.message }),
+          {
+            status: 500,
+            headers: {
+              ...corsHeaders,
+              'Content-Type': 'application/json',
+            },
+          }
+        );
+      }
 
       return new Response(
         JSON.stringify(data),
@@ -128,13 +182,22 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    throw new Error('Method not allowed');
+    return new Response(
+      JSON.stringify({ error: 'Method not allowed' }),
+      {
+        status: 405,
+        headers: {
+          ...corsHeaders,
+          'Content-Type': 'application/json',
+        },
+      }
+    );
   } catch (error: any) {
     console.error('Privacy settings error:', error);
     return new Response(
       JSON.stringify({ error: error.message || 'Internal server error' }),
       {
-        status: 400,
+        status: 500,
         headers: {
           ...corsHeaders,
           'Content-Type': 'application/json',
