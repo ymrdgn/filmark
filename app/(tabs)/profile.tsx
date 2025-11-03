@@ -92,7 +92,7 @@ export default function ProfileScreen() {
   const menuItems = [
     { label: 'Friends', icon: Users, color: '#10B981', onPress: () => router.push('/friends') },
     { label: 'Account Settings', icon: Settings, color: '#6366F1', onPress: () => router.push('/account-settings') },
-    { label: 'Privacy Settings', icon: Shield, color: '#8B5CF6', onPress: () => router.push('/privacy-settings') },
+    // { label: 'Privacy Settings', icon: Shield, color: '#8B5CF6', onPress: () => router.push('/privacy-settings') },
     { label: 'Sign Out', icon: LogOut, color: '#EF4444', onPress: handleSignOut },
   ];
 
