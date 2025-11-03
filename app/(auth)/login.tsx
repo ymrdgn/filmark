@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, SafeAreaView, Alert, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
+import { Image, View, Text, TextInput, TouchableOpacity, StyleSheet, SafeAreaView, Alert, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { Mail, Lock, Eye, EyeOff, Film, User } from 'lucide-react-native';
@@ -16,7 +16,7 @@ export default function LoginScreen() {
 
   const handleAuth = async () => {
     console.log('handleAuth called, isLogin:', isLogin, 'email:', email, 'password length:', password.length);
-    
+
     if (!email || !password) {
       console.log('Missing email or password');
       Alert.alert('Hata', 'Lütfen tüm alanları doldurun');
@@ -41,7 +41,7 @@ export default function LoginScreen() {
 
     console.log('Starting auth process...');
     setLoading(true);
-    
+
     try {
       let result;
       if (isLogin) {
@@ -56,10 +56,10 @@ export default function LoginScreen() {
 
       if (result.error) {
         console.log('Auth error:', result.error);
-        
+
         // Debug: Log the full error object
         console.log('Full error object:', JSON.stringify(result.error, null, 2));
-        
+
         let errorMessage = result.error.message;
         if (result.error.code === 'user_already_exists') {
           errorMessage = 'Bu e-posta adresi ile zaten kayıtlı bir hesap var. Giriş yapmayı deneyin.';
@@ -74,7 +74,7 @@ export default function LoginScreen() {
         } else if (result.error.message.includes('API key')) {
           errorMessage = 'API anahtarı hatası. Lütfen uygulamayı yeniden başlatın.';
         }
-        
+
         Alert.alert('Hata', errorMessage);
       } else {
         // Kayıt başarılı
@@ -82,7 +82,7 @@ export default function LoginScreen() {
           // Signup successful
           console.log('Signup successful, showing success message');
           Alert.alert(
-            'Kayıt Başarılı! 🎉', 
+            'Kayıt Başarılı! 🎉',
             'Hesabınız başarıyla oluşturuldu. Şimdi giriş yapabilirsiniz.',
             [
               {
@@ -97,7 +97,7 @@ export default function LoginScreen() {
               }
             ]
           );
-        } 
+        }
         // Giriş başarılı
         else if (result.data && result.data.user) {
           // Login successful
@@ -120,16 +120,20 @@ export default function LoginScreen() {
         colors={['#1F2937', '#111827']}
         style={styles.gradient}
       >
-        <KeyboardAvoidingView 
+        <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           style={styles.keyboardView}
         >
           <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
             <View style={styles.header}>
-              <View style={styles.iconContainer}>
-                <Film size={48} color="#6366F1" strokeWidth={1.5} />
-              </View>
-              <Text style={styles.title}>WatchBase / WatchTracker</Text>
+              <Image
+                source={require('@/assets/images/wb-logo-trns.png')}
+                style={styles.logo}
+                resizeMode="contain"
+                accessible
+                accessibilityLabel="WatchBase logo"
+              />
+              {/* <Text style={styles.title}>WatchBase</Text> */}
               <Text style={styles.subtitle}>
                 {isLogin ? 'Welcome back!' : 'Create your account'}
               </Text>
@@ -173,7 +177,7 @@ export default function LoginScreen() {
                   onChangeText={setPassword}
                   secureTextEntry={!showPassword}
                 />
-                <TouchableOpacity 
+                <TouchableOpacity
                   onPress={() => setShowPassword(!showPassword)}
                   style={styles.eyeIcon}
                 >
@@ -206,8 +210,8 @@ export default function LoginScreen() {
                   <Text style={styles.requirementText}>• Mix of letters and numbers recommended</Text>
                 </View>
               )}
-              <TouchableOpacity 
-                style={[styles.button, loading && styles.buttonDisabled]} 
+              <TouchableOpacity
+                style={[styles.button, loading && styles.buttonDisabled]}
                 onPress={handleAuth}
                 disabled={loading}
               >
@@ -223,7 +227,7 @@ export default function LoginScreen() {
                 </LinearGradient>
               </TouchableOpacity>
 
-              <TouchableOpacity 
+              <TouchableOpacity
                 style={styles.switchButton}
                 onPress={() => setIsLogin(!isLogin)}
               >
@@ -259,16 +263,20 @@ const styles = StyleSheet.create({
   },
   header: {
     alignItems: 'center',
-    marginBottom: 48,
+    marginBottom: 20,
   },
   iconContainer: {
-    width: 80,
-    height: 80,
-    backgroundColor: 'rgba(99, 102, 241, 0.1)',
-    borderRadius: 40,
+    // width: 100,
+    // height: 100,
+    // backgroundColor: 'rgba(99, 102, 241, 0.1)',
+    // borderRadius: 40,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 16,
+    overflow: 'hidden',
+  },
+  logo: {
+    width: 200,
+    height: 150,
   },
   title: {
     fontSize: 28,
