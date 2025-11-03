@@ -1,20 +1,32 @@
 {
   "expo": {
-    "name": "bolt-expo-nativewind",
-    "slug": "bolt-expo-nativewind",
+    "name": "WatchBase",
+    "slug": "watchbase",
     "version": "1.0.0",
     "newArchEnabled": true,
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
-    "scheme": "myapp",
+    "icon": "./assets/images/wb-icon.png",
+    "scheme": "watchbase",
     "userInterfaceStyle": "automatic",
+    "splash": {
+      "image": "./assets/wb-splash.png",
+      "resizeMode": "contain"
+    },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.watchbase.app"
+    },
+    "android": {
+      "package": "com.watchbase.app",
+      "versionCode": 1,
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/images/wb-logo-trns.png"
+      }
     },
     "web": {
       "bundler": "metro",
       "output": "single",
-      "favicon": "./assets/images/favicon.png"
+      "favicon": "./assets/images/wb-icon.png"
     },
     "plugins": [
       "expo-router",
@@ -22,6 +34,14 @@
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "a3c3db1f-1479-4d33-847a-216aba516bbf"
+      }
     }
   }
 }
