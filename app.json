@@ -17,7 +17,7 @@
     },
     "android": {
       "package": "com.watchbase.app",
-      "versionCode": 1,
+      "versionCode": 15,
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/wb-logo-trns.png"
       }
@@ -29,7 +29,15 @@
     },
     "plugins": [
       "expo-router",
-      "expo-font"
+      "expo-font",
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "targetSdkVersion": 35
+          }
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true
