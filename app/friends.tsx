@@ -166,6 +166,7 @@ export default function FriendsScreen() {
     const friendId = friend.user_id === currentUser.id ? friend.friend_id : friend.user_id;
     const friendEmail = friend.user_id === currentUser.id ? friend.friend_email : friend.requesting_email;
     
+    console.log("friendEmail", friendEmail)
     router.push({
       pathname: '/friend-profile',
       params: {
@@ -265,7 +266,7 @@ export default function FriendsScreen() {
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.actionButton, styles.rejectButton]}
-                onPress={() => handleRejectRequest(friend.id)}
+                onPress={() => handleRejectRequest(friend.id, friendEmail)}
                 disabled={processingRequestId === friend.id}
               >
                 <X size={16} color="white" strokeWidth={2} />

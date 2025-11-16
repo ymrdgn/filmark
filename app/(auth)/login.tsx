@@ -1,5 +1,17 @@
 import React, { useState } from 'react';
-import { Image, View, Text, TextInput, TouchableOpacity, StyleSheet, SafeAreaView, Alert, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
+import {
+  Image,
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  SafeAreaView,
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+} from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { Mail, Lock, Eye, EyeOff, Film, User } from 'lucide-react-native';
@@ -15,27 +27,35 @@ export default function LoginScreen() {
   const [loading, setLoading] = useState(false);
 
   const handleAuth = async () => {
-    console.log('handleAuth called, isLogin:', isLogin, 'email:', email, 'password length:', password.length);
+    console.log(
+      'handleAuth called, isLogin:',
+      isLogin,
+      'email:',
+      email,
+      'password length:',
+      password.length
+    );
 
     if (!email || !password) {
       console.log('Missing email or password');
-      Alert.alert('Hata', 'Lütfen tüm alanları doldurun');
+      Alert.alert('Error', 'Please fill in all fields');
       return;
     }
 
     if (!isLogin && !username.trim()) {
-      Alert.alert('Hata', 'Lütfen kullanıcı adınızı girin');
+      Alert.alert('Error', 'Please enter your username');
       return;
     }
+
     if (!isLogin && password !== confirmPassword) {
       console.log('Passwords do not match');
-      Alert.alert('Hata', 'Şifreler eşleşmiyor');
+      Alert.alert('Error', 'Passwords do not match');
       return;
     }
 
     if (password.length < 6) {
       console.log('Password too short');
-      Alert.alert('Hata', 'Şifre en az 6 karakter olmalı');
+      Alert.alert('Error', 'The password must be at least 6 characters long');
       return;
     }
 
@@ -58,23 +78,30 @@ export default function LoginScreen() {
         console.log('Auth error:', result.error);
 
         // Debug: Log the full error object
-        console.log('Full error object:', JSON.stringify(result.error, null, 2));
+        console.log(
+          'Full error object:',
+          JSON.stringify(result.error, null, 2)
+        );
 
         let errorMessage = result.error.message;
         if (result.error.code === 'user_already_exists') {
-          errorMessage = 'Bu e-posta adresi ile zaten kayıtlı bir hesap var. Giriş yapmayı deneyin.';
+          errorMessage =
+            'An account with this email address already exists. Please try logging in.';
         } else if (result.error.message.includes('Invalid login credentials')) {
-          errorMessage = 'E-posta veya şifre hatalı. Lütfen kontrol edin.';
+          errorMessage =
+            'The email or password is incorrect. Please check and try again.';
         } else if (result.error.message.includes('Email not confirmed')) {
-          errorMessage = 'E-posta adresinizi doğrulamanız gerekiyor.';
-        } else if (result.error.message.includes('Password should be at least')) {
-          errorMessage = 'Şifre en az 6 karakter olmalı.';
+          errorMessage = 'You need to verify your email address.';
+        } else if (
+          result.error.message.includes('Password should be at least')
+        ) {
+          errorMessage = 'The password must be at least 6 characters long.';
         } else if (result.error.message.includes('Invalid API key')) {
-          errorMessage = 'Uygulama yapılandırma hatası. Lütfen daha sonra tekrar deneyin.';
+          errorMessage =
+            'Application configuration error. Please try again later.';
         } else if (result.error.message.includes('API key')) {
-          errorMessage = 'API anahtarı hatası. Lütfen uygulamayı yeniden başlatın.';
+          errorMessage = 'API key error. Please restart the application.';
         }
-
         Alert.alert('Hata', errorMessage);
       } else {
         // Kayıt başarılı
@@ -82,19 +109,19 @@ export default function LoginScreen() {
           // Signup successful
           console.log('Signup successful, showing success message');
           Alert.alert(
-            'Kayıt Başarılı! 🎉',
-            'Hesabınız başarıyla oluşturuldu. Şimdi giriş yapabilirsiniz.',
+            'Registration Successful! 🎉',
+            'Your account has been successfully created. You can now log in.',
             [
               {
-                text: 'Giriş Yap',
+                text: 'Log In',
                 onPress: () => {
                   console.log('Switching to login mode');
                   setIsLogin(true);
                   setPassword('');
                   setConfirmPassword('');
                   setUsername('');
-                }
-              }
+                },
+              },
             ]
           );
         }
@@ -107,7 +134,7 @@ export default function LoginScreen() {
       }
     } catch (error) {
       console.log('Catch error:', error);
-      Alert.alert('Hata', 'Beklenmeyen bir hata oluştu');
+      Alert.alert('Error', 'An unexpected error has occurred.');
     } finally {
       console.log('Auth process finished');
       setLoading(false);
@@ -116,15 +143,15 @@ export default function LoginScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <LinearGradient
-        colors={['#1F2937', '#111827']}
-        style={styles.gradient}
-      >
+      <LinearGradient colors={['#1F2937', '#111827']} style={styles.gradient}>
         <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           style={styles.keyboardView}
         >
-          <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+          <ScrollView
+            contentContainerStyle={styles.scrollContent}
+            showsVerticalScrollIndicator={false}
+          >
             <View style={styles.header}>
               <Image
                 source={require('@/assets/images/wb-logo-trns.png')}
@@ -205,9 +232,15 @@ export default function LoginScreen() {
 
               {!isLogin && (
                 <View style={styles.passwordRequirements}>
-                  <Text style={styles.requirementsTitle}>Password requirements:</Text>
-                  <Text style={styles.requirementText}>• At least 6 characters</Text>
-                  <Text style={styles.requirementText}>• Mix of letters and numbers recommended</Text>
+                  <Text style={styles.requirementsTitle}>
+                    Password requirements:
+                  </Text>
+                  <Text style={styles.requirementText}>
+                    • At least 6 characters
+                  </Text>
+                  <Text style={styles.requirementText}>
+                    • Mix of letters and numbers recommended
+                  </Text>
                 </View>
               )}
               <TouchableOpacity
@@ -222,7 +255,11 @@ export default function LoginScreen() {
                   end={{ x: 1, y: 0 }}
                 >
                   <Text style={styles.buttonText}>
-                    {loading ? 'Please wait...' : (isLogin ? 'Sign In' : 'Create Account')}
+                    {loading
+                      ? 'Please wait...'
+                      : isLogin
+                      ? 'Sign In'
+                      : 'Create Account'}
                   </Text>
                 </LinearGradient>
               </TouchableOpacity>
@@ -232,7 +269,9 @@ export default function LoginScreen() {
                 onPress={() => setIsLogin(!isLogin)}
               >
                 <Text style={styles.switchText}>
-                  {isLogin ? "Don't have an account? " : "Already have an account? "}
+                  {isLogin
+                    ? "Don't have an account? "
+                    : 'Already have an account? '}
                   <Text style={styles.switchTextBold}>
                     {isLogin ? 'Sign Up' : 'Sign In'}
                   </Text>
