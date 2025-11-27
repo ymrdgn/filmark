@@ -29,6 +29,11 @@ import { Database } from '@/lib/database.types';
 
 type Movie = Database['public']['Tables']['movies']['Row'];
 
+// Declare global type for refresh function
+declare global {
+  var refreshMovies: (() => void) | undefined;
+}
+
 interface MovieState {
   id: string | string[];
   title: string | string[];
@@ -38,9 +43,6 @@ interface MovieState {
   is_favorite: boolean;
   is_watchlist: boolean;
   rating: number;
-  imdb_rating: number | null;
-  director: string | null;
-  genre: string | null;
   watched_date: string | null;
   inCollection: boolean;
 }
@@ -56,9 +58,6 @@ export default function MovieDetailScreen() {
     is_favorite: params.is_favorite === 'true',
     is_watchlist: params.is_watchlist === 'true',
     rating: parseInt(params.rating as string) || 0,
-    imdb_rating: null,
-    director: null,
-    genre: null,
     watched_date: null,
     inCollection: params.inCollection === 'true',
   });
@@ -75,7 +74,7 @@ export default function MovieDetailScreen() {
     try {
       const { data, error } = await moviesApi.getAll();
       if (!error && data) {
-        const currentMovie = data.find((m) => m.id === params.id);
+        const currentMovie = (data as Movie[]).find((m) => m.id === params.id);
         if (currentMovie) {
           setMovie({
             id: currentMovie.id,
@@ -86,9 +85,6 @@ export default function MovieDetailScreen() {
             is_favorite: currentMovie.is_favorite,
             is_watchlist: currentMovie.is_watchlist || false,
             rating: currentMovie.rating || 0,
-            imdb_rating: currentMovie.imdb_rating,
-            director: currentMovie.director,
-            genre: currentMovie.genre,
             watched_date: currentMovie.watched_date || null,
             inCollection: true,
           });
@@ -176,7 +172,7 @@ export default function MovieDetailScreen() {
         setMovie((prev) => ({
           ...prev,
           is_watched: newWatchedStatus,
-          watched_date: updateData.watched_date,
+          watched_date: updateData.watched_date || null,
         }));
         const statusText = newWatchedStatus
           ? 'marked as watched'
@@ -310,34 +306,6 @@ export default function MovieDetailScreen() {
                 <Calendar size={16} color="#9CA3AF" strokeWidth={2} />
                 <Text style={styles.movieYear}>{movie.year}</Text>
               </View>
-
-              {movie.imdb_rating && (
-                <View style={styles.imdbRating}>
-                  <Star
-                    size={16}
-                    color="#F5C518"
-                    fill="#F5C518"
-                    strokeWidth={1}
-                  />
-                  <Text style={styles.imdbRatingText}>
-                    {movie.imdb_rating} IMDB
-                  </Text>
-                </View>
-              )}
-
-              {movie.director && (
-                <View style={styles.movieMeta}>
-                  <User size={16} color="#9CA3AF" strokeWidth={2} />
-                  <Text style={styles.movieDirector}>{movie.director}</Text>
-                </View>
-              )}
-
-              {movie.genre && (
-                <View style={styles.movieMeta}>
-                  <Film size={16} color="#9CA3AF" strokeWidth={2} />
-                  <Text style={styles.movieGenre}>{movie.genre}</Text>
-                </View>
-              )}
 
               <View style={styles.statusContainer}>
                 <View

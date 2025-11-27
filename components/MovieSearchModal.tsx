@@ -1,19 +1,24 @@
 import React, { useState } from 'react';
-import { 
-  View, 
-  Text, 
-  StyleSheet, 
-  Modal, 
-  TextInput, 
-  TouchableOpacity, 
-  ScrollView, 
+import {
+  View,
+  Text,
+  StyleSheet,
+  Modal,
+  TextInput,
+  TouchableOpacity,
+  ScrollView,
   Image,
   ActivityIndicator,
-  Alert
+  Alert,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { X, Search, Plus, Star } from 'lucide-react-native';
-import { searchMovies, TMDBMovie, getImageUrl } from '@/lib/tmdb';
+import {
+  searchMovies,
+  TMDBMovie,
+  getImageUrl,
+  getMovieDetails,
+} from '@/lib/tmdb';
 import { moviesApi } from '@/lib/api';
 
 interface MovieSearchModalProps {
@@ -22,7 +27,11 @@ interface MovieSearchModalProps {
   onMovieAdded?: () => void;
 }
 
-export default function MovieSearchModal({ visible, onClose, onMovieAdded }: MovieSearchModalProps) {
+export default function MovieSearchModal({
+  visible,
+  onClose,
+  onMovieAdded,
+}: MovieSearchModalProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<TMDBMovie[]>([]);
   const [loading, setLoading] = useState(false);
@@ -46,13 +55,20 @@ export default function MovieSearchModal({ visible, onClose, onMovieAdded }: Mov
   const handleAddMovie = async (movie: TMDBMovie) => {
     setAddingMovieId(movie.id);
     try {
+      // Get detailed movie info including runtime
+      const movieDetails = await getMovieDetails(movie.id);
+      console.log('🎬 TMDB Movie Details:', movieDetails);
+      console.log('⏱️ Runtime:', movieDetails.runtime, 'minutes');
+
       const { error } = await moviesApi.add({
         title: movie.title,
-        year: movie.release_date ? new Date(movie.release_date).getFullYear() : null,
+        year: movie.release_date
+          ? new Date(movie.release_date).getFullYear()
+          : null,
         poster_url: getImageUrl(movie.poster_path),
         status: 'watchlist',
         rating: null,
-        duration: null, // We could get this from movie details API
+        duration: movieDetails.runtime || null, // Now we get real runtime from TMDB
       });
 
       if (error) {
@@ -63,8 +79,8 @@ export default function MovieSearchModal({ visible, onClose, onMovieAdded }: Mov
             text: 'OK',
             onPress: () => {
               onMovieAdded?.();
-            }
-          }
+            },
+          },
         ]);
       }
     } catch (error) {
@@ -113,13 +129,19 @@ export default function MovieSearchModal({ visible, onClose, onMovieAdded }: Mov
                   onSubmitEditing={handleSearch}
                   autoFocus
                 />
-                <TouchableOpacity onPress={handleSearch} style={styles.searchButton}>
+                <TouchableOpacity
+                  onPress={handleSearch}
+                  style={styles.searchButton}
+                >
                   <Text style={styles.searchButtonText}>Search</Text>
                 </TouchableOpacity>
               </View>
             </View>
 
-            <ScrollView style={styles.resultsContainer} showsVerticalScrollIndicator={false}>
+            <ScrollView
+              style={styles.resultsContainer}
+              showsVerticalScrollIndicator={false}
+            >
               {loading && (
                 <View style={styles.loadingContainer}>
                   <ActivityIndicator size="large" color="#6366F1" />
@@ -130,8 +152,10 @@ export default function MovieSearchModal({ visible, onClose, onMovieAdded }: Mov
               {searchResults.map((movie) => (
                 <View key={movie.id} style={styles.movieCard}>
                   <Image
-                    source={{ 
-                      uri: getImageUrl(movie.poster_path, 'w200') || 'https://via.placeholder.com/200x300?text=No+Image'
+                    source={{
+                      uri:
+                        getImageUrl(movie.poster_path, 'w200') ||
+                        'https://via.placeholder.com/200x300?text=No+Image',
                     }}
                     style={styles.moviePoster}
                     resizeMode="cover"
@@ -141,10 +165,17 @@ export default function MovieSearchModal({ visible, onClose, onMovieAdded }: Mov
                       {movie.title}
                     </Text>
                     <Text style={styles.movieYear}>
-                      {movie.release_date ? new Date(movie.release_date).getFullYear() : 'Unknown'}
+                      {movie.release_date
+                        ? new Date(movie.release_date).getFullYear()
+                        : 'Unknown'}
                     </Text>
                     <View style={styles.movieRating}>
-                      <Star size={14} color="#F59E0B" fill="#F59E0B" strokeWidth={1} />
+                      <Star
+                        size={14}
+                        color="#F59E0B"
+                        fill="#F59E0B"
+                        strokeWidth={1}
+                      />
                       <Text style={styles.ratingText}>
                         {movie.vote_average.toFixed(1)}
                       </Text>
@@ -154,7 +185,10 @@ export default function MovieSearchModal({ visible, onClose, onMovieAdded }: Mov
                     </Text>
                   </View>
                   <TouchableOpacity
-                    style={[styles.addButton, addingMovieId === movie.id && styles.addButtonDisabled]}
+                    style={[
+                      styles.addButton,
+                      addingMovieId === movie.id && styles.addButtonDisabled,
+                    ]}
                     onPress={() => handleAddMovie(movie)}
                     disabled={addingMovieId === movie.id}
                   >
@@ -170,7 +204,9 @@ export default function MovieSearchModal({ visible, onClose, onMovieAdded }: Mov
               {searchResults.length === 0 && !loading && searchQuery && (
                 <View style={styles.noResults}>
                   <Text style={styles.noResultsText}>No movies found</Text>
-                  <Text style={styles.noResultsSubtext}>Try a different search term</Text>
+                  <Text style={styles.noResultsSubtext}>
+                    Try a different search term
+                  </Text>
                 </View>
               )}
             </ScrollView>
