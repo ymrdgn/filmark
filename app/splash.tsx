@@ -1,10 +1,9 @@
 import React, { useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, Animated, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, Animated, Platform } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { Film, Play } from 'lucide-react-native';
-
-const { width, height } = Dimensions.get('window');
+import { StatusBar } from 'expo-status-bar';
 
 export default function SplashScreen() {
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -42,41 +41,51 @@ export default function SplashScreen() {
   }, []);
 
   return (
-    <LinearGradient
-      colors={['#6366F1', '#8B5CF6', '#A855F7']}
-      style={styles.container}
-      start={{ x: 0, y: 0 }}
-      end={{ x: 1, y: 1 }}
-    >
-      <Animated.View 
-        style={[
-          styles.content,
-          {
-            opacity: fadeAnim,
-            transform: [{ scale: scaleAnim }]
-          }
-        ]}
+    <View style={styles.wrapper}>
+      <StatusBar style="light" backgroundColor="#6366F1" translucent={false} />
+      <LinearGradient
+        colors={['#6366F1', '#8B5CF6', '#A855F7']}
+        style={styles.container}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
       >
-        <View style={styles.iconContainer}>
-          <Film size={64} color="white" strokeWidth={1.5} />
-          <View style={styles.playIcon}>
-            <Play size={24} color="#6366F1" strokeWidth={2} />
+        <Animated.View
+          style={[
+            styles.content,
+            {
+              opacity: fadeAnim,
+              transform: [{ scale: scaleAnim }],
+            },
+          ]}
+        >
+          <View style={styles.iconContainer}>
+            <Film size={64} color="white" strokeWidth={1.5} />
+            <View style={styles.playIcon}>
+              <Play size={24} color="#6366F1" strokeWidth={2} />
+            </View>
           </View>
-        </View>
-        
-        <Animated.View style={[
-          styles.textContainer,
-          { transform: [{ translateY: slideAnim }] }
-        ]}>
-          <Text style={styles.title}>WatchTracker</Text>
-          <Text style={styles.subtitle}>Your personal movie & TV companion</Text>
+
+          <Animated.View
+            style={[
+              styles.textContainer,
+              { transform: [{ translateY: slideAnim }] },
+            ]}
+          >
+            <Text style={styles.title}>WatchTracker</Text>
+            <Text style={styles.subtitle}>
+              Your personal movie & TV companion
+            </Text>
+          </Animated.View>
         </Animated.View>
-      </Animated.View>
-    </LinearGradient>
+      </LinearGradient>
+    </View>
   );
 }
-
 const styles = StyleSheet.create({
+  wrapper: {
+    flex: 1,
+    backgroundColor: '#6366F1',
+  },
   container: {
     flex: 1,
     justifyContent: 'center',

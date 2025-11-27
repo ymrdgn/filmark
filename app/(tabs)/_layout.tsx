@@ -1,5 +1,11 @@
 import { Tabs } from 'expo-router';
-import { Chrome as Home, Film, Tv, BookMarked, User } from 'lucide-react-native';
+import {
+  Chrome as Home,
+  Film,
+  Tv,
+  BookMarked,
+  User,
+} from 'lucide-react-native';
 
 export default function TabLayout() {
   return (
@@ -21,6 +27,9 @@ export default function TabLayout() {
           fontSize: 12,
           fontFamily: 'Inter-Medium',
           marginTop: 4,
+        },
+        sceneStyle: {
+          backgroundColor: '#111827',
         },
       }}
     >

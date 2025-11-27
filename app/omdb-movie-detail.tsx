@@ -1,7 +1,25 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, SafeAreaView, TouchableOpacity, Image, Alert } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  Image,
+  Alert,
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
-import { ArrowLeft, Star, Calendar, Plus, Eye, Heart, User, Clock } from 'lucide-react-native';
+import {
+  ArrowLeft,
+  Star,
+  Calendar,
+  Plus,
+  Eye,
+  Heart,
+  User,
+  Clock,
+} from 'lucide-react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { moviesApi } from '@/lib/api';
 import { getMovieDetails } from '@/lib/omdb';
@@ -9,7 +27,9 @@ import { getMovieDetails } from '@/lib/omdb';
 export default function OMDBMovieDetailScreen() {
   const params = useLocalSearchParams();
   const [loading, setLoading] = useState(false);
-  const [inCollection, setInCollection] = useState(params.inCollection === 'true');
+  const [inCollection, setInCollection] = useState(
+    params.inCollection === 'true'
+  );
   const [movieDetails, setMovieDetails] = useState(null);
 
   const movie = {
@@ -43,10 +63,16 @@ export default function OMDBMovieDetailScreen() {
         is_watched: isWatched,
         is_favorite: false,
         rating: null,
-        duration: movieDetails?.Runtime ? parseInt(movieDetails.Runtime.replace(' min', '')) : null,
+        duration: movieDetails?.Runtime
+          ? parseInt(movieDetails.Runtime.replace(' min', ''))
+          : null,
         // Add IMDB data if available
-        imdb_rating: movieDetails?.imdbRating !== 'N/A' ? parseFloat(movieDetails.imdbRating) : null,
-        director: movieDetails?.Director !== 'N/A' ? movieDetails.Director : null,
+        imdb_rating:
+          movieDetails?.imdbRating !== 'N/A'
+            ? parseFloat(movieDetails.imdbRating)
+            : null,
+        director:
+          movieDetails?.Director !== 'N/A' ? movieDetails.Director : null,
         genre: movieDetails?.Genre !== 'N/A' ? movieDetails.Genre : null,
       });
 
@@ -66,18 +92,21 @@ export default function OMDBMovieDetailScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <LinearGradient
-        colors={['#1F2937', '#111827']}
-        style={styles.gradient}
-      >
+    <SafeAreaView style={styles.container} edges={['left', 'right']}>
+      <LinearGradient colors={['#1F2937', '#111827']} style={styles.gradient}>
         <View style={styles.header}>
-          <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+          <TouchableOpacity
+            onPress={() => router.back()}
+            style={styles.backButton}
+          >
             <ArrowLeft size={24} color="white" strokeWidth={2} />
           </TouchableOpacity>
         </View>
 
-        <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+        <ScrollView
+          style={styles.scrollView}
+          showsVerticalScrollIndicator={false}
+        >
           <View style={styles.movieHeader}>
             <View style={styles.posterContainer}>
               {movie.poster_url ? (
@@ -92,40 +121,52 @@ export default function OMDBMovieDetailScreen() {
                 </View>
               )}
             </View>
-            
+
             <View style={styles.movieInfo}>
               <Text style={styles.movieTitle}>{movie.title}</Text>
               <View style={styles.movieMeta}>
                 <Calendar size={16} color="#9CA3AF" strokeWidth={2} />
                 <Text style={styles.movieYear}>{movie.year}</Text>
               </View>
-              
-              {movieDetails?.imdbRating && movieDetails.imdbRating !== 'N/A' && (
-                <View style={styles.ratingContainer}>
-                  <Star size={16} color="#F5C518" fill="#F5C518" strokeWidth={1} />
-                  <Text style={styles.imdbRating}>
-                    {movieDetails.imdbRating} IMDB
-                  </Text>
-                </View>
-              )}
+
+              {movieDetails?.imdbRating &&
+                movieDetails.imdbRating !== 'N/A' && (
+                  <View style={styles.ratingContainer}>
+                    <Star
+                      size={16}
+                      color="#F5C518"
+                      fill="#F5C518"
+                      strokeWidth={1}
+                    />
+                    <Text style={styles.imdbRating}>
+                      {movieDetails.imdbRating} IMDB
+                    </Text>
+                  </View>
+                )}
 
               {movieDetails?.Director && movieDetails.Director !== 'N/A' && (
                 <View style={styles.movieMeta}>
                   <User size={16} color="#9CA3AF" strokeWidth={2} />
-                  <Text style={styles.movieDirector}>{movieDetails.Director}</Text>
+                  <Text style={styles.movieDirector}>
+                    {movieDetails.Director}
+                  </Text>
                 </View>
               )}
 
               {movieDetails?.Runtime && movieDetails.Runtime !== 'N/A' && (
                 <View style={styles.movieMeta}>
                   <Clock size={16} color="#9CA3AF" strokeWidth={2} />
-                  <Text style={styles.movieRuntime}>{movieDetails.Runtime}</Text>
+                  <Text style={styles.movieRuntime}>
+                    {movieDetails.Runtime}
+                  </Text>
                 </View>
               )}
 
               {inCollection && (
                 <View style={styles.inCollectionBadge}>
-                  <Text style={styles.inCollectionText}>✓ In Your Collection</Text>
+                  <Text style={styles.inCollectionText}>
+                    ✓ In Your Collection
+                  </Text>
                 </View>
               )}
             </View>
@@ -164,7 +205,7 @@ export default function OMDBMovieDetailScreen() {
                   <Plus size={20} color="#6366F1" strokeWidth={2} />
                   <Text style={styles.addButtonText}>Add to Collection</Text>
                 </TouchableOpacity>
-                
+
                 <TouchableOpacity
                   style={styles.watchedButton}
                   onPress={() => handleAddToCollection(true)}
@@ -196,7 +237,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 24,
-    paddingTop: 16,
+    paddingTop: 60,
     paddingBottom: 8,
   },
   backButton: {

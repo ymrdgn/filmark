@@ -4,12 +4,12 @@ import {
   Text,
   StyleSheet,
   ScrollView,
-  SafeAreaView,
   TouchableOpacity,
   TextInput,
   Alert,
   ActivityIndicator,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { ArrowLeft, User, Lock, Trash2 } from 'lucide-react-native';
 import { router } from 'expo-router';
@@ -25,7 +25,11 @@ export default function AccountSettingsScreen() {
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
-  const [toast, setToast] = useState({ visible: false, message: '', type: 'success' as 'success' | 'error' | 'info' });
+  const [toast, setToast] = useState({
+    visible: false,
+    message: '',
+    type: 'success' as 'success' | 'error' | 'info',
+  });
 
   useEffect(() => {
     loadUserData();
@@ -56,7 +60,7 @@ export default function AccountSettingsScreen() {
 
     try {
       const { error: updateError } = await supabase.auth.updateUser({
-        data: { username: username.trim() }
+        data: { username: username.trim() },
       });
 
       if (updateError) throw updateError;
@@ -68,11 +72,19 @@ export default function AccountSettingsScreen() {
 
       if (dbError) throw dbError;
 
-      setToast({ visible: true, message: 'Username updated successfully', type: 'success' });
+      setToast({
+        visible: true,
+        message: 'Username updated successfully',
+        type: 'success',
+      });
       loadUserData();
     } catch (err: any) {
       setError(err.message || 'Failed to update username');
-      setToast({ visible: true, message: err.message || 'Failed to update username', type: 'error' });
+      setToast({
+        visible: true,
+        message: err.message || 'Failed to update username',
+        type: 'error',
+      });
     } finally {
       setSaving(false);
     }
@@ -100,18 +112,26 @@ export default function AccountSettingsScreen() {
 
     try {
       const { error: updateError } = await supabase.auth.updateUser({
-        password: newPassword
+        password: newPassword,
       });
 
       if (updateError) throw updateError;
 
-      setToast({ visible: true, message: 'Password changed successfully', type: 'success' });
+      setToast({
+        visible: true,
+        message: 'Password changed successfully',
+        type: 'success',
+      });
       setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
     } catch (err: any) {
       setError(err.message || 'Failed to change password');
-      setToast({ visible: true, message: err.message || 'Failed to change password', type: 'error' });
+      setToast({
+        visible: true,
+        message: err.message || 'Failed to change password',
+        type: 'error',
+      });
     } finally {
       setSaving(false);
     }
@@ -140,7 +160,9 @@ export default function AccountSettingsScreen() {
     setError('');
 
     try {
-      const { data: { session } } = await supabase.auth.getSession();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
       if (!session) throw new Error('Not authenticated');
 
       const response = await fetch(
@@ -148,7 +170,7 @@ export default function AccountSettingsScreen() {
         {
           method: 'POST',
           headers: {
-            'Authorization': `Bearer ${session.access_token}`,
+            Authorization: `Bearer ${session.access_token}`,
             'Content-Type': 'application/json',
           },
         }
@@ -165,7 +187,11 @@ export default function AccountSettingsScreen() {
         throw new Error(result.error);
       }
 
-      setToast({ visible: true, message: 'Account deleted successfully', type: 'success' });
+      setToast({
+        visible: true,
+        message: 'Account deleted successfully',
+        type: 'success',
+      });
 
       setTimeout(async () => {
         await signOut();
@@ -174,14 +200,18 @@ export default function AccountSettingsScreen() {
     } catch (err: any) {
       console.error('Delete account error:', err);
       setError(err.message || 'Failed to delete account');
-      setToast({ visible: true, message: err.message || 'Failed to delete account', type: 'error' });
+      setToast({
+        visible: true,
+        message: err.message || 'Failed to delete account',
+        type: 'error',
+      });
       setSaving(false);
     }
   };
 
   if (loading) {
     return (
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView style={styles.container} edges={['left', 'right']}>
         <LinearGradient colors={['#1F2937', '#111827']} style={styles.gradient}>
           <View style={styles.loadingContainer}>
             <ActivityIndicator size="large" color="#6366F1" />
@@ -192,7 +222,7 @@ export default function AccountSettingsScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['left', 'right']}>
       <Toast
         visible={toast.visible}
         message={toast.message}
@@ -201,14 +231,20 @@ export default function AccountSettingsScreen() {
       />
       <LinearGradient colors={['#1F2937', '#111827']} style={styles.gradient}>
         <View style={styles.header}>
-          <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+          <TouchableOpacity
+            onPress={() => router.back()}
+            style={styles.backButton}
+          >
             <ArrowLeft size={24} color="white" strokeWidth={2} />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Account Settings</Text>
           <View style={styles.placeholder} />
         </View>
 
-        <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+        <ScrollView
+          style={styles.scrollView}
+          showsVerticalScrollIndicator={false}
+        >
           {error ? (
             <View style={styles.errorContainer}>
               <Text style={styles.errorText}>{error}</Text>
@@ -267,7 +303,9 @@ export default function AccountSettingsScreen() {
                 autoCapitalize="none"
               />
 
-              <Text style={[styles.label, styles.labelSpacing]}>Confirm New Password</Text>
+              <Text style={[styles.label, styles.labelSpacing]}>
+                Confirm New Password
+              </Text>
               <TextInput
                 style={styles.input}
                 value={confirmPassword}
@@ -295,15 +333,22 @@ export default function AccountSettingsScreen() {
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
               <Trash2 size={20} color="#EF4444" strokeWidth={2} />
-              <Text style={[styles.sectionTitle, styles.dangerText]}>Danger Zone</Text>
+              <Text style={[styles.sectionTitle, styles.dangerText]}>
+                Danger Zone
+              </Text>
             </View>
             <View style={styles.card}>
               <Text style={styles.dangerDescription}>
-                Once you delete your account, there is no going back. All your data including
-                movies, TV shows, lists, and friends will be permanently deleted.
+                Once you delete your account, there is no going back. All your
+                data including movies, TV shows, lists, and friends will be
+                permanently deleted.
               </Text>
               <TouchableOpacity
-                style={[styles.button, styles.dangerButton, saving && styles.buttonDisabled]}
+                style={[
+                  styles.button,
+                  styles.dangerButton,
+                  saving && styles.buttonDisabled,
+                ]}
                 onPress={handleDeleteAccount}
                 disabled={saving}
                 activeOpacity={0.7}
@@ -336,7 +381,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 16,
-    paddingVertical: 16,
+    paddingTop: 60,
+    paddingBottom: 16,
     borderBottomWidth: 1,
     borderBottomColor: 'rgba(255, 255, 255, 0.1)',
   },

@@ -1,8 +1,29 @@
 import React from 'react';
 import { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, SafeAreaView, TouchableOpacity } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
-import { User, Settings, Star, TrendingUp, Award, Clock, Film, Tv, Heart, LogOut, Users, Plus, Shield } from 'lucide-react-native';
+import {
+  User,
+  Settings,
+  Star,
+  TrendingUp,
+  Award,
+  Clock,
+  Film,
+  Tv,
+  Heart,
+  LogOut,
+  Users,
+  Plus,
+  Shield,
+} from 'lucide-react-native';
 import { signOut, getCurrentUser } from '@/lib/supabase';
 import { router } from 'expo-router';
 import { Alert } from 'react-native';
@@ -17,7 +38,7 @@ export default function ProfileScreen() {
     hoursWatched: 0,
     averageRating: 0,
     favoriteMovies: 0,
-    favoriteTVShows: 0
+    favoriteTVShows: 0,
   });
   const [achievements, setAchievements] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -30,17 +51,17 @@ export default function ProfileScreen() {
     try {
       const { user } = await getCurrentUser();
       setUser(user);
-      
+
       if (user) {
         const [statsResult, achievementsResult] = await Promise.all([
           statsApi.getStats(),
-          achievementsApi.getAchievementsWithProgress()
+          achievementsApi.getAchievementsWithProgress(),
         ]);
-        
+
         if (!statsResult.error && statsResult.data) {
           setStats(statsResult.data);
         }
-        
+
         if (!achievementsResult.error && achievementsResult.data) {
           setAchievements(achievementsResult.data);
         }
@@ -54,11 +75,13 @@ export default function ProfileScreen() {
 
   const handleSignOut = async () => {
     const { error } = await signOut();
-    
+
     // If no error or if the error indicates user doesn't exist (already logged out)
-    if (!error || 
-        error.message?.includes('User from sub claim in JWT does not exist') ||
-        error.message?.includes('user_not_found')) {
+    if (
+      !error ||
+      error.message?.includes('User from sub claim in JWT does not exist') ||
+      error.message?.includes('user_not_found')
+    ) {
       router.replace('/(auth)/login');
     } else {
       // For other types of errors, show an alert
@@ -71,10 +94,30 @@ export default function ProfileScreen() {
   };
 
   const statsData = [
-    { label: 'Movies Watched', value: stats.moviesWatched.toString(), icon: Film, color: '#EF4444' },
-    { label: 'TV Shows', value: stats.tvShows.toString(), icon: Tv, color: '#10B981' },
-    { label: 'Hours Watched', value: `${stats.hoursWatched}h`, icon: Clock, color: '#F59E0B' },
-    { label: 'Favorites', value: (stats.favoriteMovies + stats.favoriteTVShows).toString(), icon: Heart, color: '#EC4899' },
+    {
+      label: 'Movies Watched',
+      value: stats.moviesWatched.toString(),
+      icon: Film,
+      color: '#EF4444',
+    },
+    {
+      label: 'TV Shows',
+      value: stats.tvShows.toString(),
+      icon: Tv,
+      color: '#10B981',
+    },
+    {
+      label: 'Hours Watched',
+      value: `${stats.hoursWatched}h`,
+      icon: Clock,
+      color: '#F59E0B',
+    },
+    {
+      label: 'Favorites',
+      value: (stats.favoriteMovies + stats.favoriteTVShows).toString(),
+      icon: Heart,
+      color: '#EC4899',
+    },
   ];
 
   // Map icon names to components
@@ -86,23 +129,35 @@ export default function ProfileScreen() {
     Film,
     Heart,
     Plus,
-    Clock
+    Clock,
   };
 
   const menuItems = [
-    { label: 'Friends', icon: Users, color: '#10B981', onPress: () => router.push('/friends') },
-    { label: 'Account Settings', icon: Settings, color: '#6366F1', onPress: () => router.push('/account-settings') },
+    {
+      label: 'Friends',
+      icon: Users,
+      color: '#10B981',
+      onPress: () => router.push('/friends'),
+    },
+    {
+      label: 'Account Settings',
+      icon: Settings,
+      color: '#6366F1',
+      onPress: () => router.push('/account-settings'),
+    },
     // { label: 'Privacy Settings', icon: Shield, color: '#8B5CF6', onPress: () => router.push('/privacy-settings') },
-    { label: 'Sign Out', icon: LogOut, color: '#EF4444', onPress: handleSignOut },
+    {
+      label: 'Sign Out',
+      icon: LogOut,
+      color: '#EF4444',
+      onPress: handleSignOut,
+    },
   ];
 
   if (loading) {
     return (
-      <SafeAreaView style={styles.container}>
-        <LinearGradient
-          colors={['#1F2937', '#111827']}
-          style={styles.gradient}
-        >
+      <SafeAreaView style={styles.container} edges={['left', 'right']}>
+        <LinearGradient colors={['#1F2937', '#111827']} style={styles.gradient}>
           <View style={styles.loadingContainer}>
             <Text style={styles.loadingText}>Loading profile...</Text>
           </View>
@@ -112,25 +167,30 @@ export default function ProfileScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
-      <LinearGradient
-        colors={['#1F2937', '#111827']}
-        style={styles.gradient}
-      >
-        <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+    <SafeAreaView style={styles.container} edges={['left', 'right']}>
+      <LinearGradient colors={['#1F2937', '#111827']} style={styles.gradient}>
+        <ScrollView
+          style={styles.scrollView}
+          showsVerticalScrollIndicator={false}
+        >
           <View style={styles.header}>
             <View style={styles.avatar}>
               <User size={48} color="#6366F1" strokeWidth={1.5} />
             </View>
             <Text style={styles.name}>
-              {user?.user_metadata?.username || user?.email?.split('@')[0] || 'User'}
+              {user?.user_metadata?.username ||
+                user?.email?.split('@')[0] ||
+                'User'}
             </Text>
             <Text style={styles.email}>{user?.email || 'No email'}</Text>
             <Text style={styles.joinDate}>
-              Member since {user?.created_at ? new Date(user.created_at).toLocaleDateString('en-US', {
-                year: 'numeric',
-                month: 'long'
-              }) : 'Unknown'}
+              Member since{' '}
+              {user?.created_at
+                ? new Date(user.created_at).toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'long',
+                  })
+                : 'Unknown'}
             </Text>
           </View>
 
@@ -139,7 +199,12 @@ export default function ProfileScreen() {
             <View style={styles.statsContainer}>
               {statsData.map((stat, index) => (
                 <View key={index} style={styles.statCard}>
-                  <View style={[styles.statIcon, { backgroundColor: `${stat.color}20` }]}>
+                  <View
+                    style={[
+                      styles.statIcon,
+                      { backgroundColor: `${stat.color}20` },
+                    ]}
+                  >
                     <stat.icon size={20} color={stat.color} strokeWidth={2} />
                   </View>
                   <Text style={styles.statValue}>{stat.value}</Text>
@@ -153,22 +218,36 @@ export default function ProfileScreen() {
             <Text style={styles.sectionTitle}>Achievements</Text>
             <View style={styles.achievementsContainer}>
               {achievements.map((achievement, index) => (
-                <View key={achievement.id} style={[styles.achievementCard, !achievement.earned && styles.achievementLocked]}>
-                  <View style={[
-                    styles.achievementIcon, 
-                    { backgroundColor: achievement.earned ? '#10B98120' : '#37415120' }
-                  ]}>
+                <View
+                  key={achievement.id}
+                  style={[
+                    styles.achievementCard,
+                    !achievement.earned && styles.achievementLocked,
+                  ]}
+                >
+                  <View
+                    style={[
+                      styles.achievementIcon,
+                      {
+                        backgroundColor: achievement.earned
+                          ? '#10B98120'
+                          : '#37415120',
+                      },
+                    ]}
+                  >
                     {React.createElement(iconMap[achievement.icon] || Award, {
                       size: 24,
                       color: achievement.earned ? '#10B981' : '#6B7280',
-                      strokeWidth: 2
+                      strokeWidth: 2,
                     })}
                   </View>
                   <View style={styles.achievementInfo}>
-                    <Text style={[
-                      styles.achievementName,
-                      !achievement.earned && styles.achievementNameLocked
-                    ]}>
+                    <Text
+                      style={[
+                        styles.achievementName,
+                        !achievement.earned && styles.achievementNameLocked,
+                      ]}
+                    >
                       {achievement.name}
                     </Text>
                     <Text style={styles.achievementDescription}>
@@ -194,8 +273,17 @@ export default function ProfileScreen() {
             <Text style={styles.sectionTitle}>Settings</Text>
             <View style={styles.menuContainer}>
               {menuItems.map((item, index) => (
-                <TouchableOpacity key={index} style={styles.menuItem} onPress={item.onPress}>
-                  <View style={[styles.menuIcon, { backgroundColor: `${item.color}20` }]}>
+                <TouchableOpacity
+                  key={index}
+                  style={styles.menuItem}
+                  onPress={item.onPress}
+                >
+                  <View
+                    style={[
+                      styles.menuIcon,
+                      { backgroundColor: `${item.color}20` },
+                    ]}
+                  >
                     <item.icon size={20} color={item.color} strokeWidth={2} />
                   </View>
                   <Text style={styles.menuLabel}>{item.label}</Text>
@@ -224,7 +312,7 @@ const styles = StyleSheet.create({
   header: {
     alignItems: 'center',
     padding: 24,
-    paddingTop: 16,
+    paddingTop: 60,
   },
   avatar: {
     width: 100,

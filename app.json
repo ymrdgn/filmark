@@ -9,17 +9,32 @@
     "userInterfaceStyle": "automatic",
     "splash": {
       "image": "./assets/images/wb-splash.png",
-      "resizeMode": "contain"
+      "resizeMode": "contain",
+      "backgroundColor": "#6366F1"
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.watchbase.app"
+      "bundleIdentifier": "com.watchbase.app",
+      "splash": {
+        "image": "./assets/images/wb-splash.png",
+        "resizeMode": "contain",
+        "backgroundColor": "#6366F1"
+      },
+      "infoPlist": {
+        "UIViewControllerBasedStatusBarAppearance": true
+      }
     },
     "android": {
       "package": "com.watchbase.app",
       "versionCode": 15,
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/wb-logo-trns.png"
+        "foregroundImage": "./assets/images/wb-logo-trns.png",
+        "backgroundColor": "#6366F1"
+      },
+      "splash": {
+        "image": "./assets/images/wb-splash.png",
+        "resizeMode": "contain",
+        "backgroundColor": "#6366F1"
       }
     },
     "web": {
