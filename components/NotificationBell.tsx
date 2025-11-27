@@ -244,6 +244,16 @@ export default function NotificationBell() {
                         <Text style={styles.buttonText}>OK</Text>
                       </TouchableOpacity>
                     )}
+
+                    {notification.type === 'achievement_earned' && (
+                      <TouchableOpacity
+                        style={[styles.actionButton, styles.okButton]}
+                        onPress={() => markAsRead(notification.id)}
+                      >
+                        <Check size={18} color="white" strokeWidth={2} />
+                        <Text style={styles.buttonText}>OK</Text>
+                      </TouchableOpacity>
+                    )}
                   </View>
                 ))
               )}

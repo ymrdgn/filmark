@@ -23,9 +23,9 @@ import { router } from 'expo-router';
 import { supabase, getCurrentUser } from '@/lib/supabase';
 import { moviesApi, tvShowsApi, statsApi } from '@/lib/api';
 import { friendsApi } from '@/lib/friends-api';
-import { Database } from '@/lib/database.types';
 import { useFocusEffect } from '@react-navigation/native';
 import NotificationBell from '@/components/NotificationBell';
+import { Database } from '@/lib/database.types';
 
 type Movie = Database['public']['Tables']['movies']['Row'];
 type TVShow = Database['public']['Tables']['tv_shows']['Row'];
