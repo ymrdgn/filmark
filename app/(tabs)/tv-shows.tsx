@@ -275,16 +275,17 @@ export default function TVShowsScreen() {
           params: {
             id: show.id,
             title: show.title,
-            year: show.year,
-            poster_url: show.poster_url,
-            is_watched: show.is_watched,
-            is_favorite: show.is_favorite,
-            is_watchlist: show.is_watchlist,
-            rating: show.rating,
-            seasons: show.seasons,
-            episodes: show.episodes,
-            current_season: show.current_season,
-            current_episode: show.current_episode,
+            year: show.year || '',
+            poster_url: show.poster_url || '',
+            is_watched: show.is_watched?.toString() || 'false',
+            is_favorite: show.is_favorite?.toString() || 'false',
+            is_watchlist: show.is_watchlist?.toString() || 'false',
+            rating: show.rating?.toString() || '0',
+            seasons: show.seasons?.toString() || '0',
+            episodes: show.episodes?.toString() || '0',
+            current_season: show.current_season?.toString() || '1',
+            current_episode: show.current_episode?.toString() || '1',
+            inCollection: 'true',
           },
         })
       }
@@ -394,19 +395,19 @@ export default function TVShowsScreen() {
           router.push({
             pathname: '/tv-show-detail',
             params: {
-              id: collectionShow?.id || show.id,
+              id: collectionShow?.id?.toString() || show.id.toString(),
               title: show.name,
               year: show.first_air_date
-                ? new Date(show.first_air_date).getFullYear()
-                : null,
-              poster_url: getImageUrl(show.poster_path),
-              tmdb_rating: show.vote_average,
-              overview: show.overview,
-              inCollection: inCollection,
-              is_watched: collectionShow?.is_watched || false,
-              is_favorite: collectionShow?.is_favorite || false,
-              is_watchlist: collectionShow?.is_watchlist || false,
-              rating: collectionShow?.rating || 0,
+                ? new Date(show.first_air_date).getFullYear().toString()
+                : '',
+              poster_url: getImageUrl(show.poster_path) || '',
+              tmdb_rating: show.vote_average?.toString() || '0',
+              overview: show.overview || '',
+              inCollection: inCollection ? 'true' : 'false',
+              is_watched: collectionShow?.is_watched?.toString() || 'false',
+              is_favorite: collectionShow?.is_favorite?.toString() || 'false',
+              is_watchlist: collectionShow?.is_watchlist?.toString() || 'false',
+              rating: collectionShow?.rating?.toString() || '0',
             },
           })
         }

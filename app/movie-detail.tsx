@@ -42,6 +42,7 @@ interface MovieState {
   director: string | null;
   genre: string | null;
   watched_date: string | null;
+  inCollection: boolean;
 }
 
 export default function MovieDetailScreen() {
@@ -59,6 +60,7 @@ export default function MovieDetailScreen() {
     director: null,
     genre: null,
     watched_date: null,
+    inCollection: params.inCollection === 'true',
   });
   const [loading, setLoading] = useState(false);
 
@@ -88,6 +90,7 @@ export default function MovieDetailScreen() {
             director: currentMovie.director,
             genre: currentMovie.genre,
             watched_date: currentMovie.watched_date || null,
+            inCollection: true,
           });
         }
       }
@@ -97,6 +100,20 @@ export default function MovieDetailScreen() {
   };
 
   const handleRatingChange = async (newRating: number) => {
+    // Check if movie is in collection (has valid UUID)
+    const isUUID =
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+        movie.id as string
+      );
+
+    if (!isUUID || !movie.inCollection) {
+      Alert.alert(
+        'Not in Collection',
+        'Please add this movie to your collection first by marking it as watched.'
+      );
+      return;
+    }
+
     setLoading(true);
     try {
       const watchedDate = movie.watched_date || new Date().toISOString();
@@ -108,6 +125,7 @@ export default function MovieDetailScreen() {
 
       if (error) {
         Alert.alert('Error', 'Failed to update rating.');
+        console.error('Update error:', error);
       } else {
         // Update local state immediately
         setMovie((prev) => ({
@@ -121,12 +139,26 @@ export default function MovieDetailScreen() {
       }
     } catch (error) {
       Alert.alert('Error', 'Failed to update rating.');
+      console.error('Caught error:', error);
     } finally {
       setLoading(false);
     }
   };
 
   const handleWatchedToggle = async () => {
+    const isUUID =
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+        movie.id as string
+      );
+
+    if (!isUUID || !movie.inCollection) {
+      Alert.alert(
+        'Not in Collection',
+        'Please add this movie to your collection first using the + button in the Movies tab.'
+      );
+      return;
+    }
+
     setLoading(true);
     try {
       const newWatchedStatus = !movie.is_watched;
@@ -161,6 +193,19 @@ export default function MovieDetailScreen() {
   };
 
   const handleFavoriteToggle = async () => {
+    const isUUID =
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+        movie.id as string
+      );
+
+    if (!isUUID || !movie.inCollection) {
+      Alert.alert(
+        'Not in Collection',
+        'Please add this movie to your collection first using the + button in the Movies tab.'
+      );
+      return;
+    }
+
     setLoading(true);
     try {
       const newFavoriteStatus = !movie.is_favorite;
@@ -190,6 +235,19 @@ export default function MovieDetailScreen() {
   };
 
   const handleWatchlistToggle = async () => {
+    const isUUID =
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+        movie.id as string
+      );
+
+    if (!isUUID || !movie.inCollection) {
+      Alert.alert(
+        'Not in Collection',
+        'Please add this movie to your collection first using the + button in the Movies tab.'
+      );
+      return;
+    }
+
     setLoading(true);
     try {
       const newWatchlistStatus = !movie.is_watchlist;

@@ -253,12 +253,13 @@ export default function MoviesScreen() {
           params: {
             id: movie.id,
             title: movie.title,
-            year: movie.year,
-            poster_url: movie.poster_url,
-            is_watched: movie.is_watched,
-            is_favorite: movie.is_favorite,
-            is_watchlist: movie.is_watchlist,
-            rating: movie.rating,
+            year: movie.year || '',
+            poster_url: movie.poster_url || '',
+            is_watched: movie.is_watched?.toString() || 'false',
+            is_favorite: movie.is_favorite?.toString() || 'false',
+            is_watchlist: movie.is_watchlist?.toString() || 'false',
+            rating: movie.rating?.toString() || '0',
+            inCollection: 'true',
           },
         })
       }
@@ -339,27 +340,33 @@ export default function MoviesScreen() {
               params: {
                 id: collectionMovie.id,
                 title: collectionMovie.title,
-                year: collectionMovie.year,
-                poster_url: collectionMovie.poster_url,
-                is_watched: collectionMovie.is_watched,
-                is_favorite: collectionMovie.is_favorite,
-                is_watchlist: collectionMovie.is_watchlist,
-                rating: collectionMovie.rating,
+                year: collectionMovie.year || '',
+                poster_url: collectionMovie.poster_url || '',
+                is_watched: collectionMovie.is_watched?.toString() || 'false',
+                is_favorite: collectionMovie.is_favorite?.toString() || 'false',
+                is_watchlist:
+                  collectionMovie.is_watchlist?.toString() || 'false',
+                rating: collectionMovie.rating?.toString() || '0',
+                inCollection: 'true',
               },
             });
           } else {
             router.push({
               pathname: '/movie-detail',
               params: {
-                id: movie.id,
+                id: movie.id.toString(),
                 title: movie.title,
                 year: movie.release_date
-                  ? new Date(movie.release_date).getFullYear()
-                  : null,
-                poster_url: getImageUrl(movie.poster_path),
-                tmdb_rating: movie.vote_average,
-                overview: movie.overview,
-                inCollection: false,
+                  ? new Date(movie.release_date).getFullYear().toString()
+                  : '',
+                poster_url: getImageUrl(movie.poster_path) || '',
+                tmdb_rating: movie.vote_average?.toString() || '0',
+                overview: movie.overview || '',
+                inCollection: 'false',
+                is_watched: 'false',
+                is_favorite: 'false',
+                is_watchlist: 'false',
+                rating: '0',
               },
             });
           }

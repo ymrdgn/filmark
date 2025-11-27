@@ -531,6 +531,7 @@ export default function HomeScreen() {
                         is_favorite: item.is_favorite.toString(),
                         is_watchlist: item.is_watchlist?.toString() || 'false',
                         rating: item.rating?.toString() || '0',
+                        inCollection: 'true',
                       },
                     });
                   }}
@@ -613,6 +614,7 @@ export default function HomeScreen() {
                           is_watchlist:
                             activity.is_watchlist?.toString() || 'false',
                           rating: activity.rating?.toString() || '0',
+                          inCollection: 'true',
                         },
                       });
                     }}
