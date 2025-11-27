@@ -1,7 +1,27 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, SafeAreaView, TouchableOpacity, TextInput, Alert, ActivityIndicator } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  SafeAreaView,
+  TouchableOpacity,
+  TextInput,
+  Alert,
+  ActivityIndicator,
+} from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { ArrowLeft, Search, UserPlus, Users, Check, X, Mail, Clock, Trash2 } from 'lucide-react-native';
+import {
+  ArrowLeft,
+  Search,
+  UserPlus,
+  Users,
+  Check,
+  X,
+  Mail,
+  Clock,
+  Trash2,
+} from 'lucide-react-native';
 import { router } from 'expo-router';
 import { supabase } from '@/lib/supabase';
 import { friendsApi, Friend, UserSearchResult } from '@/lib/friends-api';
@@ -14,7 +34,9 @@ export default function FriendsScreen() {
   const [loading, setLoading] = useState(false);
   const [searchLoading, setSearchLoading] = useState(false);
   const [sendingRequestId, setSendingRequestId] = useState<string | null>(null);
-  const [processingRequestId, setProcessingRequestId] = useState<string | null>(null);
+  const [processingRequestId, setProcessingRequestId] = useState<string | null>(
+    null
+  );
   const [removingFriendId, setRemovingFriendId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -24,7 +46,9 @@ export default function FriendsScreen() {
 
   const loadCurrentUser = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       setCurrentUser(user);
     } catch (error) {
       console.error('Error loading current user:', error);
@@ -62,7 +86,7 @@ export default function FriendsScreen() {
         console.error('Search error:', error);
         Alert.alert('Error', 'Failed to search users');
       } else {
-        console.log("datadata", data)
+        console.log('datadata', data);
         setSearchResults(data || []);
       }
     } catch (error) {
@@ -73,14 +97,17 @@ export default function FriendsScreen() {
     }
   };
 
-
   const handleSendFriendRequest = async (userId: string, userEmail: string) => {
+    console.log('📤 Sending friend request to:', userId, userEmail);
     setSendingRequestId(userId);
     try {
       const { data, error } = await friendsApi.sendFriendRequest(userId);
+      console.log('📤 Friend request result:', { data, error });
       if (error) {
+        console.error('❌ Friend request failed:', error);
         Alert.alert('Error', error.message || 'Failed to send friend request');
       } else {
+        console.log('✅ Friend request sent successfully');
         Alert.alert('Success', `Friend request sent to ${userEmail}!`);
         // Reload friends to show pending request but keep search results
         loadFriends();
@@ -129,60 +156,70 @@ export default function FriendsScreen() {
     }
   };
 
-  const handleRemoveFriend = async (friendshipId: string, friendEmail: string) => {
-    Alert.alert(
-      'Remove Friend',
-      `Are you sure you want to remove ${friendEmail} from your friends?`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Yes, Remove',
-          style: 'destructive',
-          onPress: async () => {
-            setRemovingFriendId(friendshipId);
-            try {
-              const { error } = await friendsApi.removeFriend(friendshipId);
-              if (error) {
-                Alert.alert('Error', 'Failed to remove friend');
-              } else {
-                Alert.alert('Success', 'Friend removed successfully');
-                loadFriends();
-              }
-            } catch (error) {
-              console.error('Remove friend error:', error);
-              Alert.alert('Error', 'Failed to remove friend');
-            } finally {
-              setRemovingFriendId(null);
-            }
-          }
-        }
-      ]
-    );
+  const handleRemoveFriend = async (
+    friendshipId: string,
+    friendEmail: string
+  ) => {
+    console.log('handleRemoveFriend called with:', friendshipId, friendEmail);
+
+    // Directly remove for testing - Alert not working
+    console.log('Removing friend without confirmation (testing)...');
+    setRemovingFriendId(friendshipId);
+
+    try {
+      console.log('Calling removeFriend API...');
+      const { error } = await friendsApi.removeFriend(friendshipId);
+      console.log('API call completed, error:', error);
+
+      if (error) {
+        console.error('Remove friend failed with error:', error);
+        Alert.alert(
+          'Error',
+          `Failed to remove friend: ${error.message || 'Unknown error'}`
+        );
+      } else {
+        console.log('Friend removed successfully, reloading list...');
+        Alert.alert('Success', 'Friend removed successfully');
+        await loadFriends();
+        console.log('Friends list reloaded');
+      }
+    } catch (error) {
+      console.error('Remove friend catch error:', error);
+      Alert.alert('Error', 'Failed to remove friend');
+    } finally {
+      console.log('Resetting removingFriendId');
+      setRemovingFriendId(null);
+    }
   };
 
   const handleViewFriendProfile = (friend: Friend) => {
     if (!currentUser) return;
-    
-    const friendId = friend.user_id === currentUser.id ? friend.friend_id : friend.user_id;
-    const friendEmail = friend.user_id === currentUser.id ? friend.friend_email : friend.requesting_email;
-    
-    console.log("friendEmail", friendEmail)
+
+    const friendId =
+      friend.user_id === currentUser.id ? friend.friend_id : friend.user_id;
+    const friendEmail =
+      friend.user_id === currentUser.id
+        ? friend.friend_email
+        : friend.requesting_email;
+
+    console.log('friendEmail', friendEmail);
     router.push({
       pathname: '/friend-profile',
       params: {
         friendId,
-        friendEmail
-      }
+        friendEmail,
+      },
     });
   };
 
   const renderSearchResult = (user: UserSearchResult) => {
     // Check if user already has a pending/accepted friendship
-    const existingFriendship = friends.find(f => 
-      (f.user_id === user.id && f.friend_id === currentUser?.id) ||
-      (f.friend_id === user.id && f.user_id === currentUser?.id)
+    const existingFriendship = friends.find(
+      (f) =>
+        (f.user_id === user.id && f.friend_id === currentUser?.id) ||
+        (f.friend_id === user.id && f.user_id === currentUser?.id)
     );
-    
+
     return (
       <View key={user.id} style={styles.searchResultCard}>
         <View style={styles.userInfo}>
@@ -194,12 +231,17 @@ export default function FriendsScreen() {
         {existingFriendship ? (
           <View style={styles.statusBadge}>
             <Text style={styles.statusBadgeText}>
-              {existingFriendship.status === 'pending' ? 'Request Sent' : 'Friends'}
+              {existingFriendship.status === 'pending'
+                ? 'Request Sent'
+                : 'Friends'}
             </Text>
           </View>
         ) : (
           <TouchableOpacity
-            style={[styles.addButton, sendingRequestId === user.id && styles.addButtonDisabled]}
+            style={[
+              styles.addButton,
+              sendingRequestId === user.id && styles.addButtonDisabled,
+            ]}
             onPress={() => handleSendFriendRequest(user.id, user.email)}
             disabled={sendingRequestId === user.id}
           >
@@ -216,17 +258,24 @@ export default function FriendsScreen() {
 
   const renderFriend = (friend: Friend) => {
     if (!currentUser) return null;
-    
+
     const isIncoming = friend.friend_id === currentUser.id;
-    const friendEmail = isIncoming ? friend.requesting_email : friend.friend_email;
-    
+    const friendEmail = isIncoming
+      ? friend.requesting_email
+      : friend.friend_email;
+
     return (
       <View key={friend.id} style={styles.friendCard}>
         <View style={styles.friendHeader}>
-          <View style={[
-            styles.friendAvatar,
-            { backgroundColor: friend.status === 'accepted' ? '#10B981' : '#F59E0B' }
-          ]}>
+          <View
+            style={[
+              styles.friendAvatar,
+              {
+                backgroundColor:
+                  friend.status === 'accepted' ? '#10B981' : '#F59E0B',
+              },
+            ]}
+          >
             <Users size={20} color="white" strokeWidth={2} />
           </View>
           <View style={styles.friendDetails}>
@@ -243,13 +292,15 @@ export default function FriendsScreen() {
               {friend.status === 'accepted' && (
                 <>
                   <Check size={14} color="#10B981" strokeWidth={2} />
-                  <Text style={[styles.statusText, { color: '#10B981' }]}>Friends</Text>
+                  <Text style={[styles.statusText, { color: '#10B981' }]}>
+                    Friends
+                  </Text>
                 </>
               )}
             </View>
           </View>
         </View>
-        
+
         <View style={styles.friendActions}>
           {friend.status === 'pending' && isIncoming && (
             <>
@@ -299,22 +350,24 @@ export default function FriendsScreen() {
     );
   };
 
-  const pendingRequests = friends.filter(f => f.status === 'pending');
-  const acceptedFriends = friends.filter(f => f.status === 'accepted');
+  const pendingRequests = friends.filter((f) => f.status === 'pending');
+  const acceptedFriends = friends.filter((f) => f.status === 'accepted');
 
   return (
     <SafeAreaView style={styles.container}>
-      <LinearGradient
-        colors={['#1F2937', '#111827']}
-        style={styles.gradient}
-      >
+      <LinearGradient colors={['#1F2937', '#111827']} style={styles.gradient}>
         <View style={styles.header}>
-          <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+          <TouchableOpacity
+            onPress={() => router.back()}
+            style={styles.backButton}
+          >
             <ArrowLeft size={24} color="white" strokeWidth={2} />
           </TouchableOpacity>
           <View style={styles.headerInfo}>
             <Text style={styles.title}>Friends</Text>
-            <Text style={styles.subtitle}>{acceptedFriends.length} friends</Text>
+            <Text style={styles.subtitle}>
+              {acceptedFriends.length} friends
+            </Text>
           </View>
         </View>
 
@@ -331,13 +384,19 @@ export default function FriendsScreen() {
               keyboardType="email-address"
               autoCapitalize="none"
             />
-            <TouchableOpacity onPress={handleSearch} style={styles.searchButton}>
+            <TouchableOpacity
+              onPress={handleSearch}
+              style={styles.searchButton}
+            >
               <Text style={styles.searchButtonText}>Search</Text>
             </TouchableOpacity>
           </View>
         </View>
 
-        <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+        <ScrollView
+          style={styles.scrollView}
+          showsVerticalScrollIndicator={false}
+        >
           {/* Search Results */}
           {searchResults.length > 0 && (
             <View style={styles.section}>
@@ -373,7 +432,9 @@ export default function FriendsScreen() {
             <View style={styles.emptyState}>
               <Users size={48} color="#6B7280" strokeWidth={1.5} />
               <Text style={styles.emptyStateText}>No friends yet</Text>
-              <Text style={styles.emptyStateSubtext}>Search for friends by email to get started</Text>
+              <Text style={styles.emptyStateSubtext}>
+                Search for friends by email to get started
+              </Text>
             </View>
           )}
 

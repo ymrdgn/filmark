@@ -11,11 +11,12 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  Modal,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
-import { Mail, Lock, Eye, EyeOff, Film, User } from 'lucide-react-native';
-import { signUp, signIn } from '@/lib/supabase';
+import { Mail, Lock, Eye, EyeOff, Film, User, X } from 'lucide-react-native';
+import { signUp, signIn, resetPassword } from '@/lib/supabase';
 
 export default function LoginScreen() {
   const [isLogin, setIsLogin] = useState(true);
@@ -25,6 +26,9 @@ export default function LoginScreen() {
   const [username, setUsername] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [resetModalVisible, setResetModalVisible] = useState(false);
+  const [resetEmail, setResetEmail] = useState('');
+  const [resetLoading, setResetLoading] = useState(false);
 
   const handleAuth = async () => {
     console.log(
@@ -141,6 +145,41 @@ export default function LoginScreen() {
     }
   };
 
+  const handleResetPassword = async () => {
+    if (!resetEmail || !resetEmail.includes('@')) {
+      Alert.alert('Error', 'Please enter a valid email address');
+      return;
+    }
+
+    setResetLoading(true);
+    try {
+      const { error } = await resetPassword(resetEmail);
+
+      if (error) {
+        Alert.alert('Error', error.message || 'Failed to send reset email');
+      } else {
+        Alert.alert(
+          'Success! ✉️',
+          'Password reset link has been sent to your email. Please check your inbox.',
+          [
+            {
+              text: 'OK',
+              onPress: () => {
+                setResetModalVisible(false);
+                setResetEmail('');
+              },
+            },
+          ]
+        );
+      }
+    } catch (error) {
+      console.log('Reset password error:', error);
+      Alert.alert('Error', 'An unexpected error occurred');
+    } finally {
+      setResetLoading(false);
+    }
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <LinearGradient colors={['#1F2937', '#111827']} style={styles.gradient}>
@@ -216,6 +255,17 @@ export default function LoginScreen() {
                 </TouchableOpacity>
               </View>
 
+              {isLogin && (
+                <TouchableOpacity
+                  style={styles.forgotPassword}
+                  onPress={() => setResetModalVisible(true)}
+                >
+                  <Text style={styles.forgotPasswordText}>
+                    Forgot Password?
+                  </Text>
+                </TouchableOpacity>
+              )}
+
               {!isLogin && (
                 <View style={styles.inputContainer}>
                   <Lock size={20} color="#9CA3AF" style={styles.inputIcon} />
@@ -280,6 +330,63 @@ export default function LoginScreen() {
             </View>
           </ScrollView>
         </KeyboardAvoidingView>
+
+        {/* Password Reset Modal */}
+        <Modal
+          visible={resetModalVisible}
+          transparent
+          animationType="fade"
+          onRequestClose={() => setResetModalVisible(false)}
+        >
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContent}>
+              <View style={styles.modalHeader}>
+                <Text style={styles.modalTitle}>Reset Password</Text>
+                <TouchableOpacity
+                  onPress={() => setResetModalVisible(false)}
+                  style={styles.closeButton}
+                >
+                  <X size={24} color="white" strokeWidth={2} />
+                </TouchableOpacity>
+              </View>
+
+              <Text style={styles.modalDescription}>
+                Enter your email address and we'll send you a link to reset your
+                password.
+              </Text>
+
+              <View style={styles.inputContainer}>
+                <Mail size={20} color="#9CA3AF" style={styles.inputIcon} />
+                <TextInput
+                  style={styles.input}
+                  placeholder="Email address"
+                  placeholderTextColor="#6B7280"
+                  value={resetEmail}
+                  onChangeText={setResetEmail}
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                />
+              </View>
+
+              <TouchableOpacity
+                style={[styles.button, resetLoading && styles.buttonDisabled]}
+                onPress={handleResetPassword}
+                disabled={resetLoading}
+              >
+                <LinearGradient
+                  colors={['#6366F1', '#8B5CF6']}
+                  style={styles.buttonGradient}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                >
+                  <Text style={styles.buttonText}>
+                    {resetLoading ? 'Sending...' : 'Send Reset Link'}
+                  </Text>
+                </LinearGradient>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Modal>
       </LinearGradient>
     </SafeAreaView>
   );
@@ -355,6 +462,16 @@ const styles = StyleSheet.create({
   eyeIcon: {
     padding: 4,
   },
+  forgotPassword: {
+    alignSelf: 'flex-end',
+    marginTop: -8,
+    marginBottom: 8,
+  },
+  forgotPasswordText: {
+    fontSize: 14,
+    fontFamily: 'Inter-Medium',
+    color: '#6366F1',
+  },
   button: {
     marginTop: 8,
     borderRadius: 12,
@@ -405,5 +522,42 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter-Medium',
     color: '#9CA3AF',
     lineHeight: 16,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 24,
+  },
+  modalContent: {
+    backgroundColor: '#1F2937',
+    borderRadius: 20,
+    padding: 24,
+    width: '100%',
+    maxWidth: 400,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  modalTitle: {
+    fontSize: 24,
+    fontFamily: 'Inter-Bold',
+    color: 'white',
+  },
+  closeButton: {
+    padding: 4,
+  },
+  modalDescription: {
+    fontSize: 14,
+    fontFamily: 'Inter-Medium',
+    color: '#9CA3AF',
+    marginBottom: 24,
+    lineHeight: 20,
   },
 });

@@ -1,5 +1,13 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Modal, ScrollView, ActivityIndicator } from 'react-native';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  Modal,
+  ScrollView,
+  ActivityIndicator,
+} from 'react-native';
 import { Bell, X, Check } from 'lucide-react-native';
 import { supabase } from '@/lib/supabase';
 import { Database } from '@/lib/database.types';
@@ -20,9 +28,16 @@ export default function NotificationBell() {
 
   const loadNotifications = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      console.log('🔔 Loading notifications...');
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) {
+        console.log('❌ No user found');
+        return;
+      }
 
+      console.log('👤 User ID:', user.id);
       const { data, error } = await supabase
         .from('notifications')
         .select('*')
@@ -31,9 +46,12 @@ export default function NotificationBell() {
         .order('created_at', { ascending: false });
 
       if (error) {
-        console.error('Error loading notifications:', error);
+        console.error('❌ Error loading notifications:', error);
         return;
       }
+
+      console.log('🔔 Notifications loaded:', data?.length || 0);
+      console.log('🔔 Notifications:', JSON.stringify(data, null, 2));
 
       if (data) {
         setNotifications(data);
@@ -45,6 +63,7 @@ export default function NotificationBell() {
   };
 
   const subscribeToNotifications = () => {
+    console.log('🔔 Subscribing to notifications...');
     const channel = supabase
       .channel('notifications-channel')
       .on(
@@ -55,12 +74,16 @@ export default function NotificationBell() {
           table: 'notifications',
         },
         (payload) => {
+          console.log('🔔 Notification change detected:', payload);
           loadNotifications();
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        console.log('🔔 Subscription status:', status);
+      });
 
     return () => {
+      console.log('🔔 Unsubscribing from notifications');
       supabase.removeChannel(channel);
     };
   };
@@ -77,8 +100,8 @@ export default function NotificationBell() {
         return;
       }
 
-      setNotifications(prev => prev.filter(n => n.id !== notificationId));
-      setUnreadCount(prev => Math.max(0, prev - 1));
+      setNotifications((prev) => prev.filter((n) => n.id !== notificationId));
+      setUnreadCount((prev) => Math.max(0, prev - 1));
     } catch (error) {
       console.error('Error marking notification as read:', error);
     }
@@ -89,7 +112,10 @@ export default function NotificationBell() {
 
     setProcessingId(notification.id);
     try {
-      const { error } = await friendsApi.respondToRequest(notification.related_id, 'accepted');
+      const { error } = await friendsApi.respondToRequest(
+        notification.related_id,
+        'accepted'
+      );
 
       if (error) {
         console.error('Error accepting friend request:', error);
@@ -109,7 +135,10 @@ export default function NotificationBell() {
 
     setProcessingId(notification.id);
     try {
-      const { error } = await friendsApi.respondToRequest(notification.related_id, 'rejected');
+      const { error } = await friendsApi.respondToRequest(
+        notification.related_id,
+        'rejected'
+      );
 
       if (error) {
         console.error('Error rejecting friend request:', error);
@@ -165,9 +194,13 @@ export default function NotificationBell() {
                 notifications.map((notification) => (
                   <View key={notification.id} style={styles.notificationCard}>
                     <View style={styles.notificationHeader}>
-                      <Text style={styles.notificationTitle}>{notification.title}</Text>
+                      <Text style={styles.notificationTitle}>
+                        {notification.title}
+                      </Text>
                     </View>
-                    <Text style={styles.notificationMessage}>{notification.message}</Text>
+                    <Text style={styles.notificationMessage}>
+                      {notification.message}
+                    </Text>
 
                     {notification.type === 'friend_request' && (
                       <View style={styles.actionButtons}>
@@ -200,6 +233,16 @@ export default function NotificationBell() {
                           )}
                         </TouchableOpacity>
                       </View>
+                    )}
+
+                    {notification.type === 'friend_request_accepted' && (
+                      <TouchableOpacity
+                        style={[styles.actionButton, styles.okButton]}
+                        onPress={() => markAsRead(notification.id)}
+                      >
+                        <Check size={18} color="white" strokeWidth={2} />
+                        <Text style={styles.buttonText}>OK</Text>
+                      </TouchableOpacity>
                     )}
                   </View>
                 ))
@@ -317,6 +360,16 @@ const styles = StyleSheet.create({
   },
   rejectButton: {
     backgroundColor: '#EF4444',
+  },
+  okButton: {
+    backgroundColor: '#6366F1',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    gap: 8,
   },
   buttonText: {
     fontSize: 14,

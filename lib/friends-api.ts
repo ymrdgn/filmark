@@ -185,6 +185,8 @@ export const friendsApi = {
   // Reject/Remove friend
   removeFriend: async (friendshipId: string) => {
     try {
+      console.log('Attempting to remove friendship:', friendshipId);
+      
       const { error } = await supabase
         .from('friends')
         .delete()
@@ -192,12 +194,14 @@ export const friendsApi = {
 
       if (error) {
         console.error('Remove friend error:', error);
+        console.error('Error details:', JSON.stringify(error, null, 2));
         return { error };
       }
 
+      console.log('Friend removed successfully');
       return { error: null };
     } catch (error) {
-      console.error('Remove friend error:', error);
+      console.error('Remove friend catch error:', error);
       return { error };
     }
   },
