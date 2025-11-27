@@ -84,8 +84,8 @@ BEGIN
       'friend_request',
       NEW.user_id,
       NEW.id,
-      'Yeni Arkadaşlık İsteği',
-      sender_email || ' seni arkadaş olarak eklemek istiyor'
+      'New Friend Request',
+      sender_email || ' wants to add you as a friend'
     );
   END IF;
 

@@ -1,7 +1,28 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, SafeAreaView, TouchableOpacity, Image, Alert } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  SafeAreaView,
+  TouchableOpacity,
+  Image,
+  Alert,
+} from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { ArrowLeft, Star, Calendar, Clock, Eye, Plus, Trash2, CreditCard as Edit3, Heart, User, Film } from 'lucide-react-native';
+import {
+  ArrowLeft,
+  Star,
+  Calendar,
+  Clock,
+  Eye,
+  Plus,
+  Trash2,
+  CreditCard as Edit3,
+  Heart,
+  User,
+  Film,
+} from 'lucide-react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { moviesApi } from '@/lib/api';
 import { Database } from '@/lib/database.types';
@@ -37,7 +58,7 @@ export default function MovieDetailScreen() {
     imdb_rating: null,
     director: null,
     genre: null,
-    watched_date: null
+    watched_date: null,
   });
   const [loading, setLoading] = useState(false);
 
@@ -52,7 +73,7 @@ export default function MovieDetailScreen() {
     try {
       const { data, error } = await moviesApi.getAll();
       if (!error && data) {
-        const currentMovie = data.find(m => m.id === params.id);
+        const currentMovie = data.find((m) => m.id === params.id);
         if (currentMovie) {
           setMovie({
             id: currentMovie.id,
@@ -66,7 +87,7 @@ export default function MovieDetailScreen() {
             imdb_rating: currentMovie.imdb_rating,
             director: currentMovie.director,
             genre: currentMovie.genre,
-            watched_date: currentMovie.watched_date || null
+            watched_date: currentMovie.watched_date || null,
           });
         }
       }
@@ -78,16 +99,23 @@ export default function MovieDetailScreen() {
   const handleRatingChange = async (newRating: number) => {
     setLoading(true);
     try {
+      const watchedDate = movie.watched_date || new Date().toISOString();
       const { error } = await moviesApi.update(movie.id as string, {
         rating: newRating,
         is_watched: true,
-        watched_date: movie.watched_date || new Date().toISOString()
+        watched_date: watchedDate,
       });
 
       if (error) {
         Alert.alert('Error', 'Failed to update rating.');
       } else {
-        await loadMovieData();
+        // Update local state immediately
+        setMovie((prev) => ({
+          ...prev,
+          rating: newRating,
+          is_watched: true,
+          watched_date: watchedDate,
+        }));
         Alert.alert('Success', 'Rating updated!');
         global.refreshMovies?.();
       }
@@ -104,20 +132,29 @@ export default function MovieDetailScreen() {
       const newWatchedStatus = !movie.is_watched;
       const updateData: Partial<Movie> = {
         is_watched: newWatchedStatus,
-        watched_date: newWatchedStatus ? new Date().toISOString() : null
+        watched_date: newWatchedStatus ? new Date().toISOString() : null,
       };
       const { error } = await moviesApi.update(movie.id as string, updateData);
 
       if (error) {
         Alert.alert('Error', 'Failed to update watched status.');
+        console.error('Update error:', error);
       } else {
-        await loadMovieData();
-        const statusText = newWatchedStatus ? 'marked as watched' : 'unmarked as watched';
+        // Update local state immediately
+        setMovie((prev) => ({
+          ...prev,
+          is_watched: newWatchedStatus,
+          watched_date: updateData.watched_date,
+        }));
+        const statusText = newWatchedStatus
+          ? 'marked as watched'
+          : 'unmarked as watched';
         Alert.alert('Success', `Movie ${statusText}!`);
         global.refreshMovies?.();
       }
     } catch (error) {
       Alert.alert('Error', 'Failed to update watched status.');
+      console.error('Caught error:', error);
     } finally {
       setLoading(false);
     }
@@ -127,13 +164,21 @@ export default function MovieDetailScreen() {
     setLoading(true);
     try {
       const newFavoriteStatus = !movie.is_favorite;
-      const { error } = await moviesApi.update(movie.id as string, { is_favorite: newFavoriteStatus });
+      const { error } = await moviesApi.update(movie.id as string, {
+        is_favorite: newFavoriteStatus,
+      });
 
       if (error) {
         Alert.alert('Error', 'Failed to update favorite status.');
       } else {
-        await loadMovieData();
-        const statusText = newFavoriteStatus ? 'added to favorites' : 'removed from favorites';
+        // Update local state immediately
+        setMovie((prev) => ({
+          ...prev,
+          is_favorite: newFavoriteStatus,
+        }));
+        const statusText = newFavoriteStatus
+          ? 'added to favorites'
+          : 'removed from favorites';
         Alert.alert('Success', `Movie ${statusText}!`);
         global.refreshMovies?.();
       }
@@ -148,13 +193,21 @@ export default function MovieDetailScreen() {
     setLoading(true);
     try {
       const newWatchlistStatus = !movie.is_watchlist;
-      const { error } = await moviesApi.update(movie.id as string, { is_watchlist: newWatchlistStatus });
+      const { error } = await moviesApi.update(movie.id as string, {
+        is_watchlist: newWatchlistStatus,
+      });
 
       if (error) {
         Alert.alert('Error', 'Failed to update watchlist status.');
       } else {
-        await loadMovieData();
-        const statusText = newWatchlistStatus ? 'added to watchlist' : 'removed from watchlist';
+        // Update local state immediately
+        setMovie((prev) => ({
+          ...prev,
+          is_watchlist: newWatchlistStatus,
+        }));
+        const statusText = newWatchlistStatus
+          ? 'added to watchlist'
+          : 'removed from watchlist';
         Alert.alert('Success', `Movie ${statusText}!`);
         global.refreshMovies?.();
       }
@@ -167,17 +220,20 @@ export default function MovieDetailScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <LinearGradient
-        colors={['#1F2937', '#111827']}
-        style={styles.gradient}
-      >
+      <LinearGradient colors={['#1F2937', '#111827']} style={styles.gradient}>
         <View style={styles.header}>
-          <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+          <TouchableOpacity
+            onPress={() => router.back()}
+            style={styles.backButton}
+          >
             <ArrowLeft size={24} color="white" strokeWidth={2} />
           </TouchableOpacity>
         </View>
 
-        <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+        <ScrollView
+          style={styles.scrollView}
+          showsVerticalScrollIndicator={false}
+        >
           <View style={styles.movieHeader}>
             <View style={styles.posterContainer}>
               {movie.poster_url ? (
@@ -192,69 +248,90 @@ export default function MovieDetailScreen() {
                 </View>
               )}
             </View>
-            
+
             <View style={styles.movieInfo}>
               <Text style={styles.movieTitle}>{movie.title}</Text>
               <View style={styles.movieMeta}>
                 <Calendar size={16} color="#9CA3AF" strokeWidth={2} />
                 <Text style={styles.movieYear}>{movie.year}</Text>
               </View>
-              
+
               {movie.imdb_rating && (
                 <View style={styles.imdbRating}>
-                  <Star size={16} color="#F5C518" fill="#F5C518" strokeWidth={1} />
-                  <Text style={styles.imdbRatingText}>{movie.imdb_rating} IMDB</Text>
+                  <Star
+                    size={16}
+                    color="#F5C518"
+                    fill="#F5C518"
+                    strokeWidth={1}
+                  />
+                  <Text style={styles.imdbRatingText}>
+                    {movie.imdb_rating} IMDB
+                  </Text>
                 </View>
               )}
-              
+
               {movie.director && (
                 <View style={styles.movieMeta}>
                   <User size={16} color="#9CA3AF" strokeWidth={2} />
                   <Text style={styles.movieDirector}>{movie.director}</Text>
                 </View>
               )}
-              
+
               {movie.genre && (
                 <View style={styles.movieMeta}>
                   <Film size={16} color="#9CA3AF" strokeWidth={2} />
                   <Text style={styles.movieGenre}>{movie.genre}</Text>
                 </View>
               )}
-              
+
               <View style={styles.statusContainer}>
-                <View style={[
-                  styles.statusBadge,
-                  { backgroundColor: movie.is_watched ? '#10B98120' : '#6366F120' }
-                ]}>
+                <View
+                  style={[
+                    styles.statusBadge,
+                    {
+                      backgroundColor: movie.is_watched
+                        ? '#10B98120'
+                        : '#6366F120',
+                    },
+                  ]}
+                >
                   {movie.is_watched ? (
                     <Eye size={16} color="#10B981" strokeWidth={2} />
                   ) : (
                     <Clock size={16} color="#6366F1" strokeWidth={2} />
                   )}
-                  <Text style={[
-                    styles.statusText,
-                    { color: movie.is_watched ? '#10B981' : '#6366F1' }
-                  ]}>
+                  <Text
+                    style={[
+                      styles.statusText,
+                      { color: movie.is_watched ? '#10B981' : '#6366F1' },
+                    ]}
+                  >
                     {movie.is_watched ? 'Watched' : 'To Watch'}
                   </Text>
                 </View>
-              
+
                 {movie.is_favorite && (
                   <View style={styles.favoriteBadge}>
-                    <Heart size={16} color="#EF4444" fill="#EF4444" strokeWidth={1} />
+                    <Heart
+                      size={16}
+                      color="#EF4444"
+                      fill="#EF4444"
+                      strokeWidth={1}
+                    />
                     <Text style={styles.favoriteText}>Favorite</Text>
                   </View>
                 )}
               </View>
-              
+
               {movie.is_watched && movie.watched_date && (
                 <View style={styles.watchedDateContainer}>
                   <Clock size={14} color="#6B7280" strokeWidth={2} />
                   <Text style={styles.watchedDateText}>
-                    Watched on {new Date(movie.watched_date).toLocaleDateString('en-US', {
+                    Watched on{' '}
+                    {new Date(movie.watched_date).toLocaleDateString('en-US', {
                       year: 'numeric',
                       month: 'long',
-                      day: 'numeric'
+                      day: 'numeric',
                     })}
                   </Text>
                 </View>
@@ -282,7 +359,9 @@ export default function MovieDetailScreen() {
               ))}
             </View>
             {movie.rating > 0 && (
-              <Text style={styles.ratingText}>You rated this {movie.rating}/5 stars</Text>
+              <Text style={styles.ratingText}>
+                You rated this {movie.rating}/5 stars
+              </Text>
             )}
           </View>
 
@@ -292,59 +371,69 @@ export default function MovieDetailScreen() {
               <TouchableOpacity
                 style={[
                   styles.actionButton,
-                  movie.is_watched && styles.actionButtonActive
+                  movie.is_watched && styles.actionButtonActive,
                 ]}
                 onPress={handleWatchedToggle}
                 disabled={loading}
               >
-                <Eye size={20} color={movie.is_watched ? 'white' : '#10B981'} strokeWidth={2} />
-                <Text style={[
-                  styles.actionButtonText,
-                  movie.is_watched && styles.actionButtonTextActive
-                ]}>
+                <Eye
+                  size={20}
+                  color={movie.is_watched ? 'white' : '#10B981'}
+                  strokeWidth={2}
+                />
+                <Text
+                  style={[
+                    styles.actionButtonText,
+                    movie.is_watched && styles.actionButtonTextActive,
+                  ]}
+                >
                   {movie.is_watched ? 'Watched ✓' : 'Mark as Watched'}
                 </Text>
               </TouchableOpacity>
-              
+
               <TouchableOpacity
                 style={[
                   styles.actionButton,
-                  movie.is_favorite && styles.favoriteButtonActive
+                  movie.is_favorite && styles.favoriteButtonActive,
                 ]}
                 onPress={handleFavoriteToggle}
                 disabled={loading}
               >
-                <Heart 
-                  size={20} 
-                  color={movie.is_favorite ? 'white' : '#EF4444'} 
+                <Heart
+                  size={20}
+                  color={movie.is_favorite ? 'white' : '#EF4444'}
                   fill={movie.is_favorite ? 'white' : 'none'}
-                  strokeWidth={2} 
+                  strokeWidth={2}
                 />
-                <Text style={[
-                  styles.actionButtonText,
-                  movie.is_favorite && styles.actionButtonTextActive
-                ]}>
+                <Text
+                  style={[
+                    styles.actionButtonText,
+                    movie.is_favorite && styles.actionButtonTextActive,
+                  ]}
+                >
                   {movie.is_favorite ? 'Favorite ❤️' : 'Add to Favorites'}
                 </Text>
               </TouchableOpacity>
-              
+
               <TouchableOpacity
                 style={[
                   styles.actionButton,
-                  movie.is_watchlist && styles.watchlistButtonActive
+                  movie.is_watchlist && styles.watchlistButtonActive,
                 ]}
                 onPress={handleWatchlistToggle}
                 disabled={loading}
               >
-                <Plus 
-                  size={20} 
-                  color={movie.is_watchlist ? 'white' : '#8B5CF6'} 
-                  strokeWidth={2} 
+                <Plus
+                  size={20}
+                  color={movie.is_watchlist ? 'white' : '#8B5CF6'}
+                  strokeWidth={2}
                 />
-                <Text style={[
-                  styles.actionButtonText,
-                  movie.is_watchlist && styles.actionButtonTextActive
-                ]}>
+                <Text
+                  style={[
+                    styles.actionButtonText,
+                    movie.is_watchlist && styles.actionButtonTextActive,
+                  ]}
+                >
                   {movie.is_watchlist ? 'In Watchlist 📝' : 'Add to Watchlist'}
                 </Text>
               </TouchableOpacity>

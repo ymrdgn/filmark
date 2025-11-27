@@ -1,10 +1,34 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, SafeAreaView, TouchableOpacity, TextInput, Dimensions, Image, Alert, ActivityIndicator } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  SafeAreaView,
+  TouchableOpacity,
+  TextInput,
+  Dimensions,
+  Image,
+  Alert,
+  ActivityIndicator,
+} from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Search, Star, Calendar, Plus, Check, Heart } from 'lucide-react-native';
+import {
+  Search,
+  Star,
+  Calendar,
+  Plus,
+  Check,
+  Heart,
+} from 'lucide-react-native';
 import { router } from 'expo-router';
 import { moviesApi } from '@/lib/api';
-import { searchMovies, TMDBMovie, getImageUrl, getPopularMovies } from '@/lib/tmdb';
+import {
+  searchMovies,
+  TMDBMovie,
+  getImageUrl,
+  getPopularMovies,
+} from '@/lib/tmdb';
 import { useFocusEffect } from '@react-navigation/native';
 
 const { width } = Dimensions.get('window');
@@ -23,12 +47,12 @@ export default function MoviesScreen() {
   useEffect(() => {
     loadMyMovies();
     loadPopularMovies();
-    
+
     // Set up global refresh function
     global.refreshMovies = () => {
       loadMyMovies();
     };
-    
+
     return () => {
       global.refreshMovies = null;
     };
@@ -43,7 +67,10 @@ export default function MoviesScreen() {
 
   const loadMyMovies = async () => {
     // Check if Supabase is properly configured
-    if (!process.env.EXPO_PUBLIC_SUPABASE_URL || !process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY) {
+    if (
+      !process.env.EXPO_PUBLIC_SUPABASE_URL ||
+      !process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY
+    ) {
       console.error('❌ Supabase not configured. Please check your .env file.');
       Alert.alert(
         'Configuration Error',
@@ -121,7 +148,9 @@ export default function MoviesScreen() {
     try {
       const { data, error } = await moviesApi.add({
         title: movie.title,
-        year: movie.release_date ? new Date(movie.release_date).getFullYear() : null,
+        year: movie.release_date
+          ? new Date(movie.release_date).getFullYear()
+          : null,
         poster_url: getImageUrl(movie.poster_path),
         is_watched: true,
         is_favorite: false,
@@ -145,11 +174,14 @@ export default function MoviesScreen() {
     }
   };
 
-  const handleToggleFavorite = async (movieId: string, currentFavoriteStatus: boolean) => {
+  const handleToggleFavorite = async (
+    movieId: string,
+    currentFavoriteStatus: boolean
+  ) => {
     setUpdatingMovieId(movieId);
     try {
       const { error } = await moviesApi.update(movieId, {
-        is_favorite: !currentFavoriteStatus
+        is_favorite: !currentFavoriteStatus,
       });
 
       if (error) {
@@ -164,33 +196,41 @@ export default function MoviesScreen() {
     }
   };
 
-  const filteredMyMovies = myMovies.filter(movie => {
-    const matchesSearch = movie.title.toLowerCase().includes(searchQuery.toLowerCase());
+  const filteredMyMovies = myMovies.filter((movie) => {
+    const matchesSearch = movie.title
+      .toLowerCase()
+      .includes(searchQuery.toLowerCase());
     return matchesSearch;
   });
 
   const getFilteredMovies = () => {
     if (filter === 'watched') {
-      const watchedMovies = myMovies.filter(movie => {
-        const matchesSearch = movie.title.toLowerCase().includes(searchQuery.toLowerCase());
+      const watchedMovies = myMovies.filter((movie) => {
+        const matchesSearch = movie.title
+          .toLowerCase()
+          .includes(searchQuery.toLowerCase());
         const isWatched = movie.is_watched === true;
         return matchesSearch && isWatched;
       });
       return watchedMovies;
     }
     if (filter === 'favorites') {
-      return myMovies.filter(movie => {
-        const matchesSearch = movie.title.toLowerCase().includes(searchQuery.toLowerCase());
+      return myMovies.filter((movie) => {
+        const matchesSearch = movie.title
+          .toLowerCase()
+          .includes(searchQuery.toLowerCase());
         return matchesSearch && movie.is_favorite === true;
       });
     }
     if (filter === 'watchlist') {
-      return myMovies.filter(movie => {
-        const matchesSearch = movie.title.toLowerCase().includes(searchQuery.toLowerCase());
+      return myMovies.filter((movie) => {
+        const matchesSearch = movie.title
+          .toLowerCase()
+          .includes(searchQuery.toLowerCase());
         return matchesSearch && movie.is_watchlist === true;
       });
     }
-    return myMovies.filter(movie =>
+    return myMovies.filter((movie) =>
       movie.title.toLowerCase().includes(searchQuery.toLowerCase())
     );
   };
@@ -198,28 +238,30 @@ export default function MoviesScreen() {
   const displayMovies = getFilteredMovies();
 
   const isMovieInCollection = (tmdbMovieTitle: string) => {
-    return myMovies.some(movie => 
-      movie.title.toLowerCase() === tmdbMovieTitle.toLowerCase()
+    return myMovies.some(
+      (movie) => movie.title.toLowerCase() === tmdbMovieTitle.toLowerCase()
     );
   };
 
   const renderMyMovieCard = (movie) => (
-    <TouchableOpacity 
-      key={movie.id} 
+    <TouchableOpacity
+      key={movie.id}
       style={styles.movieCard}
-      onPress={() => router.push({
-        pathname: '/movie-detail',
-        params: {
-          id: movie.id,
-          title: movie.title,
-          year: movie.year,
-          poster_url: movie.poster_url,
-          is_watched: movie.is_watched,
-          is_favorite: movie.is_favorite,
-          is_watchlist: movie.is_watchlist,
-          rating: movie.rating
-        }
-      })}
+      onPress={() =>
+        router.push({
+          pathname: '/movie-detail',
+          params: {
+            id: movie.id,
+            title: movie.title,
+            year: movie.year,
+            poster_url: movie.poster_url,
+            is_watched: movie.is_watched,
+            is_favorite: movie.is_favorite,
+            is_watchlist: movie.is_watchlist,
+            rating: movie.rating,
+          },
+        })
+      }
     >
       <View style={styles.posterContainer}>
         {movie.poster_url ? (
@@ -233,7 +275,7 @@ export default function MoviesScreen() {
             <Text style={styles.posterPlaceholderText}>No Image</Text>
           </View>
         )}
-        
+
         <View style={styles.badgeContainer}>
           <TouchableOpacity
             style={styles.favoriteButton}
@@ -253,11 +295,13 @@ export default function MoviesScreen() {
           </TouchableOpacity>
         </View>
       </View>
-      
+
       <View style={styles.movieInfo}>
-        <Text style={styles.movieTitle} numberOfLines={2}>{movie.title}</Text>
+        <Text style={styles.movieTitle} numberOfLines={2}>
+          {movie.title}
+        </Text>
         <Text style={styles.movieYear}>{movie.year}</Text>
-        
+
         <View style={styles.movieMeta}>
           {movie.rating > 0 && (
             <View style={styles.rating}>
@@ -279,9 +323,10 @@ export default function MoviesScreen() {
 
   const renderTMDBMovieCard = (movie: TMDBMovie) => {
     const inCollection = isMovieInCollection(movie.title);
-    const collectionMovie = myMovies.find(m =>
-      m.title.toLowerCase() === movie.title.toLowerCase()
+    const collectionMovie = myMovies.find(
+      (m) => m.title.toLowerCase() === movie.title.toLowerCase()
     );
+    const isWatched = collectionMovie?.is_watched || false;
 
     return (
       <TouchableOpacity
@@ -299,8 +344,8 @@ export default function MoviesScreen() {
                 is_watched: collectionMovie.is_watched,
                 is_favorite: collectionMovie.is_favorite,
                 is_watchlist: collectionMovie.is_watchlist,
-                rating: collectionMovie.rating
-              }
+                rating: collectionMovie.rating,
+              },
             });
           } else {
             router.push({
@@ -308,44 +353,53 @@ export default function MoviesScreen() {
               params: {
                 id: movie.id,
                 title: movie.title,
-                year: movie.release_date ? new Date(movie.release_date).getFullYear() : null,
+                year: movie.release_date
+                  ? new Date(movie.release_date).getFullYear()
+                  : null,
                 poster_url: getImageUrl(movie.poster_path),
                 tmdb_rating: movie.vote_average,
                 overview: movie.overview,
-                inCollection: false
-              }
+                inCollection: false,
+              },
             });
           }
         }}
       >
         <View style={styles.posterContainer}>
           <Image
-            source={{ 
-              uri: getImageUrl(movie.poster_path) || 'https://via.placeholder.com/300x450?text=No+Image'
+            source={{
+              uri:
+                getImageUrl(movie.poster_path) ||
+                'https://via.placeholder.com/300x450?text=No+Image',
             }}
             style={styles.poster}
             resizeMode="cover"
           />
-          
+
           <View style={styles.badgeContainer}>
             <TouchableOpacity
               style={styles.addBadge}
               onPress={() => handleAddMovie(movie)}
-              disabled={addingMovieId === movie.id || inCollection}
+              disabled={addingMovieId === movie.id || isWatched}
             >
               {addingMovieId === movie.id ? (
                 <ActivityIndicator size="small" color="#6366F1" />
-              ) : inCollection ? (
+              ) : isWatched ? (
                 <Check size={16} color="#10B981" strokeWidth={2} />
               ) : (
                 <Plus size={16} color="#6366F1" strokeWidth={2} />
               )}
             </TouchableOpacity>
-            
+
             {inCollection && collectionMovie && (
               <TouchableOpacity
                 style={styles.favoriteButton}
-                onPress={() => handleToggleFavorite(collectionMovie.id, collectionMovie.is_favorite)}
+                onPress={() =>
+                  handleToggleFavorite(
+                    collectionMovie.id,
+                    collectionMovie.is_favorite
+                  )
+                }
                 disabled={updatingMovieId === collectionMovie.id}
               >
                 {updatingMovieId === collectionMovie.id ? (
@@ -354,7 +408,9 @@ export default function MoviesScreen() {
                   <Heart
                     size={16}
                     color="#EF4444"
-                    fill={collectionMovie.is_favorite ? '#EF4444' : 'transparent'}
+                    fill={
+                      collectionMovie.is_favorite ? '#EF4444' : 'transparent'
+                    }
                     strokeWidth={2}
                   />
                 )}
@@ -362,16 +418,22 @@ export default function MoviesScreen() {
             )}
           </View>
         </View>
-        
+
         <View style={styles.movieInfo}>
-          <Text style={styles.movieTitle} numberOfLines={2}>{movie.title}</Text>
-          <Text style={styles.movieYear}>
-            {movie.release_date ? new Date(movie.release_date).getFullYear() : 'Unknown'}
+          <Text style={styles.movieTitle} numberOfLines={2}>
+            {movie.title}
           </Text>
-          
+          <Text style={styles.movieYear}>
+            {movie.release_date
+              ? new Date(movie.release_date).getFullYear()
+              : 'Unknown'}
+          </Text>
+
           <View style={styles.tmdbRating}>
             <Star size={12} color="#F59E0B" fill="#F59E0B" strokeWidth={1} />
-            <Text style={styles.ratingText}>{movie.vote_average.toFixed(1)}</Text>
+            <Text style={styles.ratingText}>
+              {movie.vote_average.toFixed(1)}
+            </Text>
           </View>
         </View>
       </TouchableOpacity>
@@ -380,13 +442,12 @@ export default function MoviesScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <LinearGradient
-        colors={['#1F2937', '#111827']}
-        style={styles.gradient}
-      >
+      <LinearGradient colors={['#1F2937', '#111827']} style={styles.gradient}>
         <View style={styles.header}>
           <Text style={styles.title}>Movies</Text>
-          <Text style={styles.subtitle}>{displayMovies.length} movies in collection</Text>
+          <Text style={styles.subtitle}>
+            {displayMovies.length} movies in collection
+          </Text>
         </View>
 
         <View style={styles.searchContainer}>
@@ -410,23 +471,32 @@ export default function MoviesScreen() {
               key={filterOption}
               style={[
                 styles.filterButton,
-                filter === filterOption && styles.filterButtonActive
+                filter === filterOption && styles.filterButtonActive,
               ]}
               onPress={() => setFilter(filterOption)}
             >
-              <Text style={[
-                styles.filterText,
-                filter === filterOption && styles.filterTextActive
-              ]}>
-                {filterOption === 'all' ? 'All' :
-                 filterOption === 'watched' ? 'Watched' :
-                 filterOption === 'favorites' ? 'Favorites' : 'Watchlist'}
+              <Text
+                style={[
+                  styles.filterText,
+                  filter === filterOption && styles.filterTextActive,
+                ]}
+              >
+                {filterOption === 'all'
+                  ? 'All'
+                  : filterOption === 'watched'
+                  ? 'Watched'
+                  : filterOption === 'favorites'
+                  ? 'Favorites'
+                  : 'Watchlist'}
               </Text>
             </TouchableOpacity>
           ))}
         </View>
 
-        <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+        <ScrollView
+          style={styles.scrollView}
+          showsVerticalScrollIndicator={false}
+        >
           {/* {filter === 'all' && displayMovies.length > 0 && (
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>My Collection</Text>
@@ -445,8 +515,12 @@ export default function MoviesScreen() {
                 </View>
               ) : (
                 <View style={styles.emptyState}>
-                  <Text style={styles.emptyStateText}>No watched movies yet</Text>
-                  <Text style={styles.emptyStateSubtext}>Mark some movies as watched to see them here</Text>
+                  <Text style={styles.emptyStateText}>
+                    No watched movies yet
+                  </Text>
+                  <Text style={styles.emptyStateSubtext}>
+                    Mark some movies as watched to see them here
+                  </Text>
                 </View>
               )}
             </View>
@@ -461,8 +535,12 @@ export default function MoviesScreen() {
                 </View>
               ) : (
                 <View style={styles.emptyState}>
-                  <Text style={styles.emptyStateText}>No favorite movies yet</Text>
-                  <Text style={styles.emptyStateSubtext}>Add some movies to favorites to see them here</Text>
+                  <Text style={styles.emptyStateText}>
+                    No favorite movies yet
+                  </Text>
+                  <Text style={styles.emptyStateSubtext}>
+                    Add some movies to favorites to see them here
+                  </Text>
                 </View>
               )}
             </View>
@@ -477,8 +555,12 @@ export default function MoviesScreen() {
                 </View>
               ) : (
                 <View style={styles.emptyState}>
-                  <Text style={styles.emptyStateText}>No movies in watchlist yet</Text>
-                  <Text style={styles.emptyStateSubtext}>Add some movies to your watchlist to see them here</Text>
+                  <Text style={styles.emptyStateText}>
+                    No movies in watchlist yet
+                  </Text>
+                  <Text style={styles.emptyStateSubtext}>
+                    Add some movies to your watchlist to see them here
+                  </Text>
                 </View>
               )}
             </View>
@@ -501,7 +583,7 @@ export default function MoviesScreen() {
               )}
             </View>
           )}
-          
+
           <View style={styles.bottomSpacer} />
         </ScrollView>
       </LinearGradient>

@@ -1,10 +1,36 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, SafeAreaView, TouchableOpacity, TextInput, Dimensions, Image, Alert, ActivityIndicator } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  SafeAreaView,
+  TouchableOpacity,
+  TextInput,
+  Dimensions,
+  Image,
+  Alert,
+  ActivityIndicator,
+} from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Search, Star, Calendar, Plus, Check, Heart, Play, Eye } from 'lucide-react-native';
+import {
+  Search,
+  Star,
+  Calendar,
+  Plus,
+  Check,
+  Heart,
+  Play,
+  Eye,
+} from 'lucide-react-native';
 import { router } from 'expo-router';
 import { tvShowsApi } from '@/lib/api';
-import { searchTVShows, TMDBTVShow, getImageUrl, getPopularTVShows } from '@/lib/tmdb';
+import {
+  searchTVShows,
+  TMDBTVShow,
+  getImageUrl,
+  getPopularTVShows,
+} from '@/lib/tmdb';
 import { useFocusEffect } from '@react-navigation/native';
 
 const { width } = Dimensions.get('window');
@@ -23,12 +49,12 @@ export default function TVShowsScreen() {
   useEffect(() => {
     loadMyTVShows();
     loadPopularTVShows();
-    
+
     // Set up global refresh function
     global.refreshTVShows = () => {
       loadMyTVShows();
     };
-    
+
     return () => {
       global.refreshTVShows = null;
     };
@@ -43,7 +69,10 @@ export default function TVShowsScreen() {
 
   const loadMyTVShows = async () => {
     // Check if Supabase is properly configured
-    if (!process.env.EXPO_PUBLIC_SUPABASE_URL || !process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY) {
+    if (
+      !process.env.EXPO_PUBLIC_SUPABASE_URL ||
+      !process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY
+    ) {
       console.error('❌ Supabase not configured. Please check your .env file.');
       Alert.alert(
         'Configuration Error',
@@ -121,7 +150,9 @@ export default function TVShowsScreen() {
     try {
       const { error } = await tvShowsApi.add({
         title: show.name,
-        year: show.first_air_date ? new Date(show.first_air_date).getFullYear() : null,
+        year: show.first_air_date
+          ? new Date(show.first_air_date).getFullYear()
+          : null,
         poster_url: getImageUrl(show.poster_path),
         is_watched: true,
         is_favorite: false,
@@ -147,13 +178,16 @@ export default function TVShowsScreen() {
     }
   };
 
-  const handleToggleFavorite = async (showId: string, currentFavoriteStatus: boolean) => {
+  const handleToggleFavorite = async (
+    showId: string,
+    currentFavoriteStatus: boolean
+  ) => {
     setUpdatingShowId(showId);
     try {
-      const { error } = await tvShowsApi.update(showId, { 
-        is_favorite: !currentFavoriteStatus 
+      const { error } = await tvShowsApi.update(showId, {
+        is_favorite: !currentFavoriteStatus,
       });
-      
+
       if (error) {
         Alert.alert('Error', 'Failed to update favorite status.');
       } else {
@@ -168,24 +202,30 @@ export default function TVShowsScreen() {
 
   const getFilteredTVShows = () => {
     if (filter === 'watched') {
-      return myTVShows.filter(show => {
-        const matchesSearch = show.title.toLowerCase().includes(searchQuery.toLowerCase());
+      return myTVShows.filter((show) => {
+        const matchesSearch = show.title
+          .toLowerCase()
+          .includes(searchQuery.toLowerCase());
         return matchesSearch && show.is_watched === true;
       });
     }
     if (filter === 'favorites') {
-      return myTVShows.filter(show => {
-        const matchesSearch = show.title.toLowerCase().includes(searchQuery.toLowerCase());
+      return myTVShows.filter((show) => {
+        const matchesSearch = show.title
+          .toLowerCase()
+          .includes(searchQuery.toLowerCase());
         return matchesSearch && show.is_favorite === true;
       });
     }
     if (filter === 'watchlist') {
-      return myTVShows.filter(show => {
-        const matchesSearch = show.title.toLowerCase().includes(searchQuery.toLowerCase());
+      return myTVShows.filter((show) => {
+        const matchesSearch = show.title
+          .toLowerCase()
+          .includes(searchQuery.toLowerCase());
         return matchesSearch && show.is_watchlist === true;
       });
     }
-    return myTVShows.filter(show =>
+    return myTVShows.filter((show) =>
       show.title.toLowerCase().includes(searchQuery.toLowerCase())
     );
   };
@@ -194,15 +234,18 @@ export default function TVShowsScreen() {
 
   const isTVShowInCollection = (tmdbShowName: string) => {
     console.log('Checking if in collection:', tmdbShowName);
-    console.log('My TV Shows:', myTVShows.map(s => ({ id: s.id, title: s.title })));
-    
-    const found = myTVShows.some(show => {
+    console.log(
+      'My TV Shows:',
+      myTVShows.map((s) => ({ id: s.id, title: s.title }))
+    );
+
+    const found = myTVShows.some((show) => {
       const showTitle = show.title?.toLowerCase().trim();
       const searchTitle = tmdbShowName?.toLowerCase().trim();
       console.log('Comparing:', showTitle, 'vs', searchTitle);
       return showTitle === searchTitle;
     });
-    
+
     console.log('Found in collection:', found);
     return found;
   };
@@ -223,26 +266,28 @@ export default function TVShowsScreen() {
   };
 
   const renderMyTVShowCard = (show) => (
-    <TouchableOpacity 
-      key={show.id} 
+    <TouchableOpacity
+      key={show.id}
       style={styles.showCard}
-      onPress={() => router.push({
-        pathname: '/tv-show-detail',
-        params: {
-          id: show.id,
-          title: show.title,
-          year: show.year,
-          poster_url: show.poster_url,
-          is_watched: show.is_watched,
-          is_favorite: show.is_favorite,
-          is_watchlist: show.is_watchlist,
-          rating: show.rating,
-          seasons: show.seasons,
-          episodes: show.episodes,
-          current_season: show.current_season,
-          current_episode: show.current_episode
-        }
-      })}
+      onPress={() =>
+        router.push({
+          pathname: '/tv-show-detail',
+          params: {
+            id: show.id,
+            title: show.title,
+            year: show.year,
+            poster_url: show.poster_url,
+            is_watched: show.is_watched,
+            is_favorite: show.is_favorite,
+            is_watchlist: show.is_watchlist,
+            rating: show.rating,
+            seasons: show.seasons,
+            episodes: show.episodes,
+            current_season: show.current_season,
+            current_episode: show.current_episode,
+          },
+        })
+      }
     >
       <View style={styles.posterContainer}>
         {show.poster_url ? (
@@ -256,11 +301,9 @@ export default function TVShowsScreen() {
             <Text style={styles.posterPlaceholderText}>No Image</Text>
           </View>
         )}
-        
+
         <View style={styles.badgeContainer}>
-          <View style={styles.statusBadge}>
-            {getStatusIcon(show)}
-          </View>
+          <View style={styles.statusBadge}>{getStatusIcon(show)}</View>
           <TouchableOpacity
             style={styles.favoriteButton}
             onPress={() => handleToggleFavorite(show.id, show.is_favorite)}
@@ -281,27 +324,34 @@ export default function TVShowsScreen() {
 
         {!show.is_watched && show.current_episode > 1 && (
           <View style={styles.progressBar}>
-            <View style={[
-              styles.progress, 
-              { 
-                backgroundColor: getStatusColor(show),
-                width: `${Math.min((show.current_episode / show.episodes) * 100, 100)}%`
-              }
-            ]} />
+            <View
+              style={[
+                styles.progress,
+                {
+                  backgroundColor: getStatusColor(show),
+                  width: `${Math.min(
+                    (show.current_episode / show.episodes) * 100,
+                    100
+                  )}%`,
+                },
+              ]}
+            />
           </View>
         )}
       </View>
-      
+
       <View style={styles.showInfo}>
-        <Text style={styles.showTitle} numberOfLines={2}>{show.title}</Text>
+        <Text style={styles.showTitle} numberOfLines={2}>
+          {show.title}
+        </Text>
         <Text style={styles.showYear}>{show.year}</Text>
-        
+
         <View style={styles.showMeta}>
           <View style={styles.seasons}>
             <Calendar size={12} color="#9CA3AF" strokeWidth={2} />
             <Text style={styles.seasonsText}>{show.seasons} seasons</Text>
           </View>
-          
+
           {show.rating > 0 && (
             <View style={styles.rating}>
               {[...Array(5)].map((_, i) => (
@@ -316,7 +366,7 @@ export default function TVShowsScreen() {
             </View>
           )}
         </View>
-        
+
         {!show.is_watched && show.current_episode > 1 && (
           <View style={styles.watchingStatus}>
             <View style={styles.watchingDot} />
@@ -331,60 +381,71 @@ export default function TVShowsScreen() {
 
   const renderTMDBTVShowCard = (show: TMDBTVShow) => {
     const inCollection = isTVShowInCollection(show.name);
-    const collectionShow = myTVShows.find(s => 
-      s.title?.toLowerCase().trim() === show.name?.toLowerCase().trim()
+    const collectionShow = myTVShows.find(
+      (s) => s.title?.toLowerCase().trim() === show.name?.toLowerCase().trim()
     );
-
+    const isWatched = collectionShow?.is_watched || false;
 
     return (
-      <TouchableOpacity 
-        key={show.id} 
+      <TouchableOpacity
+        key={show.id}
         style={styles.tmdbShowCard}
-        onPress={() => router.push({
-          pathname: '/tv-show-detail',
-          params: {
-            id: collectionShow?.id || show.id,
-            title: show.name,
-            year: show.first_air_date ? new Date(show.first_air_date).getFullYear() : null,
-            poster_url: getImageUrl(show.poster_path),
-            tmdb_rating: show.vote_average,
-            overview: show.overview,
-            inCollection: inCollection,
-            is_watched: collectionShow?.is_watched || false,
-            is_favorite: collectionShow?.is_favorite || false,
-            is_watchlist: collectionShow?.is_watchlist || false,
-            rating: collectionShow?.rating || 0
-          }
-        })}
+        onPress={() =>
+          router.push({
+            pathname: '/tv-show-detail',
+            params: {
+              id: collectionShow?.id || show.id,
+              title: show.name,
+              year: show.first_air_date
+                ? new Date(show.first_air_date).getFullYear()
+                : null,
+              poster_url: getImageUrl(show.poster_path),
+              tmdb_rating: show.vote_average,
+              overview: show.overview,
+              inCollection: inCollection,
+              is_watched: collectionShow?.is_watched || false,
+              is_favorite: collectionShow?.is_favorite || false,
+              is_watchlist: collectionShow?.is_watchlist || false,
+              rating: collectionShow?.rating || 0,
+            },
+          })
+        }
       >
         <View style={styles.posterContainer}>
           <Image
-            source={{ 
-              uri: getImageUrl(show.poster_path) || 'https://via.placeholder.com/300x450?text=No+Image'
+            source={{
+              uri:
+                getImageUrl(show.poster_path) ||
+                'https://via.placeholder.com/300x450?text=No+Image',
             }}
             style={styles.poster}
             resizeMode="cover"
           />
-          
+
           <View style={styles.badgeContainer}>
             <TouchableOpacity
               style={styles.addBadge}
               onPress={() => handleAddTVShow(show)}
-              disabled={addingShowId === show.id || inCollection}
+              disabled={addingShowId === show.id || isWatched}
             >
               {addingShowId === show.id ? (
                 <ActivityIndicator size="small" color="#6366F1" />
-              ) : inCollection ? (
+              ) : isWatched ? (
                 <Check size={16} color="#10B981" strokeWidth={2} />
               ) : (
                 <Plus size={16} color="#6366F1" strokeWidth={2} />
               )}
             </TouchableOpacity>
-            
+
             {inCollection && collectionShow && (
               <TouchableOpacity
                 style={styles.favoriteButton}
-                onPress={() => handleToggleFavorite(collectionShow.id, collectionShow.is_favorite)}
+                onPress={() =>
+                  handleToggleFavorite(
+                    collectionShow.id,
+                    collectionShow.is_favorite
+                  )
+                }
                 disabled={updatingShowId === collectionShow.id}
               >
                 {updatingShowId === collectionShow.id ? (
@@ -393,7 +454,9 @@ export default function TVShowsScreen() {
                   <Heart
                     size={16}
                     color="#EF4444"
-                    fill={collectionShow.is_favorite ? '#EF4444' : 'transparent'}
+                    fill={
+                      collectionShow.is_favorite ? '#EF4444' : 'transparent'
+                    }
                     strokeWidth={2}
                   />
                 )}
@@ -401,16 +464,22 @@ export default function TVShowsScreen() {
             )}
           </View>
         </View>
-        
+
         <View style={styles.showInfo}>
-          <Text style={styles.showTitle} numberOfLines={2}>{show.name}</Text>
-          <Text style={styles.showYear}>
-            {show.first_air_date ? new Date(show.first_air_date).getFullYear() : 'Unknown'}
+          <Text style={styles.showTitle} numberOfLines={2}>
+            {show.name}
           </Text>
-          
+          <Text style={styles.showYear}>
+            {show.first_air_date
+              ? new Date(show.first_air_date).getFullYear()
+              : 'Unknown'}
+          </Text>
+
           <View style={styles.tmdbRating}>
             <Star size={12} color="#F59E0B" fill="#F59E0B" strokeWidth={1} />
-            <Text style={styles.ratingText}>{show.vote_average.toFixed(1)}</Text>
+            <Text style={styles.ratingText}>
+              {show.vote_average.toFixed(1)}
+            </Text>
           </View>
         </View>
       </TouchableOpacity>
@@ -419,13 +488,12 @@ export default function TVShowsScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <LinearGradient
-        colors={['#1F2937', '#111827']}
-        style={styles.gradient}
-      >
+      <LinearGradient colors={['#1F2937', '#111827']} style={styles.gradient}>
         <View style={styles.header}>
           <Text style={styles.title}>TV Shows</Text>
-          <Text style={styles.subtitle}>{displayTVShows.length} shows in collection</Text>
+          <Text style={styles.subtitle}>
+            {displayTVShows.length} shows in collection
+          </Text>
         </View>
 
         <View style={styles.searchContainer}>
@@ -449,23 +517,32 @@ export default function TVShowsScreen() {
               key={filterOption}
               style={[
                 styles.filterButton,
-                filter === filterOption && styles.filterButtonActive
+                filter === filterOption && styles.filterButtonActive,
               ]}
               onPress={() => setFilter(filterOption)}
             >
-              <Text style={[
-                styles.filterText,
-                filter === filterOption && styles.filterTextActive
-              ]}>
-                {filterOption === 'all' ? 'All' :
-                 filterOption === 'watched' ? 'Watched' :
-                 filterOption === 'favorites' ? 'Favorites' : 'Watchlist'}
+              <Text
+                style={[
+                  styles.filterText,
+                  filter === filterOption && styles.filterTextActive,
+                ]}
+              >
+                {filterOption === 'all'
+                  ? 'All'
+                  : filterOption === 'watched'
+                  ? 'Watched'
+                  : filterOption === 'favorites'
+                  ? 'Favorites'
+                  : 'Watchlist'}
               </Text>
             </TouchableOpacity>
           ))}
         </View>
 
-        <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+        <ScrollView
+          style={styles.scrollView}
+          showsVerticalScrollIndicator={false}
+        >
           {/* {filter === 'all' && (
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>My Collection</Text>
@@ -491,8 +568,12 @@ export default function TVShowsScreen() {
                 </View>
               ) : (
                 <View style={styles.emptyState}>
-                  <Text style={styles.emptyStateText}>No watched shows yet</Text>
-                  <Text style={styles.emptyStateSubtext}>Mark some shows as completed to see them here</Text>
+                  <Text style={styles.emptyStateText}>
+                    No watched shows yet
+                  </Text>
+                  <Text style={styles.emptyStateSubtext}>
+                    Mark some shows as completed to see them here
+                  </Text>
                 </View>
               )}
             </View>
@@ -507,8 +588,12 @@ export default function TVShowsScreen() {
                 </View>
               ) : (
                 <View style={styles.emptyState}>
-                  <Text style={styles.emptyStateText}>No favorite shows yet</Text>
-                  <Text style={styles.emptyStateSubtext}>Add some shows to favorites to see them here</Text>
+                  <Text style={styles.emptyStateText}>
+                    No favorite shows yet
+                  </Text>
+                  <Text style={styles.emptyStateSubtext}>
+                    Add some shows to favorites to see them here
+                  </Text>
                 </View>
               )}
             </View>
@@ -523,8 +608,12 @@ export default function TVShowsScreen() {
                 </View>
               ) : (
                 <View style={styles.emptyState}>
-                  <Text style={styles.emptyStateText}>No shows in watchlist yet</Text>
-                  <Text style={styles.emptyStateSubtext}>Add some shows to your watchlist to see them here</Text>
+                  <Text style={styles.emptyStateText}>
+                    No shows in watchlist yet
+                  </Text>
+                  <Text style={styles.emptyStateSubtext}>
+                    Add some shows to your watchlist to see them here
+                  </Text>
                 </View>
               )}
             </View>
@@ -547,7 +636,7 @@ export default function TVShowsScreen() {
               )}
             </View>
           )}
-          
+
           <View style={styles.bottomSpacer} />
         </ScrollView>
       </LinearGradient>

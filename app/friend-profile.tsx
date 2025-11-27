@@ -1,14 +1,56 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, SafeAreaView, TouchableOpacity, Image, ActivityIndicator } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  SafeAreaView,
+  TouchableOpacity,
+  Image,
+  ActivityIndicator,
+} from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { ArrowLeft, User, Film, Tv, Heart, Eye, Star } from 'lucide-react-native';
+import {
+  ArrowLeft,
+  User,
+  Film,
+  Tv,
+  Heart,
+  Eye,
+  Star,
+} from 'lucide-react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { friendsApi } from '@/lib/friends-api';
 
+interface Movie {
+  id: string;
+  title: string;
+  year?: string | null;
+  poster_url?: string | null;
+  is_watched: boolean;
+  is_favorite: boolean;
+  is_watchlist?: boolean;
+  rating?: number;
+}
+
+interface TVShow {
+  id: string;
+  title: string;
+  year?: string | null;
+  poster_url?: string | null;
+  is_watched: boolean;
+  is_favorite: boolean;
+  is_watchlist?: boolean;
+  rating?: number;
+  current_season?: number;
+  current_episode?: number;
+  seasons?: number;
+}
+
 export default function FriendProfileScreen() {
   const params = useLocalSearchParams();
-  const [movies, setMovies] = useState([]);
-  const [tvShows, setTVShows] = useState([]);
+  const [movies, setMovies] = useState<Movie[]>([]);
+  const [tvShows, setTVShows] = useState<TVShow[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'movies' | 'tv'>('movies');
 
@@ -24,7 +66,7 @@ export default function FriendProfileScreen() {
     try {
       const [moviesResult, tvShowsResult] = await Promise.all([
         friendsApi.getFriendMovies(friendId),
-        friendsApi.getFriendTVShows(friendId)
+        friendsApi.getFriendTVShows(friendId),
       ]);
 
       if (moviesResult.error) {
@@ -45,8 +87,26 @@ export default function FriendProfileScreen() {
     }
   };
 
-  const renderMovieItem = (movie) => (
-    <View key={movie.id} style={styles.listItem}>
+  const renderMovieItem = (movie: Movie) => (
+    <TouchableOpacity
+      key={movie.id}
+      style={styles.listItem}
+      onPress={() =>
+        router.push({
+          pathname: '/movie-detail',
+          params: {
+            id: movie.id,
+            title: movie.title,
+            year: movie.year || '',
+            poster_url: movie.poster_url || '',
+            is_watched: movie.is_watched.toString(),
+            is_favorite: movie.is_favorite.toString(),
+            is_watchlist: movie.is_watchlist?.toString() || 'false',
+            rating: movie.rating?.toString() || '0',
+          },
+        })
+      }
+    >
       <View style={styles.posterContainer}>
         {movie.poster_url ? (
           <Image
@@ -60,9 +120,11 @@ export default function FriendProfileScreen() {
           </View>
         )}
       </View>
-      
+
       <View style={styles.itemInfo}>
-        <Text style={styles.itemTitle} numberOfLines={1}>{movie.title}</Text>
+        <Text style={styles.itemTitle} numberOfLines={1}>
+          {movie.title}
+        </Text>
         <View style={styles.itemMeta}>
           <Text style={styles.itemType}>Movie</Text>
           {movie.year && (
@@ -72,7 +134,7 @@ export default function FriendProfileScreen() {
             </>
           )}
         </View>
-        
+
         <View style={styles.itemStatus}>
           {movie.is_watched && (
             <View style={styles.statusBadge}>
@@ -81,32 +143,57 @@ export default function FriendProfileScreen() {
             </View>
           )}
           {movie.is_favorite && (
-            <View style={[styles.statusBadge, { backgroundColor: '#EF444420' }]}>
+            <View
+              style={[styles.statusBadge, { backgroundColor: '#EF444420' }]}
+            >
               <Heart size={12} color="#EF4444" fill="#EF4444" strokeWidth={1} />
-              <Text style={[styles.statusText, { color: '#EF4444' }]}>Favorite</Text>
+              <Text style={[styles.statusText, { color: '#EF4444' }]}>
+                Favorite
+              </Text>
             </View>
           )}
         </View>
-        
-        {movie.rating > 0 && (
+
+        {(movie.rating || 0) > 0 && (
           <View style={styles.rating}>
             {[...Array(5)].map((_, i) => (
               <Star
                 key={i}
                 size={12}
-                color={i < movie.rating ? '#F59E0B' : '#374151'}
-                fill={i < movie.rating ? '#F59E0B' : 'transparent'}
+                color={i < (movie.rating || 0) ? '#F59E0B' : '#374151'}
+                fill={i < (movie.rating || 0) ? '#F59E0B' : 'transparent'}
                 strokeWidth={1}
               />
             ))}
           </View>
         )}
       </View>
-    </View>
+    </TouchableOpacity>
   );
 
-  const renderTVShowItem = (show) => (
-    <View key={show.id} style={styles.listItem}>
+  const renderTVShowItem = (show: TVShow) => (
+    <TouchableOpacity
+      key={show.id}
+      style={styles.listItem}
+      onPress={() =>
+        router.push({
+          pathname: '/tv-show-detail',
+          params: {
+            id: show.id,
+            title: show.title,
+            year: show.year || '',
+            poster_url: show.poster_url || '',
+            is_watched: show.is_watched.toString(),
+            is_favorite: show.is_favorite.toString(),
+            is_watchlist: show.is_watchlist?.toString() || 'false',
+            rating: show.rating?.toString() || '0',
+            current_season: show.current_season?.toString() || '1',
+            current_episode: show.current_episode?.toString() || '1',
+            seasons: show.seasons?.toString() || '',
+          },
+        })
+      }
+    >
       <View style={styles.posterContainer}>
         {show.poster_url ? (
           <Image
@@ -120,9 +207,11 @@ export default function FriendProfileScreen() {
           </View>
         )}
       </View>
-      
+
       <View style={styles.itemInfo}>
-        <Text style={styles.itemTitle} numberOfLines={1}>{show.title}</Text>
+        <Text style={styles.itemTitle} numberOfLines={1}>
+          {show.title}
+        </Text>
         <View style={styles.itemMeta}>
           <Text style={styles.itemType}>TV Show</Text>
           {show.year && (
@@ -138,7 +227,7 @@ export default function FriendProfileScreen() {
             </>
           )}
         </View>
-        
+
         <View style={styles.itemStatus}>
           {show.is_watched && (
             <View style={styles.statusBadge}>
@@ -147,54 +236,62 @@ export default function FriendProfileScreen() {
             </View>
           )}
           {show.is_favorite && (
-            <View style={[styles.statusBadge, { backgroundColor: '#EF444420' }]}>
+            <View
+              style={[styles.statusBadge, { backgroundColor: '#EF444420' }]}
+            >
               <Heart size={12} color="#EF4444" fill="#EF4444" strokeWidth={1} />
-              <Text style={[styles.statusText, { color: '#EF4444' }]}>Favorite</Text>
+              <Text style={[styles.statusText, { color: '#EF4444' }]}>
+                Favorite
+              </Text>
             </View>
           )}
-          {!show.is_watched && show.current_episode > 1 && (
-            <View style={[styles.statusBadge, { backgroundColor: '#F59E0B20' }]}>
+          {!show.is_watched && (show.current_episode || 0) > 1 && (
+            <View
+              style={[styles.statusBadge, { backgroundColor: '#F59E0B20' }]}
+            >
               <Text style={[styles.statusText, { color: '#F59E0B' }]}>
                 S{show.current_season}E{show.current_episode}
               </Text>
             </View>
           )}
         </View>
-        
-        {show.rating > 0 && (
+
+        {(show.rating || 0) > 0 && (
           <View style={styles.rating}>
             {[...Array(5)].map((_, i) => (
               <Star
                 key={i}
                 size={12}
-                color={i < show.rating ? '#F59E0B' : '#374151'}
-                fill={i < show.rating ? '#F59E0B' : 'transparent'}
+                color={i < (show.rating || 0) ? '#F59E0B' : '#374151'}
+                fill={i < (show.rating || 0) ? '#F59E0B' : 'transparent'}
                 strokeWidth={1}
               />
             ))}
           </View>
         )}
       </View>
-    </View>
+    </TouchableOpacity>
   );
 
-  const favoriteMovies = movies.filter(m => m.is_favorite);
-  const watchedMovies = movies.filter(m => m.is_watched);
-  const favoriteTVShows = tvShows.filter(s => s.is_favorite);
-  const watchedTVShows = tvShows.filter(s => s.is_watched);
+  const favoriteMovies = movies.filter((m) => m.is_favorite);
+  const watchedMovies = movies.filter((m) => m.is_watched);
+  const favoriteTVShows = tvShows.filter((s) => s.is_favorite);
+  const watchedTVShows = tvShows.filter((s) => s.is_watched);
 
   return (
     <SafeAreaView style={styles.container}>
-      <LinearGradient
-        colors={['#1F2937', '#111827']}
-        style={styles.gradient}
-      >
+      <LinearGradient colors={['#1F2937', '#111827']} style={styles.gradient}>
         <View style={styles.header}>
-          <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+          <TouchableOpacity
+            onPress={() => router.back()}
+            style={styles.backButton}
+          >
             <ArrowLeft size={24} color="white" strokeWidth={2} />
           </TouchableOpacity>
           <View style={styles.headerInfo}>
-            <Text style={styles.title}>{friendEmail?.split('@')[0]}'s Lists</Text>
+            <Text style={styles.title}>
+              {friendEmail?.split('@')[0]}'s Lists
+            </Text>
             <Text style={styles.subtitle}>{friendEmail}</Text>
           </View>
         </View>
@@ -212,7 +309,9 @@ export default function FriendProfileScreen() {
           </View>
           <View style={styles.statCard}>
             <Heart size={20} color="#EF4444" strokeWidth={2} />
-            <Text style={styles.statValue}>{favoriteMovies.length + favoriteTVShows.length}</Text>
+            <Text style={styles.statValue}>
+              {favoriteMovies.length + favoriteTVShows.length}
+            </Text>
             <Text style={styles.statLabel}>Favorites</Text>
           </View>
         </View>
@@ -222,8 +321,17 @@ export default function FriendProfileScreen() {
             style={[styles.tab, activeTab === 'movies' && styles.activeTab]}
             onPress={() => setActiveTab('movies')}
           >
-            <Film size={20} color={activeTab === 'movies' ? '#6366F1' : '#9CA3AF'} strokeWidth={2} />
-            <Text style={[styles.tabText, activeTab === 'movies' && styles.activeTabText]}>
+            <Film
+              size={20}
+              color={activeTab === 'movies' ? '#6366F1' : '#9CA3AF'}
+              strokeWidth={2}
+            />
+            <Text
+              style={[
+                styles.tabText,
+                activeTab === 'movies' && styles.activeTabText,
+              ]}
+            >
               Movies ({movies.length})
             </Text>
           </TouchableOpacity>
@@ -231,14 +339,26 @@ export default function FriendProfileScreen() {
             style={[styles.tab, activeTab === 'tv' && styles.activeTab]}
             onPress={() => setActiveTab('tv')}
           >
-            <Tv size={20} color={activeTab === 'tv' ? '#6366F1' : '#9CA3AF'} strokeWidth={2} />
-            <Text style={[styles.tabText, activeTab === 'tv' && styles.activeTabText]}>
+            <Tv
+              size={20}
+              color={activeTab === 'tv' ? '#6366F1' : '#9CA3AF'}
+              strokeWidth={2}
+            />
+            <Text
+              style={[
+                styles.tabText,
+                activeTab === 'tv' && styles.activeTabText,
+              ]}
+            >
               TV Shows ({tvShows.length})
             </Text>
           </TouchableOpacity>
         </View>
 
-        <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+        <ScrollView
+          style={styles.scrollView}
+          showsVerticalScrollIndicator={false}
+        >
           {loading ? (
             <View style={styles.loadingContainer}>
               <ActivityIndicator size="large" color="#6366F1" />
@@ -255,19 +375,17 @@ export default function FriendProfileScreen() {
                     <Text style={styles.emptyStateText}>No movies yet</Text>
                   </View>
                 )
+              ) : tvShows.length > 0 ? (
+                tvShows.map(renderTVShowItem)
               ) : (
-                tvShows.length > 0 ? (
-                  tvShows.map(renderTVShowItem)
-                ) : (
-                  <View style={styles.emptyState}>
-                    <Tv size={48} color="#6B7280" strokeWidth={1.5} />
-                    <Text style={styles.emptyStateText}>No TV shows yet</Text>
-                  </View>
-                )
+                <View style={styles.emptyState}>
+                  <Tv size={48} color="#6B7280" strokeWidth={1.5} />
+                  <Text style={styles.emptyStateText}>No TV shows yet</Text>
+                </View>
               )}
             </View>
           )}
-          
+
           <View style={styles.bottomSpacer} />
         </ScrollView>
       </LinearGradient>

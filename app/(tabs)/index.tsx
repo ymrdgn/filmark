@@ -1,7 +1,24 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView, SafeAreaView, TouchableOpacity, Dimensions, Image } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  SafeAreaView,
+  TouchableOpacity,
+  Dimensions,
+  Image,
+} from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { TrendingUp, Clock, Star, Plus, Eye, Film, Tv } from 'lucide-react-native';
+import {
+  TrendingUp,
+  Clock,
+  Star,
+  Plus,
+  Eye,
+  Film,
+  Tv,
+} from 'lucide-react-native';
 import { router } from 'expo-router';
 import { supabase, getCurrentUser } from '@/lib/supabase';
 import { moviesApi, tvShowsApi, statsApi } from '@/lib/api';
@@ -15,16 +32,22 @@ type TVShow = Database['public']['Tables']['tv_shows']['Row'];
 
 interface ActivityItem {
   id: string;
+  item_id: string;
   title: string;
   type: 'Movie' | 'TV Show';
   action: 'watched' | 'favorited';
   date: string;
   poster: string | null;
   rating: number | null;
+  year?: string | null;
+  is_watched: boolean;
+  is_favorite: boolean;
+  is_watchlist?: boolean;
 }
 
 interface FriendActivity {
   id: string;
+  item_id: string;
   friendName: string;
   friendEmail: string;
   title: string;
@@ -33,6 +56,10 @@ interface FriendActivity {
   date: string;
   poster: string | null;
   rating: number | null;
+  year?: string | null;
+  is_watched: boolean;
+  is_favorite: boolean;
+  is_watchlist?: boolean;
 }
 
 interface StatsData {
@@ -56,10 +83,14 @@ export default function HomeScreen() {
     hoursWatched: 0,
     averageRating: 0,
     favoriteMovies: 0,
-    favoriteTVShows: 0
+    favoriteTVShows: 0,
   });
-  const [recentActivity, setRecentActivity] = React.useState<ActivityItem[]>([]);
-  const [friendsActivity, setFriendsActivity] = React.useState<FriendActivity[]>([]);
+  const [recentActivity, setRecentActivity] = React.useState<ActivityItem[]>(
+    []
+  );
+  const [friendsActivity, setFriendsActivity] = React.useState<
+    FriendActivity[]
+  >([]);
   const [loading, setLoading] = React.useState(true);
 
   React.useEffect(() => {
@@ -81,20 +112,20 @@ export default function HomeScreen() {
     try {
       const { user } = await getCurrentUser();
       setUser(user);
-      
+
       if (user) {
         try {
           await loadStats();
         } catch (error) {
           console.error('Error loading stats:', error);
         }
-        
+
         try {
           await loadRecentActivity();
         } catch (error) {
           console.error('Error loading recent activity:', error);
         }
-        
+
         try {
           await loadFriendsActivity();
         } catch (error) {
@@ -124,10 +155,10 @@ export default function HomeScreen() {
   const loadRecentActivity = async () => {
     try {
       const activities: ActivityItem[] = [];
-      
+
       const [moviesResult, tvShowsResult] = await Promise.all([
         moviesApi.getAll(),
-        tvShowsApi.getAll()
+        tvShowsApi.getAll(),
       ]);
 
       // Movies - watched and favorites
@@ -136,23 +167,33 @@ export default function HomeScreen() {
           if (movie.is_watched) {
             activities.push({
               id: `movie-watched-${movie.id}`,
+              item_id: movie.id,
               title: movie.title,
               type: 'Movie',
               action: 'watched',
               date: movie.updated_at,
               poster: movie.poster_url,
-              rating: movie.rating
+              rating: movie.rating,
+              year: movie.year,
+              is_watched: movie.is_watched,
+              is_favorite: movie.is_favorite,
+              is_watchlist: movie.is_watchlist,
             });
           }
           if (movie.is_favorite) {
             activities.push({
               id: `movie-favorite-${movie.id}`,
+              item_id: movie.id,
               title: movie.title,
               type: 'Movie',
               action: 'favorited',
               date: movie.updated_at,
               poster: movie.poster_url,
-              rating: movie.rating
+              rating: movie.rating,
+              year: movie.year,
+              is_watched: movie.is_watched,
+              is_favorite: movie.is_favorite,
+              is_watchlist: movie.is_watchlist,
             });
           }
         });
@@ -166,23 +207,33 @@ export default function HomeScreen() {
           if (show.is_watched) {
             activities.push({
               id: `tv-watched-${show.id}`,
+              item_id: show.id,
               title: show.title,
               type: 'TV Show',
               action: 'watched',
               date: show.updated_at,
               poster: show.poster_url,
-              rating: show.rating
+              rating: show.rating,
+              year: show.year,
+              is_watched: show.is_watched,
+              is_favorite: show.is_favorite,
+              is_watchlist: show.is_watchlist,
             });
           }
           if (show.is_favorite) {
             activities.push({
               id: `tv-favorite-${show.id}`,
+              item_id: show.id,
               title: show.title,
               type: 'TV Show',
               action: 'favorited',
               date: show.updated_at,
               poster: show.poster_url,
-              rating: show.rating
+              rating: show.rating,
+              year: show.year,
+              is_watched: show.is_watched,
+              is_favorite: show.is_favorite,
+              is_watchlist: show.is_watchlist,
             });
           }
         });
@@ -204,7 +255,8 @@ export default function HomeScreen() {
   const loadFriendsActivity = async () => {
     try {
       // Get accepted friends
-      const { data: friends, error: friendsError } = await friendsApi.getAcceptedFriends();
+      const { data: friends, error: friendsError } =
+        await friendsApi.getAcceptedFriends();
       if (friendsError || !friends) {
         if (friendsError) {
           console.error('Error loading friends:', friendsError);
@@ -215,22 +267,24 @@ export default function HomeScreen() {
 
       // Get activity for each friend
       for (const friend of friends) {
-        console.log("friedns dataaa", friends);
-
-        const { data: { user } } = await supabase.auth.getUser();
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
         if (!user) continue;
 
-        console.log("friend", friend.user_id, "friend id",friend.friend_id);
-        console.log("Current user ID:", user.id);
-        const friendId = friend.user_id === user.id ? friend.friend_id : friend.user_id;
-        const friendEmail = friend.user_id === user.id ? friend.friend_email : friend.requesting_email;
+        const friendId =
+          friend.user_id === user.id ? friend.friend_id : friend.user_id;
+        const friendEmail =
+          friend.user_id === user.id
+            ? friend.friend_email
+            : friend.requesting_email;
         const friendName = friendEmail?.split('@')[0] || 'Unknown';
 
         try {
           // Get friend's movies and TV shows
           const [moviesResult, tvShowsResult] = await Promise.all([
             friendsApi.getFriendMovies(friendId),
-            friendsApi.getFriendTVShows(friendId)
+            friendsApi.getFriendTVShows(friendId),
           ]);
 
           // Process movies
@@ -240,6 +294,7 @@ export default function HomeScreen() {
               if (movie.is_watched) {
                 allFriendsActivity.push({
                   id: `friend-movie-${friendId}-${movie.id}`,
+                  item_id: movie.id,
                   friendName,
                   friendEmail,
                   title: movie.title,
@@ -247,12 +302,17 @@ export default function HomeScreen() {
                   action: 'watched',
                   date: new Date().toISOString(),
                   poster: movie.poster_url,
-                  rating: movie.rating
+                  rating: movie.rating,
+                  year: movie.year,
+                  is_watched: movie.is_watched,
+                  is_favorite: movie.is_favorite,
+                  is_watchlist: movie.is_watchlist,
                 });
               }
               if (movie.is_favorite) {
                 allFriendsActivity.push({
                   id: `friend-movie-fav-${friendId}-${movie.id}`,
+                  item_id: movie.id,
                   friendName,
                   friendEmail,
                   title: movie.title,
@@ -260,7 +320,11 @@ export default function HomeScreen() {
                   action: 'favorited',
                   date: new Date().toISOString(),
                   poster: movie.poster_url,
-                  rating: movie.rating
+                  rating: movie.rating,
+                  year: movie.year,
+                  is_watched: movie.is_watched,
+                  is_favorite: movie.is_favorite,
+                  is_watchlist: movie.is_watchlist,
                 });
               }
             });
@@ -273,6 +337,7 @@ export default function HomeScreen() {
               if (show.is_watched) {
                 allFriendsActivity.push({
                   id: `friend-tv-${friendId}-${show.id}`,
+                  item_id: show.id,
                   friendName,
                   friendEmail,
                   title: show.title,
@@ -280,12 +345,17 @@ export default function HomeScreen() {
                   action: 'watched',
                   date: new Date().toISOString(),
                   poster: show.poster_url,
-                  rating: show.rating
+                  rating: show.rating,
+                  year: show.year,
+                  is_watched: show.is_watched,
+                  is_favorite: show.is_favorite,
+                  is_watchlist: show.is_watchlist,
                 });
               }
               if (show.is_favorite) {
                 allFriendsActivity.push({
                   id: `friend-tv-fav-${friendId}-${show.id}`,
+                  item_id: show.id,
                   friendName,
                   friendEmail,
                   title: show.title,
@@ -293,13 +363,20 @@ export default function HomeScreen() {
                   action: 'favorited',
                   date: new Date().toISOString(),
                   poster: show.poster_url,
-                  rating: show.rating
+                  rating: show.rating,
+                  year: show.year,
+                  is_watched: show.is_watched,
+                  is_favorite: show.is_favorite,
+                  is_watchlist: show.is_watchlist,
                 });
               }
             });
           }
         } catch (friendError) {
-          console.error(`Error loading activity for friend ${friendId}:`, friendError);
+          console.error(
+            `Error loading activity for friend ${friendId}:`,
+            friendError
+          );
         }
       }
 
@@ -308,7 +385,6 @@ export default function HomeScreen() {
         .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
         .slice(0, 3);
 
-        console.log("Friends Activity:", sortedActivity);
       setFriendsActivity(sortedActivity);
     } catch (error) {
       console.error('Error loading friends activity:', error);
@@ -320,14 +396,14 @@ export default function HomeScreen() {
     const now = new Date();
     const diffTime = Math.abs(now.getTime() - date.getTime());
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    
+
     if (diffDays === 1) return 'today';
     if (diffDays === 2) return 'yesterday';
     if (diffDays <= 7) return `${diffDays - 1} days ago`;
-    
+
     return date.toLocaleDateString('en-US', {
       month: 'short',
-      day: 'numeric'
+      day: 'numeric',
     });
   };
 
@@ -338,19 +414,36 @@ export default function HomeScreen() {
     color: string;
   }
   const statsData: StatCardData[] = [
-    { label: 'Movies Watched', value: stats.moviesWatched.toString(), icon: Film, color: '#EF4444' },
-    { label: 'TV Shows', value: stats.tvShows.toString(), icon: Tv, color: '#10B981' },
-    { label: 'Hours Watched', value: `${stats.hoursWatched}h`, icon: Clock, color: '#F59E0B' },
-    { label: 'Average Rating', value: stats.averageRating > 0 ? stats.averageRating.toString() : '0', icon: Star, color: '#8B5CF6' },
+    {
+      label: 'Movies Watched',
+      value: stats.moviesWatched.toString(),
+      icon: Film,
+      color: '#EF4444',
+    },
+    {
+      label: 'TV Shows',
+      value: stats.tvShows.toString(),
+      icon: Tv,
+      color: '#10B981',
+    },
+    {
+      label: 'Hours Watched',
+      value: `${stats.hoursWatched}h`,
+      icon: Clock,
+      color: '#F59E0B',
+    },
+    {
+      label: 'Average Rating',
+      value: stats.averageRating > 0 ? stats.averageRating.toString() : '0',
+      icon: Star,
+      color: '#8B5CF6',
+    },
   ];
 
   if (loading) {
     return (
       <SafeAreaView style={styles.container}>
-        <LinearGradient
-          colors={['#1F2937', '#111827']}
-          style={styles.gradient}
-        >
+        <LinearGradient colors={['#1F2937', '#111827']} style={styles.gradient}>
           <View style={styles.loadingContainer}>
             <Text style={styles.loadingText}>Loading...</Text>
           </View>
@@ -361,24 +454,31 @@ export default function HomeScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <LinearGradient
-        colors={['#1F2937', '#111827']}
-        style={styles.gradient}
-      >
-        <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+      <LinearGradient colors={['#1F2937', '#111827']} style={styles.gradient}>
+        <ScrollView
+          style={styles.scrollView}
+          showsVerticalScrollIndicator={false}
+        >
           <View style={styles.header}>
             <View style={styles.headerTop}>
               <View style={styles.headerTextContainer}>
                 <Text style={styles.greeting}>
-                  {user ? `Welcome back, ${user.user_metadata?.username || user.email?.split('@')[0]}!` : 'Welcome to WatchTracker!'}
+                  {user
+                    ? `Welcome back, ${
+                        user.user_metadata?.username ||
+                        user.email?.split('@')[0]
+                      }!`
+                    : 'Welcome to WatchTracker!'}
                 </Text>
-                <Text style={styles.subtitle}>What would you like to watch today?</Text>
+                <Text style={styles.subtitle}>
+                  What would you like to watch today?
+                </Text>
               </View>
               {user && <NotificationBell />}
             </View>
-            
+
             {!user && (
-              <TouchableOpacity 
+              <TouchableOpacity
                 style={styles.authButton}
                 onPress={() => router.push('/(auth)/login')}
               >
@@ -392,7 +492,12 @@ export default function HomeScreen() {
             <View style={styles.statsGrid}>
               {statsData.map((stat, index) => (
                 <View key={index} style={styles.statCard}>
-                  <View style={[styles.statIcon, { backgroundColor: `${stat.color}20` }]}>
+                  <View
+                    style={[
+                      styles.statIcon,
+                      { backgroundColor: `${stat.color}20` },
+                    ]}
+                  >
                     <stat.icon size={24} color={stat.color} strokeWidth={2} />
                   </View>
                   <Text style={styles.statValue}>{stat.value}</Text>
@@ -405,9 +510,31 @@ export default function HomeScreen() {
           {recentActivity.length > 0 && (
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>Recent Activity</Text>
-              
+
               {recentActivity.map((item, index) => (
-                <View key={item.id} style={styles.activityCard}>
+                <TouchableOpacity
+                  key={item.id}
+                  style={styles.activityCard}
+                  onPress={() => {
+                    const detailPath =
+                      item.type === 'Movie'
+                        ? '/movie-detail'
+                        : '/tv-show-detail';
+                    router.push({
+                      pathname: detailPath,
+                      params: {
+                        id: item.item_id,
+                        title: item.title,
+                        year: item.year || '',
+                        poster_url: item.poster || '',
+                        is_watched: item.is_watched.toString(),
+                        is_favorite: item.is_favorite.toString(),
+                        is_watchlist: item.is_watchlist?.toString() || 'false',
+                        rating: item.rating?.toString() || '0',
+                      },
+                    });
+                  }}
+                >
                   <View style={styles.activityPoster}>
                     {item.poster ? (
                       <Image
@@ -429,7 +556,10 @@ export default function HomeScreen() {
                     <Text style={styles.activityTitle}>{item.title}</Text>
                     <Text style={styles.activityType}>{item.type}</Text>
                     <Text style={styles.activityAction}>
-                      {item.action === 'watched' ? 'izlendi' : 'favoriye eklendi'} - {formatDate(item.date)}
+                      {item.action === 'watched'
+                        ? 'izlendi'
+                        : 'favoriye eklendi'}{' '}
+                      - {formatDate(item.date)}
                     </Text>
                     {item.rating != null && item.rating > 0 && (
                       <View style={styles.activityRating}>
@@ -437,15 +567,23 @@ export default function HomeScreen() {
                           <Star
                             key={i}
                             size={12}
-                            color={item.rating != null && i < item.rating ? '#F59E0B' : '#374151'}
-                            fill={item.rating != null && i < item.rating ? '#F59E0B' : 'transparent'}
+                            color={
+                              item.rating != null && i < item.rating
+                                ? '#F59E0B'
+                                : '#374151'
+                            }
+                            fill={
+                              item.rating != null && i < item.rating
+                                ? '#F59E0B'
+                                : 'transparent'
+                            }
                             strokeWidth={1.5}
                           />
                         ))}
                       </View>
                     )}
                   </View>
-                </View>
+                </TouchableOpacity>
               ))}
             </View>
           )}
@@ -455,27 +593,63 @@ export default function HomeScreen() {
               <Text style={styles.sectionTitle}>Friends Activity</Text>
               <View style={styles.friendsActivity}>
                 {friendsActivity.map((activity, index) => (
-                  <View key={activity.id} style={styles.friendActivityCard}>
-                    <View style={[
-                      styles.friendAvatar, 
-                      { backgroundColor: ['#6366F1', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6'][index % 5] }
-                    ]}>
+                  <TouchableOpacity
+                    key={activity.id}
+                    style={styles.friendActivityCard}
+                    onPress={() => {
+                      const detailPath =
+                        activity.type === 'Movie'
+                          ? '/movie-detail'
+                          : '/tv-show-detail';
+                      router.push({
+                        pathname: detailPath,
+                        params: {
+                          id: activity.item_id,
+                          title: activity.title,
+                          year: activity.year || '',
+                          poster_url: activity.poster || '',
+                          is_watched: activity.is_watched.toString(),
+                          is_favorite: activity.is_favorite.toString(),
+                          is_watchlist:
+                            activity.is_watchlist?.toString() || 'false',
+                          rating: activity.rating?.toString() || '0',
+                        },
+                      });
+                    }}
+                  >
+                    <View
+                      style={[
+                        styles.friendAvatar,
+                        {
+                          backgroundColor: [
+                            '#6366F1',
+                            '#10B981',
+                            '#F59E0B',
+                            '#EF4444',
+                            '#8B5CF6',
+                          ][index % 5],
+                        },
+                      ]}
+                    >
                       <Text style={styles.friendInitial}>
                         {activity.friendName?.charAt(0)?.toUpperCase() || 'U'}
                       </Text>
                     </View>
                     <View style={styles.friendActivityContent}>
-                      <Text style={styles.friendName}>{activity.friendName}</Text>
+                      <Text style={styles.friendName}>
+                        {activity.friendName}
+                      </Text>
                       <Text style={styles.friendActivity}>
-                        {activity.title} {activity.action} - {formatDate(activity.date)}
+                        {activity.title} {activity.action} -{' '}
+                        {formatDate(activity.date)}
                       </Text>
                     </View>
-                  </View>
+                  </TouchableOpacity>
                 ))}
               </View>
             </View>
           )}
-          
+
           <View style={styles.bottomSpacer} />
         </ScrollView>
       </LinearGradient>

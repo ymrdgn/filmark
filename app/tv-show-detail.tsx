@@ -1,7 +1,29 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, SafeAreaView, TouchableOpacity, Image, Alert } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  SafeAreaView,
+  TouchableOpacity,
+  Image,
+  Alert,
+} from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { ArrowLeft, Star, Calendar, Clock, Eye, Plus, Trash2, Heart, User, Tv, Play, Pause } from 'lucide-react-native';
+import {
+  ArrowLeft,
+  Star,
+  Calendar,
+  Clock,
+  Eye,
+  Plus,
+  Trash2,
+  Heart,
+  User,
+  Tv,
+  Play,
+  Pause,
+} from 'lucide-react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { tvShowsApi } from '@/lib/api';
 import { useFocusEffect } from '@react-navigation/native';
@@ -23,10 +45,12 @@ export default function TVShowDetailScreen() {
     current_episode: parseInt(params.current_episode as string) || 1,
     imdb_rating: null,
     director: null,
-    genre: null
+    genre: null,
   });
   const [loading, setLoading] = useState(false);
-  const [inCollection, setInCollection] = useState(params.inCollection === 'true');
+  const [inCollection, setInCollection] = useState(
+    params.inCollection === 'true'
+  );
 
   // Auto refresh parent screen when going back
   useFocusEffect(
@@ -55,7 +79,7 @@ export default function TVShowDetailScreen() {
     const unsubscribe = router.addListener?.('focus', () => {
       loadTVShowData();
     });
-    
+
     return unsubscribe;
   }, []);
 
@@ -67,11 +91,13 @@ export default function TVShowDetailScreen() {
       const { data, error } = await tvShowsApi.getAll();
       console.log('API response:', { data: data?.length, error });
       if (!error && data) {
-        let currentShow = data.find(s => s.id === params.id);
+        let currentShow = data.find((s) => s.id === params.id);
 
         if (!currentShow) {
-          currentShow = data.find(s =>
-            s.title?.toLowerCase().trim() === (params.title as string)?.toLowerCase().trim()
+          currentShow = data.find(
+            (s) =>
+              s.title?.toLowerCase().trim() ===
+              (params.title as string)?.toLowerCase().trim()
           );
         }
 
@@ -93,7 +119,7 @@ export default function TVShowDetailScreen() {
             current_episode: currentShow.current_episode || 1,
             imdb_rating: currentShow.imdb_rating,
             director: currentShow.director,
-            genre: currentShow.genre
+            genre: currentShow.genre,
           });
         } else {
           setInCollection(false);
@@ -106,20 +132,28 @@ export default function TVShowDetailScreen() {
 
   const handleRatingChange = async (newRating: number) => {
     if (!inCollection) {
-      Alert.alert('Not in Collection', 'Please add this TV show to your collection first using the + button.');
+      Alert.alert(
+        'Not in Collection',
+        'Please add this TV show to your collection first using the + button.'
+      );
       return;
     }
     setLoading(true);
     try {
       const { error } = await tvShowsApi.update(tvShow.id as string, {
         rating: newRating,
-        is_watched: true
+        is_watched: true,
       });
 
       if (error) {
         Alert.alert('Error', 'Failed to update rating.');
       } else {
-        await loadTVShowData();
+        // Update local state immediately
+        setTVShow((prev) => ({
+          ...prev,
+          rating: newRating,
+          is_watched: true,
+        }));
         Alert.alert('Success', 'Rating updated!');
         global.refreshTVShows?.();
       }
@@ -132,25 +166,41 @@ export default function TVShowDetailScreen() {
 
   const handleWatchedToggle = async () => {
     if (!inCollection) {
-      Alert.alert('Not in Collection', 'Please add this TV show to your collection first using the + button.');
+      Alert.alert(
+        'Not in Collection',
+        'Please add this TV show to your collection first using the + button.'
+      );
       return;
     }
     setLoading(true);
     try {
       const newWatchedStatus = !tvShow.is_watched;
-      const updateData = { is_watched: newWatchedStatus };
-      const { error } = await tvShowsApi.update(tvShow.id as string, updateData);
+      const updateData = {
+        is_watched: newWatchedStatus,
+      };
+      const { error } = await tvShowsApi.update(
+        tvShow.id as string,
+        updateData
+      );
 
       if (error) {
         Alert.alert('Error', 'Failed to update watched status.');
+        console.error('Update error:', error);
       } else {
-        await loadTVShowData();
-        const statusText = newWatchedStatus ? 'marked as watched' : 'unmarked as watched';
+        // Update local state immediately
+        setTVShow((prev) => ({
+          ...prev,
+          is_watched: newWatchedStatus,
+        }));
+        const statusText = newWatchedStatus
+          ? 'marked as watched'
+          : 'unmarked as watched';
         Alert.alert('Success', `TV show ${statusText}!`);
         global.refreshTVShows?.();
       }
     } catch (error) {
       Alert.alert('Error', 'Failed to update watched status.');
+      console.error('Caught error:', error);
     } finally {
       setLoading(false);
     }
@@ -158,19 +208,30 @@ export default function TVShowDetailScreen() {
 
   const handleFavoriteToggle = async () => {
     if (!inCollection) {
-      Alert.alert('Not in Collection', 'Please add this TV show to your collection first using the + button.');
+      Alert.alert(
+        'Not in Collection',
+        'Please add this TV show to your collection first using the + button.'
+      );
       return;
     }
     setLoading(true);
     try {
       const newFavoriteStatus = !tvShow.is_favorite;
-      const { error } = await tvShowsApi.update(tvShow.id as string, { is_favorite: newFavoriteStatus });
+      const { error } = await tvShowsApi.update(tvShow.id as string, {
+        is_favorite: newFavoriteStatus,
+      });
 
       if (error) {
         Alert.alert('Error', 'Failed to update favorite status.');
       } else {
-        await loadTVShowData();
-        const statusText = newFavoriteStatus ? 'added to favorites' : 'removed from favorites';
+        // Update local state immediately
+        setTVShow((prev) => ({
+          ...prev,
+          is_favorite: newFavoriteStatus,
+        }));
+        const statusText = newFavoriteStatus
+          ? 'added to favorites'
+          : 'removed from favorites';
         Alert.alert('Success', `TV show ${statusText}!`);
         global.refreshTVShows?.();
       }
@@ -183,19 +244,30 @@ export default function TVShowDetailScreen() {
 
   const handleWatchlistToggle = async () => {
     if (!inCollection) {
-      Alert.alert('Not in Collection', 'Please add this TV show to your collection first using the + button.');
+      Alert.alert(
+        'Not in Collection',
+        'Please add this TV show to your collection first using the + button.'
+      );
       return;
     }
     setLoading(true);
     try {
       const newWatchlistStatus = !tvShow.is_watchlist;
-      const { error } = await tvShowsApi.update(tvShow.id as string, { is_watchlist: newWatchlistStatus });
+      const { error } = await tvShowsApi.update(tvShow.id as string, {
+        is_watchlist: newWatchlistStatus,
+      });
 
       if (error) {
         Alert.alert('Error', 'Failed to update watchlist status.');
       } else {
-        await loadTVShowData();
-        const statusText = newWatchlistStatus ? 'added to watchlist' : 'removed from watchlist';
+        // Update local state immediately
+        setTVShow((prev) => ({
+          ...prev,
+          is_watchlist: newWatchlistStatus,
+        }));
+        const statusText = newWatchlistStatus
+          ? 'added to watchlist'
+          : 'removed from watchlist';
         Alert.alert('Success', `TV show ${statusText}!`);
         global.refreshTVShows?.();
       }
@@ -209,18 +281,18 @@ export default function TVShowDetailScreen() {
   const handleEpisodeUpdate = async (newSeason: number, newEpisode: number) => {
     setLoading(true);
     try {
-      const { error } = await tvShowsApi.update(tvShow.id as string, { 
+      const { error } = await tvShowsApi.update(tvShow.id as string, {
         current_season: newSeason,
-        current_episode: newEpisode
+        current_episode: newEpisode,
       });
-      
+
       if (error) {
         Alert.alert('Error', 'Failed to update episode progress.');
       } else {
-        setTVShow(prev => ({ 
-          ...prev, 
+        setTVShow((prev) => ({
+          ...prev,
           current_season: newSeason,
-          current_episode: newEpisode
+          current_episode: newEpisode,
         }));
         Alert.alert('Success', 'Episode progress updated!');
       }
@@ -253,17 +325,20 @@ export default function TVShowDetailScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <LinearGradient
-        colors={['#1F2937', '#111827']}
-        style={styles.gradient}
-      >
+      <LinearGradient colors={['#1F2937', '#111827']} style={styles.gradient}>
         <View style={styles.header}>
-          <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+          <TouchableOpacity
+            onPress={() => router.back()}
+            style={styles.backButton}
+          >
             <ArrowLeft size={24} color="white" strokeWidth={2} />
           </TouchableOpacity>
         </View>
 
-        <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+        <ScrollView
+          style={styles.scrollView}
+          showsVerticalScrollIndicator={false}
+        >
           <View style={styles.showHeader}>
             <View style={styles.posterContainer}>
               {tvShow.poster_url ? (
@@ -278,61 +353,84 @@ export default function TVShowDetailScreen() {
                 </View>
               )}
             </View>
-            
+
             <View style={styles.showInfo}>
               <Text style={styles.showTitle}>{tvShow.title}</Text>
               <View style={styles.showMeta}>
                 <Calendar size={16} color="#9CA3AF" strokeWidth={2} />
                 <Text style={styles.showYear}>{tvShow.year}</Text>
               </View>
-              
+
               <View style={styles.showMeta}>
                 <Tv size={16} color="#9CA3AF" strokeWidth={2} />
                 <Text style={styles.seasonsText}>{tvShow.seasons} seasons</Text>
               </View>
-              
+
               {tvShow.imdb_rating && (
                 <View style={styles.imdbRating}>
-                  <Star size={16} color="#F5C518" fill="#F5C518" strokeWidth={1} />
-                  <Text style={styles.imdbRatingText}>{tvShow.imdb_rating} IMDB</Text>
+                  <Star
+                    size={16}
+                    color="#F5C518"
+                    fill="#F5C518"
+                    strokeWidth={1}
+                  />
+                  <Text style={styles.imdbRatingText}>
+                    {tvShow.imdb_rating} IMDB
+                  </Text>
                 </View>
               )}
-              
+
               <View style={styles.statusContainer}>
-                <View style={[
-                  styles.statusBadge,
-                  { backgroundColor: `${getStatusColor()}20` }
-                ]}>
-                  <StatusIcon size={16} color={getStatusColor()} strokeWidth={2} />
-                  <Text style={[
-                    styles.statusText,
-                    { color: getStatusColor() }
-                  ]}>
+                <View
+                  style={[
+                    styles.statusBadge,
+                    { backgroundColor: `${getStatusColor()}20` },
+                  ]}
+                >
+                  <StatusIcon
+                    size={16}
+                    color={getStatusColor()}
+                    strokeWidth={2}
+                  />
+                  <Text
+                    style={[styles.statusText, { color: getStatusColor() }]}
+                  >
                     {getWatchingStatus()}
                   </Text>
                 </View>
-              
+
                 {tvShow.is_favorite && (
                   <View style={styles.favoriteBadge}>
-                    <Heart size={16} color="#EF4444" fill="#EF4444" strokeWidth={1} />
+                    <Heart
+                      size={16}
+                      color="#EF4444"
+                      fill="#EF4444"
+                      strokeWidth={1}
+                    />
                     <Text style={styles.favoriteText}>Favorite</Text>
                   </View>
                 )}
               </View>
-              
+
               {!tvShow.is_watched && tvShow.current_episode > 1 && (
                 <View style={styles.progressContainer}>
                   <Text style={styles.progressText}>
-                    Currently watching: S{tvShow.current_season}E{tvShow.current_episode}
+                    Currently watching: S{tvShow.current_season}E
+                    {tvShow.current_episode}
                   </Text>
                   <View style={styles.progressBar}>
-                    <View style={[
-                      styles.progress,
-                      { 
-                        backgroundColor: getStatusColor(),
-                        width: `${Math.min((tvShow.current_episode / tvShow.episodes) * 100, 100)}%`
-                      }
-                    ]} />
+                    <View
+                      style={[
+                        styles.progress,
+                        {
+                          backgroundColor: getStatusColor(),
+                          width: `${Math.min(
+                            (tvShow.current_episode / tvShow.episodes) * 100,
+                            100
+                          )}%`,
+                        },
+                      ]}
+                    />
                   </View>
                 </View>
               )}
@@ -359,7 +457,9 @@ export default function TVShowDetailScreen() {
               ))}
             </View>
             {tvShow.rating > 0 && (
-              <Text style={styles.ratingText}>You rated this {tvShow.rating}/5 stars</Text>
+              <Text style={styles.ratingText}>
+                You rated this {tvShow.rating}/5 stars
+              </Text>
             )}
           </View>
 
@@ -369,24 +469,30 @@ export default function TVShowDetailScreen() {
               <TouchableOpacity
                 style={[
                   styles.actionButton,
-                  tvShow.is_watched && styles.actionButtonActive
+                  tvShow.is_watched && styles.actionButtonActive,
                 ]}
                 onPress={handleWatchedToggle}
                 disabled={loading}
               >
-                <Eye size={20} color={tvShow.is_watched ? 'white' : '#10B981'} strokeWidth={2} />
-                <Text style={[
-                  styles.actionButtonText,
-                  tvShow.is_watched && styles.actionButtonTextActive
-                ]}>
+                <Eye
+                  size={20}
+                  color={tvShow.is_watched ? 'white' : '#10B981'}
+                  strokeWidth={2}
+                />
+                <Text
+                  style={[
+                    styles.actionButtonText,
+                    tvShow.is_watched && styles.actionButtonTextActive,
+                  ]}
+                >
                   {tvShow.is_watched ? 'Watched ✓' : 'Mark as Watched'}
                 </Text>
               </TouchableOpacity>
-              
+
               <TouchableOpacity
                 style={[
                   styles.actionButton,
-                  tvShow.is_favorite && styles.favoriteButtonActive
+                  tvShow.is_favorite && styles.favoriteButtonActive,
                 ]}
                 onPress={handleFavoriteToggle}
                 disabled={loading}
@@ -397,10 +503,12 @@ export default function TVShowDetailScreen() {
                   fill={tvShow.is_favorite ? 'white' : 'none'}
                   strokeWidth={2}
                 />
-                <Text style={[
-                  styles.actionButtonText,
-                  tvShow.is_favorite && styles.actionButtonTextActive
-                ]}>
+                <Text
+                  style={[
+                    styles.actionButtonText,
+                    tvShow.is_favorite && styles.actionButtonTextActive,
+                  ]}
+                >
                   {tvShow.is_favorite ? 'Favorite ❤️' : 'Add to Favorites'}
                 </Text>
               </TouchableOpacity>
@@ -408,7 +516,7 @@ export default function TVShowDetailScreen() {
               <TouchableOpacity
                 style={[
                   styles.actionButton,
-                  tvShow.is_watchlist && styles.watchlistButtonActive
+                  tvShow.is_watchlist && styles.watchlistButtonActive,
                 ]}
                 onPress={handleWatchlistToggle}
                 disabled={loading}
@@ -418,10 +526,12 @@ export default function TVShowDetailScreen() {
                   color={tvShow.is_watchlist ? 'white' : '#8B5CF6'}
                   strokeWidth={2}
                 />
-                <Text style={[
-                  styles.actionButtonText,
-                  tvShow.is_watchlist && styles.actionButtonTextActive
-                ]}>
+                <Text
+                  style={[
+                    styles.actionButtonText,
+                    tvShow.is_watchlist && styles.actionButtonTextActive,
+                  ]}
+                >
                   {tvShow.is_watchlist ? 'In Watchlist 📝' : 'Add to Watchlist'}
                 </Text>
               </TouchableOpacity>

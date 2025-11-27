@@ -22,14 +22,14 @@ export const friendsApi = {
   searchUsersByEmail: async (email: string) => {
     try {
       const { data, error } = await supabase.rpc('search_users_by_email', {
-        search_email: email
+        search_email: email,
       });
-      
+
       if (error) {
         console.error('Search users RPC error:', error);
         return { data: [], error };
       }
-      
+
       return { data: data || [], error: null };
     } catch (error) {
       console.error('Search users error:', error);
@@ -40,7 +40,9 @@ export const friendsApi = {
   // Send friend request
   sendFriendRequest: async (friendId: string) => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) {
         return { data: null, error: { message: 'User not authenticated' } };
       }
@@ -49,11 +51,16 @@ export const friendsApi = {
       const { data: existing } = await supabase
         .from('friends')
         .select('*')
-        .or(`and(user_id.eq.${user.id},friend_id.eq.${friendId}),and(user_id.eq.${friendId},friend_id.eq.${user.id})`)
+        .or(
+          `and(user_id.eq.${user.id},friend_id.eq.${friendId}),and(user_id.eq.${friendId},friend_id.eq.${user.id})`
+        )
         .maybeSingle();
 
       if (existing) {
-        return { data: null, error: { message: 'Friend request already exists' } };
+        return {
+          data: null,
+          error: { message: 'Friend request already exists' },
+        };
       }
 
       const { data, error } = await supabase
@@ -61,16 +68,16 @@ export const friendsApi = {
         .insert({
           user_id: user.id,
           friend_id: friendId,
-          status: 'pending'
+          status: 'pending',
         })
         .select()
         .single();
-      
+
       if (error) {
         console.error('Send friend request error:', error);
         return { data: null, error };
       }
-      
+
       return { data, error: null };
     } catch (error) {
       console.error('Send friend request error:', error);
@@ -81,7 +88,9 @@ export const friendsApi = {
   // Get all friends with email enrichment from auth.users
   getFriends: async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) {
         return { data: [], error: { message: 'User not authenticated' } };
       }
@@ -92,36 +101,34 @@ export const friendsApi = {
         .select('*')
         .or(`user_id.eq.${user.id},friend_id.eq.${user.id}`)
         .order('created_at', { ascending: false });
-      
+
       if (friendsError) {
         console.error('Get friends error:', friendsError);
         return { data: [], error: friendsError };
       }
-      
+
       if (!friendsData || friendsData.length === 0) {
         return { data: [], error: null };
       }
 
       // Get all unique user IDs we need emails for
       const userIds = new Set<string>();
-      friendsData.forEach(friend => {
+      friendsData.forEach((friend) => {
         userIds.add(friend.user_id);
         userIds.add(friend.friend_id);
       });
 
       // Get emails from public.users table
       const emailMap = new Map<string, string>();
-      
+
       // Get emails from public.users table (now includes friends due to RLS policy)
       const { data: publicUsers, error: publicError } = await supabase
         .from('users')
         .select('id, email')
         .in('id', Array.from(userIds));
-      
-      console.log("publicUsers (should include friends now):", publicUsers);
+
       if (!publicError && publicUsers) {
-        publicUsers.forEach(user => {
-          console.log("Mapping email:", user.id, user.email);
+        publicUsers.forEach((user) => {
           if (user.email) {
             emailMap.set(user.id, user.email);
           }
@@ -130,32 +137,22 @@ export const friendsApi = {
         console.error('Error getting user emails:', publicError);
       }
 
-      console.log("Final emailMap:", Array.from(emailMap.entries()));
-
-      const enrichedFriends = friendsData.map(friend => {
-        const friendUserId = friend.user_id === user.id ? friend.friend_id : friend.user_id;
+      const enrichedFriends = friendsData.map((friend) => {
+        const friendUserId =
+          friend.user_id === user.id ? friend.friend_id : friend.user_id;
         const requestingUserId = friend.user_id;
 
-        console.log("Processing friend:", {
-          friendshipId: friend.id,
-          currentUserId: user.id,
-          friendUserId,
-          requestingUserId,
-          friendEmail: emailMap.get(friendUserId),
-          requestingEmail: emailMap.get(requestingUserId)
-        });
-        
         const friendEmail = emailMap.get(friendUserId) || 'Unknown user';
-        const requestingEmail = emailMap.get(requestingUserId) || 'Unknown user';
-        
+        const requestingEmail =
+          emailMap.get(requestingUserId) || 'Unknown user';
+
         return {
           ...friend,
           friend_email: friendEmail,
-          requesting_email: requestingEmail
+          requesting_email: requestingEmail,
         };
       });
 
-      console.log('Final enriched friends:', enrichedFriends);
       return { data: enrichedFriends, error: null };
     } catch (error) {
       console.error('Get friends error:', error);
@@ -172,12 +169,12 @@ export const friendsApi = {
         .eq('id', friendshipId)
         .select()
         .single();
-      
+
       if (error) {
         console.error('Accept friend request error:', error);
         return { data: null, error };
       }
-      
+
       return { data, error: null };
     } catch (error) {
       console.error('Accept friend request error:', error);
@@ -192,12 +189,12 @@ export const friendsApi = {
         .from('friends')
         .delete()
         .eq('id', friendshipId);
-      
+
       if (error) {
         console.error('Remove friend error:', error);
         return { error };
       }
-      
+
       return { error: null };
     } catch (error) {
       console.error('Remove friend error:', error);
@@ -209,14 +206,14 @@ export const friendsApi = {
   getFriendMovies: async (friendId: string) => {
     try {
       const { data, error } = await supabase.rpc('get_friend_movies', {
-        friend_user_id: friendId
+        friend_user_id: friendId,
       });
-      
+
       if (error) {
         console.error('Get friend movies error:', error);
         return { data: [], error };
       }
-      
+
       return { data: data || [], error: null };
     } catch (error) {
       console.error('Get friend movies error:', error);
@@ -228,14 +225,14 @@ export const friendsApi = {
   getFriendTVShows: async (friendId: string) => {
     try {
       const { data, error } = await supabase.rpc('get_friend_tv_shows', {
-        friend_user_id: friendId
+        friend_user_id: friendId,
       });
-      
+
       if (error) {
         console.error('Get friend TV shows error:', error);
         return { data: [], error };
       }
-      
+
       return { data: data || [], error: null };
     } catch (error) {
       console.error('Get friend TV shows error:', error);
@@ -246,7 +243,9 @@ export const friendsApi = {
   // Get accepted friends only
   getAcceptedFriends: async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) {
         return { data: [], error: { message: 'User not authenticated' } };
       }
@@ -270,7 +269,7 @@ export const friendsApi = {
 
       // Get all unique user IDs we need emails for
       const userIds = new Set<string>();
-      friendsData.forEach(friend => {
+      friendsData.forEach((friend) => {
         userIds.add(friend.user_id);
         userIds.add(friend.friend_id);
       });
@@ -285,7 +284,7 @@ export const friendsApi = {
         .in('id', Array.from(userIds));
 
       if (!publicError && publicUsers) {
-        publicUsers.forEach(user => {
+        publicUsers.forEach((user) => {
           if (user.email) {
             emailMap.set(user.id, user.email);
           }
@@ -293,18 +292,21 @@ export const friendsApi = {
       }
 
       // Enrich friends data with emails
-      const enrichedFriends = friendsData.map(friend => {
+      const enrichedFriends = friendsData.map((friend) => {
         const isCurrentUserRequester = friend.user_id === user.id;
-        const otherUserId = isCurrentUserRequester ? friend.friend_id : friend.user_id;
+        const otherUserId = isCurrentUserRequester
+          ? friend.friend_id
+          : friend.user_id;
 
-        console.log("emailMap.get(user.id)", emailMap.get(user.id))
         const currentUserEmail = emailMap.get(user.id) || 'Unknown user';
         const otherUserEmail = emailMap.get(otherUserId) || 'Unknown user';
 
         return {
           ...friend,
           friend_email: otherUserEmail,
-          requesting_email: isCurrentUserRequester ? currentUserEmail : otherUserEmail
+          requesting_email: isCurrentUserRequester
+            ? currentUserEmail
+            : otherUserEmail,
         };
       });
 
@@ -316,7 +318,10 @@ export const friendsApi = {
   },
 
   // Respond to friend request (accept or reject)
-  respondToRequest: async (friendshipId: string, response: 'accepted' | 'rejected') => {
+  respondToRequest: async (
+    friendshipId: string,
+    response: 'accepted' | 'rejected'
+  ) => {
     try {
       if (response === 'accepted') {
         const { data, error } = await supabase
@@ -349,5 +354,5 @@ export const friendsApi = {
       console.error('Respond to friend request error:', error);
       return { error };
     }
-  }
+  },
 };
