@@ -181,7 +181,6 @@ export default function MovieDetailScreen() {
         const statusText = newWatchedStatus
           ? 'marked as watched'
           : 'unmarked as watched';
-        Alert.alert('Success', `Movie ${statusText}!`);
         global.refreshMovies?.();
       }
     } catch (error) {
@@ -224,7 +223,6 @@ export default function MovieDetailScreen() {
         const statusText = newFavoriteStatus
           ? 'added to favorites'
           : 'removed from favorites';
-        Alert.alert('Success', `Movie ${statusText}!`);
         global.refreshMovies?.();
       }
     } catch (error) {
@@ -266,7 +264,6 @@ export default function MovieDetailScreen() {
         const statusText = newWatchlistStatus
           ? 'added to watchlist'
           : 'removed from watchlist';
-        Alert.alert('Success', `Movie ${statusText}!`);
         global.refreshMovies?.();
       }
     } catch (error) {

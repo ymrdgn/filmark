@@ -154,7 +154,6 @@ export default function TVShowDetailScreen() {
           rating: newRating,
           is_watched: true,
         }));
-        Alert.alert('Success', 'Rating updated!');
         global.refreshTVShows?.();
       }
     } catch (error) {
@@ -195,7 +194,6 @@ export default function TVShowDetailScreen() {
         const statusText = newWatchedStatus
           ? 'marked as watched'
           : 'unmarked as watched';
-        Alert.alert('Success', `TV show ${statusText}!`);
         global.refreshTVShows?.();
       }
     } catch (error) {
@@ -232,7 +230,6 @@ export default function TVShowDetailScreen() {
         const statusText = newFavoriteStatus
           ? 'added to favorites'
           : 'removed from favorites';
-        Alert.alert('Success', `TV show ${statusText}!`);
         global.refreshTVShows?.();
       }
     } catch (error) {
@@ -268,7 +265,6 @@ export default function TVShowDetailScreen() {
         const statusText = newWatchlistStatus
           ? 'added to watchlist'
           : 'removed from watchlist';
-        Alert.alert('Success', `TV show ${statusText}!`);
         global.refreshTVShows?.();
       }
     } catch (error) {
