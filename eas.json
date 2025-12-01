@@ -17,6 +17,9 @@
         "EXPO_PUBLIC_SUPABASE_URL": "https://pplkrcndmnwbffasrxkx.supabase.co",
         "EXPO_PUBLIC_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBwbGtyY25kbW53YmZmYXNyeGt4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg2MjIxMTAsImV4cCI6MjA3NDE5ODExMH0.rByb4b4cGa6GlDPw56zsxOIdN1RVK_hvE2aXknKO_lw",
         "EXPO_PUBLIC_TMDB_API_KEY": "2262b33837655ede5ea81107302ae48d"
+      },
+      "ios": {
+        "image": "macos-sonoma-14.6-xcode-16.1"
       }
     }
   },
