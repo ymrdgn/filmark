@@ -31,6 +31,8 @@ interface Movie {
   is_favorite: boolean;
   is_watchlist?: boolean;
   rating?: number;
+  my_movie_id?: string | null;
+  inCollection?: boolean;
 }
 
 interface TVShow {
@@ -45,6 +47,8 @@ interface TVShow {
   current_season?: number;
   current_episode?: number;
   seasons?: number;
+  my_show_id?: string | null;
+  inCollection?: boolean;
 }
 
 export default function FriendProfileScreen() {
@@ -72,12 +76,20 @@ export default function FriendProfileScreen() {
       if (moviesResult.error) {
         console.error('Error loading friend movies:', moviesResult.error);
       } else {
+        console.log(
+          '🎬 Friend movies data:',
+          JSON.stringify(moviesResult.data, null, 2)
+        );
         setMovies(moviesResult.data || []);
       }
 
       if (tvShowsResult.error) {
         console.error('Error loading friend TV shows:', tvShowsResult.error);
       } else {
+        console.log(
+          '📺 Friend TV shows data:',
+          JSON.stringify(tvShowsResult.data, null, 2)
+        );
         setTVShows(tvShowsResult.data || []);
       }
     } catch (error) {
@@ -95,7 +107,7 @@ export default function FriendProfileScreen() {
         router.push({
           pathname: '/movie-detail',
           params: {
-            id: movie.id,
+            id: movie.my_movie_id || movie.id,
             title: movie.title,
             year: movie.year || '',
             poster_url: movie.poster_url || '',
@@ -103,6 +115,7 @@ export default function FriendProfileScreen() {
             is_favorite: movie.is_favorite.toString(),
             is_watchlist: movie.is_watchlist?.toString() || 'false',
             rating: movie.rating?.toString() || '0',
+            inCollection: movie.inCollection?.toString() || 'false',
           },
         })
       }
@@ -179,7 +192,7 @@ export default function FriendProfileScreen() {
         router.push({
           pathname: '/tv-show-detail',
           params: {
-            id: show.id,
+            id: show.my_show_id || show.id,
             title: show.title,
             year: show.year || '',
             poster_url: show.poster_url || '',
@@ -190,6 +203,7 @@ export default function FriendProfileScreen() {
             current_season: show.current_season?.toString() || '1',
             current_episode: show.current_episode?.toString() || '1',
             seasons: show.seasons?.toString() || '',
+            inCollection: show.inCollection?.toString() || 'false',
           },
         })
       }

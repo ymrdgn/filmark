@@ -27,6 +27,14 @@ import {
 import { router, useLocalSearchParams } from 'expo-router';
 import { tvShowsApi } from '@/lib/api';
 import { useFocusEffect } from '@react-navigation/native';
+import { Database } from '@/lib/database.types';
+
+type TVShow = Database['public']['Tables']['tv_shows']['Row'];
+
+// Declare global type for refresh function
+declare global {
+  var refreshTVShows: (() => void) | undefined;
+}
 
 export default function TVShowDetailScreen() {
   const params = useLocalSearchParams();
@@ -74,14 +82,12 @@ export default function TVShowDetailScreen() {
     loadTVShowData();
   }, []);
 
-  // Listen for focus events to reload data when returning to this screen
-  useEffect(() => {
-    const unsubscribe = router.addListener?.('focus', () => {
+  // Use useFocusEffect to reload when screen comes back into focus
+  useFocusEffect(
+    React.useCallback(() => {
       loadTVShowData();
-    });
-
-    return unsubscribe;
-  }, []);
+    }, [])
+  );
 
   const loadTVShowData = async () => {
     console.log('Loading TV show data for ID:', params.id);
@@ -91,13 +97,13 @@ export default function TVShowDetailScreen() {
       const { data, error } = await tvShowsApi.getAll();
       console.log('API response:', { data: data?.length, error });
       if (!error && data) {
-        let currentShow = data.find((s) => s.id === params.id);
+        // First try to find by exact ID match
+        let currentShow = (data as TVShow[]).find((s) => s.id === params.id);
 
-        if (!currentShow) {
-          currentShow = data.find(
-            (s) =>
-              s.title?.toLowerCase().trim() ===
-              (params.title as string)?.toLowerCase().trim()
+        // If not found by ID, try to find by title and year (for friend's TV shows)
+        if (!currentShow && params.title) {
+          currentShow = (data as TVShow[]).find(
+            (s) => s.title === params.title && s.year === params.year
           );
         }
 
@@ -107,19 +113,19 @@ export default function TVShowDetailScreen() {
           setTVShow({
             id: currentShow.id,
             title: currentShow.title,
-            year: currentShow.year,
-            poster_url: currentShow.poster_url,
+            year: currentShow.year || '',
+            poster_url: currentShow.poster_url || '',
             is_watched: currentShow.is_watched,
             is_favorite: currentShow.is_favorite,
             is_watchlist: currentShow.is_watchlist || false,
             rating: currentShow.rating || 0,
-            seasons: currentShow.seasons || 1,
-            episodes: currentShow.episodes || 1,
-            current_season: currentShow.current_season || 1,
-            current_episode: currentShow.current_episode || 1,
-            imdb_rating: currentShow.imdb_rating,
-            director: currentShow.director,
-            genre: currentShow.genre,
+            seasons: 1,
+            episodes: 1,
+            current_season: 1,
+            current_episode: 1,
+            imdb_rating: null,
+            director: null,
+            genre: null,
           });
         } else {
           setInCollection(false);
@@ -132,11 +138,39 @@ export default function TVShowDetailScreen() {
 
   const handleRatingChange = async (newRating: number) => {
     if (!inCollection) {
-      Alert.alert(
-        'Not in Collection',
-        'Please add this TV show to your collection first using the + button.'
-      );
-      return;
+      // Add TV show to collection first
+      try {
+        const { data, error } = await tvShowsApi.add({
+          title: tvShow.title as string,
+          year: tvShow.year as string,
+          poster_url: tvShow.poster_url as string,
+          is_watched: true,
+          is_favorite: false,
+          is_watchlist: false,
+          rating: newRating,
+          watched_date: new Date().toISOString(),
+        });
+
+        if (error || !data) {
+          Alert.alert('Error', 'Failed to add TV show to your collection.');
+          return;
+        }
+
+        const showData = data as any;
+        // Update local state with new TV show data
+        setTVShow((prev) => ({
+          ...prev,
+          id: showData.id,
+          rating: newRating,
+          is_watched: true,
+        }));
+        setInCollection(true);
+        global.refreshTVShows?.();
+        return;
+      } catch (error) {
+        Alert.alert('Error', 'Failed to add TV show to your collection.');
+        return;
+      }
     }
     setLoading(true);
     try {
@@ -165,11 +199,38 @@ export default function TVShowDetailScreen() {
 
   const handleWatchedToggle = async () => {
     if (!inCollection) {
-      Alert.alert(
-        'Not in Collection',
-        'Please add this TV show to your collection first using the + button.'
-      );
-      return;
+      // Add TV show to collection as watched
+      try {
+        const { data, error } = await tvShowsApi.add({
+          title: tvShow.title as string,
+          year: tvShow.year as string,
+          poster_url: tvShow.poster_url as string,
+          is_watched: true,
+          is_favorite: false,
+          is_watchlist: false,
+          rating: null,
+          watched_date: new Date().toISOString(),
+        });
+
+        if (error || !data) {
+          Alert.alert('Error', 'Failed to add TV show to your collection.');
+          return;
+        }
+
+        const showData = data as any;
+        // Update local state with new TV show data
+        setTVShow((prev) => ({
+          ...prev,
+          id: showData.id,
+          is_watched: true,
+        }));
+        setInCollection(true);
+        global.refreshTVShows?.();
+        return;
+      } catch (error) {
+        Alert.alert('Error', 'Failed to add TV show to your collection.');
+        return;
+      }
     }
     setLoading(true);
     try {
@@ -206,11 +267,39 @@ export default function TVShowDetailScreen() {
 
   const handleFavoriteToggle = async () => {
     if (!inCollection) {
-      Alert.alert(
-        'Not in Collection',
-        'Please add this TV show to your collection first using the + button.'
-      );
-      return;
+      // Add TV show to collection with favorite status
+      try {
+        const { data, error } = await tvShowsApi.add({
+          title: tvShow.title as string,
+          year: tvShow.year as string,
+          poster_url: tvShow.poster_url as string,
+          is_watched: true,
+          is_favorite: true,
+          is_watchlist: false,
+          rating: null,
+          watched_date: new Date().toISOString(),
+        });
+
+        if (error || !data) {
+          Alert.alert('Error', 'Failed to add TV show to your collection.');
+          return;
+        }
+
+        const showData = data as any;
+        // Update local state with new TV show data
+        setTVShow((prev) => ({
+          ...prev,
+          id: showData.id,
+          is_watched: true,
+          is_favorite: true,
+        }));
+        setInCollection(true);
+        global.refreshTVShows?.();
+        return;
+      } catch (error) {
+        Alert.alert('Error', 'Failed to add TV show to your collection.');
+        return;
+      }
     }
     setLoading(true);
     try {
@@ -241,11 +330,38 @@ export default function TVShowDetailScreen() {
 
   const handleWatchlistToggle = async () => {
     if (!inCollection) {
-      Alert.alert(
-        'Not in Collection',
-        'Please add this TV show to your collection first using the + button.'
-      );
-      return;
+      // Add TV show to watchlist
+      try {
+        const { data, error } = await tvShowsApi.add({
+          title: tvShow.title as string,
+          year: tvShow.year as string,
+          poster_url: tvShow.poster_url as string,
+          is_watched: false,
+          is_favorite: false,
+          is_watchlist: true,
+          rating: null,
+          watched_date: null,
+        });
+
+        if (error || !data) {
+          Alert.alert('Error', 'Failed to add TV show to your watchlist.');
+          return;
+        }
+
+        const showData = data as any;
+        // Update local state with new TV show data
+        setTVShow((prev) => ({
+          ...prev,
+          id: showData.id,
+          is_watchlist: true,
+        }));
+        setInCollection(true);
+        global.refreshTVShows?.();
+        return;
+      } catch (error) {
+        Alert.alert('Error', 'Failed to add TV show to your watchlist.');
+        return;
+      }
     }
     setLoading(true);
     try {
@@ -277,6 +393,13 @@ export default function TVShowDetailScreen() {
   const handleEpisodeUpdate = async (newSeason: number, newEpisode: number) => {
     setLoading(true);
     try {
+      // Note: current_season and current_episode fields don't exist in the database schema
+      // This functionality needs to be implemented by adding these columns to tv_shows table
+      Alert.alert(
+        'Info',
+        'Episode tracking feature is not yet implemented in the database.'
+      );
+      /*
       const { error } = await tvShowsApi.update(tvShow.id as string, {
         current_season: newSeason,
         current_episode: newEpisode,
@@ -292,6 +415,7 @@ export default function TVShowDetailScreen() {
         }));
         Alert.alert('Success', 'Episode progress updated!');
       }
+      */
     } catch (error) {
       Alert.alert('Error', 'Failed to update episode progress.');
     } finally {

@@ -74,7 +74,16 @@ export default function MovieDetailScreen() {
     try {
       const { data, error } = await moviesApi.getAll();
       if (!error && data) {
-        const currentMovie = (data as Movie[]).find((m) => m.id === params.id);
+        // First try to find by exact ID match
+        let currentMovie = (data as Movie[]).find((m) => m.id === params.id);
+
+        // If not found by ID, try to find by title and year (for friend's movies)
+        if (!currentMovie && params.title) {
+          currentMovie = (data as Movie[]).find(
+            (m) => m.title === params.title && m.year === params.year
+          );
+        }
+
         if (currentMovie) {
           setMovie({
             id: currentMovie.id,
@@ -88,6 +97,9 @@ export default function MovieDetailScreen() {
             watched_date: currentMovie.watched_date || null,
             inCollection: true,
           });
+        } else {
+          // Movie not in user's collection, keep params data
+          // inCollection will remain false, allowing add functionality
         }
       }
     } catch (error) {
@@ -148,11 +160,40 @@ export default function MovieDetailScreen() {
       );
 
     if (!isUUID || !movie.inCollection) {
-      Alert.alert(
-        'Not in Collection',
-        'Please add this movie to your collection first using the + button in the Movies tab.'
-      );
-      return;
+      // Add movie to collection as watched
+      try {
+        const { data, error } = await moviesApi.add({
+          title: movie.title as string,
+          year: movie.year as string,
+          poster_url: movie.poster_url as string,
+          is_watched: true,
+          is_favorite: false,
+          is_watchlist: false,
+          rating: null,
+          watched_date: new Date().toISOString(),
+        });
+
+        if (error || !data) {
+          Alert.alert('Error', 'Failed to add movie to your collection.');
+          return;
+        }
+
+        const movieData = data as Movie;
+        // Update local state with new movie data
+        setMovie((prev) => ({
+          ...prev,
+          id: movieData.id,
+          inCollection: true,
+          is_watched: true,
+          watched_date: movieData.watched_date,
+        }));
+
+        global.refreshMovies?.();
+        return;
+      } catch (error) {
+        Alert.alert('Error', 'Failed to add movie to your collection.');
+        return;
+      }
     }
 
     setLoading(true);
@@ -194,11 +235,41 @@ export default function MovieDetailScreen() {
       );
 
     if (!isUUID || !movie.inCollection) {
-      Alert.alert(
-        'Not in Collection',
-        'Please add this movie to your collection first using the + button in the Movies tab.'
-      );
-      return;
+      // Add movie to collection with favorite status
+      try {
+        const { data, error } = await moviesApi.add({
+          title: movie.title as string,
+          year: movie.year as string,
+          poster_url: movie.poster_url as string,
+          is_watched: true,
+          is_favorite: true,
+          is_watchlist: false,
+          rating: null,
+          watched_date: new Date().toISOString(),
+        });
+
+        if (error || !data) {
+          Alert.alert('Error', 'Failed to add movie to your collection.');
+          return;
+        }
+
+        const movieData = data as Movie;
+        // Update local state with new movie data
+        setMovie((prev) => ({
+          ...prev,
+          id: movieData.id,
+          inCollection: true,
+          is_watched: true,
+          is_favorite: true,
+          watched_date: movieData.watched_date,
+        }));
+
+        global.refreshMovies?.();
+        return;
+      } catch (error) {
+        Alert.alert('Error', 'Failed to add movie to your collection.');
+        return;
+      }
     }
 
     setLoading(true);
@@ -235,11 +306,39 @@ export default function MovieDetailScreen() {
       );
 
     if (!isUUID || !movie.inCollection) {
-      Alert.alert(
-        'Not in Collection',
-        'Please add this movie to your collection first using the + button in the Movies tab.'
-      );
-      return;
+      // Add movie to watchlist
+      try {
+        const { data, error } = await moviesApi.add({
+          title: movie.title as string,
+          year: movie.year as string,
+          poster_url: movie.poster_url as string,
+          is_watched: false,
+          is_favorite: false,
+          is_watchlist: true,
+          rating: null,
+          watched_date: null,
+        });
+
+        if (error || !data) {
+          Alert.alert('Error', 'Failed to add movie to your watchlist.');
+          return;
+        }
+
+        const movieData = data as Movie;
+        // Update local state with new movie data
+        setMovie((prev) => ({
+          ...prev,
+          id: movieData.id,
+          inCollection: true,
+          is_watchlist: true,
+        }));
+
+        global.refreshMovies?.();
+        return;
+      } catch (error) {
+        Alert.alert('Error', 'Failed to add movie to your watchlist.');
+        return;
+      }
     }
 
     setLoading(true);
