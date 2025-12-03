@@ -4,6 +4,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { Film, Play } from 'lucide-react-native';
 import { StatusBar } from 'expo-status-bar';
+import { supabase } from '@/lib/supabase';
 
 export default function SplashScreen() {
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -11,6 +12,8 @@ export default function SplashScreen() {
   const slideAnim = useRef(new Animated.Value(50)).current;
 
   useEffect(() => {
+    checkSession();
+
     // Start animations
     Animated.parallel([
       Animated.timing(fadeAnim, {
@@ -31,14 +34,29 @@ export default function SplashScreen() {
         useNativeDriver: true,
       }),
     ]).start();
-
-    // Navigate to auth after 3 seconds
-    const timer = setTimeout(() => {
-      router.replace('/auth');
-    }, 3000);
-
-    return () => clearTimeout(timer);
   }, []);
+
+  const checkSession = async () => {
+    try {
+      // Wait for animations to complete
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      if (session) {
+        // User is logged in, go to main app
+        router.replace('/(tabs)');
+      } else {
+        // No session, go to auth
+        router.replace('/(auth)/login');
+      }
+    } catch (error) {
+      console.error('Error checking session:', error);
+      router.replace('/(auth)/login');
+    }
+  };
 
   return (
     <View style={styles.wrapper}>
