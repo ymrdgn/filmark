@@ -152,7 +152,6 @@ export default function TVShowDetailScreen() {
         });
 
         if (error || !data) {
-          Alert.alert('Error', 'Failed to add TV show to your collection.');
           return;
         }
 
@@ -168,7 +167,6 @@ export default function TVShowDetailScreen() {
         global.refreshTVShows?.();
         return;
       } catch (error) {
-        Alert.alert('Error', 'Failed to add TV show to your collection.');
         return;
       }
     }
@@ -213,7 +211,6 @@ export default function TVShowDetailScreen() {
         });
 
         if (error || !data) {
-          Alert.alert('Error', 'Failed to add TV show to your collection.');
           return;
         }
 
@@ -228,7 +225,6 @@ export default function TVShowDetailScreen() {
         global.refreshTVShows?.();
         return;
       } catch (error) {
-        Alert.alert('Error', 'Failed to add TV show to your collection.');
         return;
       }
     }
@@ -281,7 +277,6 @@ export default function TVShowDetailScreen() {
         });
 
         if (error || !data) {
-          Alert.alert('Error', 'Failed to add TV show to your collection.');
           return;
         }
 
@@ -297,7 +292,6 @@ export default function TVShowDetailScreen() {
         global.refreshTVShows?.();
         return;
       } catch (error) {
-        Alert.alert('Error', 'Failed to add TV show to your collection.');
         return;
       }
     }
@@ -344,7 +338,6 @@ export default function TVShowDetailScreen() {
         });
 
         if (error || !data) {
-          Alert.alert('Error', 'Failed to add TV show to your watchlist.');
           return;
         }
 
@@ -359,7 +352,6 @@ export default function TVShowDetailScreen() {
         global.refreshTVShows?.();
         return;
       } catch (error) {
-        Alert.alert('Error', 'Failed to add TV show to your watchlist.');
         return;
       }
     }
