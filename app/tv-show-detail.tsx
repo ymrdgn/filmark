@@ -149,9 +149,14 @@ export default function TVShowDetailScreen() {
           is_watchlist: false,
           rating: newRating,
           watched_date: new Date().toISOString(),
-        });
+          seasons: 1,
+          episodes: 1,
+          current_season: 1,
+          current_episode: 1,
+        } as any);
 
         if (error || !data) {
+          console.error('Failed to add TV show (rating):', error);
           return;
         }
 
@@ -167,6 +172,7 @@ export default function TVShowDetailScreen() {
         global.refreshTVShows?.();
         return;
       } catch (error) {
+        console.error('Exception adding TV show (rating):', error);
         return;
       }
     }
@@ -208,9 +214,14 @@ export default function TVShowDetailScreen() {
           is_watchlist: false,
           rating: null,
           watched_date: new Date().toISOString(),
-        });
+          seasons: 1,
+          episodes: 1,
+          current_season: 1,
+          current_episode: 1,
+        } as any);
 
         if (error || !data) {
+          console.error('Failed to add TV show (watched):', error);
           return;
         }
 
@@ -225,6 +236,7 @@ export default function TVShowDetailScreen() {
         global.refreshTVShows?.();
         return;
       } catch (error) {
+        console.error('Exception adding TV show (watched):', error);
         return;
       }
     }
@@ -274,9 +286,14 @@ export default function TVShowDetailScreen() {
           is_watchlist: false,
           rating: null,
           watched_date: new Date().toISOString(),
-        });
+          seasons: 1,
+          episodes: 1,
+          current_season: 1,
+          current_episode: 1,
+        } as any);
 
         if (error || !data) {
+          console.error('Failed to add TV show (favorite):', error);
           return;
         }
 
@@ -292,6 +309,7 @@ export default function TVShowDetailScreen() {
         global.refreshTVShows?.();
         return;
       } catch (error) {
+        console.error('Exception adding TV show (favorite):', error);
         return;
       }
     }
@@ -335,9 +353,14 @@ export default function TVShowDetailScreen() {
           is_watchlist: true,
           rating: null,
           watched_date: null,
-        });
+          seasons: 1,
+          episodes: 1,
+          current_season: 1,
+          current_episode: 1,
+        } as any);
 
         if (error || !data) {
+          console.error('Failed to add TV show (watchlist):', error);
           return;
         }
 
@@ -352,6 +375,7 @@ export default function TVShowDetailScreen() {
         global.refreshTVShows?.();
         return;
       } catch (error) {
+        console.error('Exception adding TV show (watchlist):', error);
         return;
       }
     }
