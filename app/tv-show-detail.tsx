@@ -54,11 +54,9 @@ export default function TVShowDetailScreen() {
     imdb_rating: null,
     director: null,
     genre: null,
+    inCollection: params.inCollection === 'true',
   });
   const [loading, setLoading] = useState(false);
-  const [inCollection, setInCollection] = useState(
-    params.inCollection === 'true'
-  );
 
   // Auto refresh parent screen when going back
   useFocusEffect(
@@ -109,7 +107,6 @@ export default function TVShowDetailScreen() {
 
         console.log('Found current show:', currentShow);
         if (currentShow) {
-          setInCollection(true);
           setTVShow({
             id: currentShow.id,
             title: currentShow.title,
@@ -126,9 +123,10 @@ export default function TVShowDetailScreen() {
             imdb_rating: null,
             director: null,
             genre: null,
+            inCollection: true,
           });
         } else {
-          setInCollection(false);
+          setTVShow((prev) => ({ ...prev, inCollection: false }));
         }
       }
     } catch (error) {
@@ -137,7 +135,12 @@ export default function TVShowDetailScreen() {
   };
 
   const handleRatingChange = async (newRating: number) => {
-    if (!inCollection) {
+    const isUUID =
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+        tvShow.id as string
+      );
+
+    if (!isUUID || !tvShow.inCollection) {
       // Add TV show to collection first
       try {
         const { data, error } = await tvShowsApi.add({
@@ -167,8 +170,8 @@ export default function TVShowDetailScreen() {
           id: showData.id,
           rating: newRating,
           is_watched: true,
+          inCollection: true,
         }));
-        setInCollection(true);
         global.refreshTVShows?.();
         return;
       } catch (error) {
@@ -202,7 +205,12 @@ export default function TVShowDetailScreen() {
   };
 
   const handleWatchedToggle = async () => {
-    if (!inCollection) {
+    const isUUID =
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+        tvShow.id as string
+      );
+
+    if (!isUUID || !tvShow.inCollection) {
       // Add TV show to collection as watched
       try {
         const { data, error } = await tvShowsApi.add({
@@ -231,8 +239,8 @@ export default function TVShowDetailScreen() {
           ...prev,
           id: showData.id,
           is_watched: true,
+          inCollection: true,
         }));
-        setInCollection(true);
         global.refreshTVShows?.();
         return;
       } catch (error) {
@@ -274,7 +282,12 @@ export default function TVShowDetailScreen() {
   };
 
   const handleFavoriteToggle = async () => {
-    if (!inCollection) {
+    const isUUID =
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+        tvShow.id as string
+      );
+
+    if (!isUUID || !tvShow.inCollection) {
       // Add TV show to collection with favorite status
       try {
         const { data, error } = await tvShowsApi.add({
@@ -304,8 +317,8 @@ export default function TVShowDetailScreen() {
           id: showData.id,
           is_watched: true,
           is_favorite: true,
+          inCollection: true,
         }));
-        setInCollection(true);
         global.refreshTVShows?.();
         return;
       } catch (error) {
@@ -341,7 +354,12 @@ export default function TVShowDetailScreen() {
   };
 
   const handleWatchlistToggle = async () => {
-    if (!inCollection) {
+    const isUUID =
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+        tvShow.id as string
+      );
+
+    if (!isUUID || !tvShow.inCollection) {
       // Add TV show to watchlist
       try {
         const { data, error } = await tvShowsApi.add({
@@ -370,8 +388,8 @@ export default function TVShowDetailScreen() {
           ...prev,
           id: showData.id,
           is_watchlist: true,
+          inCollection: true,
         }));
-        setInCollection(true);
         global.refreshTVShows?.();
         return;
       } catch (error) {
