@@ -15,23 +15,23 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.watchbase.app",
-      "buildNumber": "1",
+      "buildNumber": "3",
       "splash": {
         "image": "./assets/images/wb-splash.png",
         "resizeMode": "contain",
         "backgroundColor": "#6366F1"
       },
       "infoPlist": {
-        "UIViewControllerBasedStatusBarAppearance": true,
+        "UIViewControllerBasedStatusBarAppearance": false,
         "ITSAppUsesNonExemptEncryption": false
       }
     },
 
     "android": {
       "package": "com.watchbase.app",
-      "versionCode": 17,
+      "versionCode": 18,
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/wb-logo-trns.png",
+        "foregroundImage": "./assets/images/wb-splash.png",
         "backgroundColor": "#6366F1"
       },
       "splash": {
