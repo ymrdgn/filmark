@@ -164,13 +164,13 @@ export default function HomeScreen() {
       // Movies - watched and favorites
       if (!moviesResult.error && moviesResult.data) {
         moviesResult.data.forEach((movie: Movie) => {
-          if (movie.is_watched) {
+          if (movie.is_favorite) {
             activities.push({
-              id: `movie-watched-${movie.id}`,
+              id: `movie-favorite-${movie.id}`,
               item_id: movie.id,
               title: movie.title,
               type: 'Movie',
-              action: 'watched',
+              action: 'favorited',
               date: movie.updated_at,
               poster: movie.poster_url,
               rating: movie.rating,
@@ -179,14 +179,15 @@ export default function HomeScreen() {
               is_favorite: movie.is_favorite,
               is_watchlist: movie.is_watchlist,
             });
+            return; // ✅ watched eventini basma
           }
-          if (movie.is_favorite) {
+          if (movie.is_watched) {
             activities.push({
-              id: `movie-favorite-${movie.id}`,
+              id: `movie-watched-${movie.id}`,
               item_id: movie.id,
               title: movie.title,
               type: 'Movie',
-              action: 'favorited',
+              action: 'watched',
               date: movie.updated_at,
               poster: movie.poster_url,
               rating: movie.rating,
@@ -291,24 +292,6 @@ export default function HomeScreen() {
           if (!moviesResult.error && moviesResult.data) {
             const movies = moviesResult.data as Movie[]; // Type assertion to ensure it's treated as an array
             movies.forEach((movie: Movie) => {
-              if (movie.is_watched) {
-                allFriendsActivity.push({
-                  id: `friend-movie-${friendId}-${movie.id}`,
-                  item_id: movie.id,
-                  friendName,
-                  friendEmail,
-                  title: movie.title,
-                  type: 'Movie',
-                  action: 'watched',
-                  date: new Date().toISOString(),
-                  poster: movie.poster_url,
-                  rating: movie.rating,
-                  year: movie.year,
-                  is_watched: movie.is_watched,
-                  is_favorite: movie.is_favorite,
-                  is_watchlist: movie.is_watchlist,
-                });
-              }
               if (movie.is_favorite) {
                 allFriendsActivity.push({
                   id: `friend-movie-fav-${friendId}-${movie.id}`,
@@ -318,6 +301,25 @@ export default function HomeScreen() {
                   title: movie.title,
                   type: 'Movie',
                   action: 'favorited',
+                  date: new Date().toISOString(),
+                  poster: movie.poster_url,
+                  rating: movie.rating,
+                  year: movie.year,
+                  is_watched: movie.is_watched,
+                  is_favorite: movie.is_favorite,
+                  is_watchlist: movie.is_watchlist,
+                });
+                return; // ✅ watched eventini basma
+              }
+              if (movie.is_watched) {
+                allFriendsActivity.push({
+                  id: `friend-movie-${friendId}-${movie.id}`,
+                  item_id: movie.id,
+                  friendName,
+                  friendEmail,
+                  title: movie.title,
+                  type: 'Movie',
+                  action: 'watched',
                   date: new Date().toISOString(),
                   poster: movie.poster_url,
                   rating: movie.rating,
@@ -452,6 +454,7 @@ export default function HomeScreen() {
     );
   }
 
+  console.log('Recent Activity:', recentActivity);
   return (
     <SafeAreaView style={styles.container} edges={['left', 'right']}>
       <LinearGradient colors={['#1F2937', '#111827']} style={styles.gradient}>
@@ -510,7 +513,6 @@ export default function HomeScreen() {
           {recentActivity.length > 0 && (
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>Recent Activity</Text>
-
               {recentActivity.map((item, index) => (
                 <TouchableOpacity
                   key={item.id}
@@ -558,8 +560,8 @@ export default function HomeScreen() {
                     <Text style={styles.activityType}>{item.type}</Text>
                     <Text style={styles.activityAction}>
                       {item.action === 'watched'
-                        ? 'izlendi'
-                        : 'favoriye eklendi'}{' '}
+                        ? 'Watched'
+                        : 'Added to favorites'}{' '}
                       - {formatDate(item.date)}
                     </Text>
                     {item.rating != null && item.rating > 0 && (

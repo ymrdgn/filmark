@@ -103,6 +103,8 @@ RETURNS TABLE(
   is_watched boolean,
   is_favorite boolean,
   rating integer
+  created_at timestamptz,
+  updated_at timestamptz
 )
 LANGUAGE plpgsql
 SECURITY DEFINER
@@ -119,7 +121,17 @@ BEGIN
   END IF;
 
   RETURN QUERY
-  SELECT m.id, m.title, m.year, m.poster_url, m.is_watched, m.is_favorite, m.rating
+  SELECT   
+    m.id,
+    m.title,
+    m.year,
+    m.poster_url,
+    m.is_watched,
+    m.is_favorite,
+    m.is_watchlist,
+    m.rating,
+    m.created_at,
+    m.updated_at
   FROM movies m
   WHERE m.user_id = friend_user_id
   ORDER BY m.created_at DESC;
@@ -139,7 +151,9 @@ RETURNS TABLE(
   is_favorite boolean,
   rating integer,
   current_season integer,
-  current_episode integer
+  current_episode integer,
+  created_at timestamptz,
+  updated_at timestamptz
 )
 LANGUAGE plpgsql
 SECURITY DEFINER
@@ -156,8 +170,21 @@ BEGIN
   END IF;
 
   RETURN QUERY
-  SELECT t.id, t.title, t.year, t.seasons, t.episodes, t.poster_url, 
-         t.is_watched, t.is_favorite, t.rating, t.current_season, t.current_episode
+  SELECT
+    t.id,
+    t.title,
+    t.year,
+    t.seasons,
+    t.episodes,
+    t.poster_url,
+    t.is_watched,
+    t.is_favorite,
+    t.is_watchlist,
+    t.rating,
+    t.current_season,
+    t.current_episode,
+    t.created_at,
+    t.updated_at
   FROM tv_shows t
   WHERE t.user_id = friend_user_id
   ORDER BY t.created_at DESC;
