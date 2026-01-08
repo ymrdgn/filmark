@@ -39,7 +39,7 @@ const cardWidth = (width - 72) / 2;
 export default function TVShowsScreen() {
   const [searchQuery, setSearchQuery] = useState('');
   const [filter, setFilter] = useState('all');
-  const [myTVShows, setMyTVShows] = useState([]);
+  const [myTVShows, setMyTVShows] = useState<any[]>([]);
   const [tmdbTVShows, setTMDBTVShows] = useState<TMDBTVShow[]>([]);
   const [loading, setLoading] = useState(true);
   const [tmdbLoading, setTMDBLoading] = useState(false);
@@ -56,7 +56,7 @@ export default function TVShowsScreen() {
     };
 
     return () => {
-      global.refreshTVShows = null;
+      global.refreshTVShows = undefined;
     };
   }, []);
 
@@ -151,17 +151,14 @@ export default function TVShowsScreen() {
       const { error } = await tvShowsApi.add({
         title: show.name,
         year: show.first_air_date
-          ? new Date(show.first_air_date).getFullYear()
+          ? new Date(show.first_air_date).getFullYear().toString()
           : null,
         poster_url: getImageUrl(show.poster_path),
         is_watched: true,
         is_favorite: false,
         is_watchlist: false,
         rating: null,
-        seasons: 1,
-        episodes: 1,
-        current_season: 1,
-        current_episode: 1,
+        watched_date: new Date().toISOString(),
       });
 
       if (error) {
@@ -250,22 +247,19 @@ export default function TVShowsScreen() {
     return found;
   };
 
-  const getStatusIcon = (show) => {
+  const getStatusIcon = (show: any) => {
     if (show.is_watched) {
       return <Eye size={14} color="#10B981" strokeWidth={2} />;
-    } else if (show.current_episode > 1) {
-      return <Play size={14} color="#F59E0B" strokeWidth={2} />;
     }
     return <Plus size={14} color="#6366F1" strokeWidth={2} />;
   };
 
-  const getStatusColor = (show) => {
+  const getStatusColor = (show: any) => {
     if (show.is_watched) return '#10B981';
-    if (show.current_episode > 1) return '#F59E0B';
     return '#6366F1';
   };
 
-  const renderMyTVShowCard = (show) => (
+  const renderMyTVShowCard = (show: any) => (
     <TouchableOpacity
       key={show.id}
       style={styles.showCard}
@@ -281,10 +275,6 @@ export default function TVShowsScreen() {
             is_favorite: show.is_favorite?.toString() || 'false',
             is_watchlist: show.is_watchlist?.toString() || 'false',
             rating: show.rating?.toString() || '0',
-            seasons: show.seasons?.toString() || '0',
-            episodes: show.episodes?.toString() || '0',
-            current_season: show.current_season?.toString() || '1',
-            current_episode: show.current_episode?.toString() || '1',
             inCollection: 'true',
           },
         })
@@ -322,23 +312,6 @@ export default function TVShowsScreen() {
             )}
           </TouchableOpacity>
         </View>
-
-        {!show.is_watched && show.current_episode > 1 && (
-          <View style={styles.progressBar}>
-            <View
-              style={[
-                styles.progress,
-                {
-                  backgroundColor: getStatusColor(show),
-                  width: `${Math.min(
-                    (show.current_episode / show.episodes) * 100,
-                    100
-                  )}%`,
-                },
-              ]}
-            />
-          </View>
-        )}
       </View>
 
       <View style={styles.showInfo}>
@@ -347,33 +320,17 @@ export default function TVShowsScreen() {
         </Text>
         <Text style={styles.showYear}>{show.year}</Text>
 
-        <View style={styles.showMeta}>
-          <View style={styles.seasons}>
-            <Calendar size={12} color="#9CA3AF" strokeWidth={2} />
-            <Text style={styles.seasonsText}>{show.seasons} seasons</Text>
-          </View>
-
-          {show.rating > 0 && (
-            <View style={styles.rating}>
-              {[...Array(5)].map((_, i) => (
-                <Star
-                  key={i}
-                  size={12}
-                  color={i < show.rating ? '#F59E0B' : '#374151'}
-                  fill={i < show.rating ? '#F59E0B' : 'transparent'}
-                  strokeWidth={1}
-                />
-              ))}
-            </View>
-          )}
-        </View>
-
-        {!show.is_watched && show.current_episode > 1 && (
-          <View style={styles.watchingStatus}>
-            <View style={styles.watchingDot} />
-            <Text style={styles.watchingText}>
-              S{show.current_season}E{show.current_episode}
-            </Text>
+        {show.rating > 0 && (
+          <View style={styles.rating}>
+            {[...Array(5)].map((_, i) => (
+              <Star
+                key={i}
+                size={12}
+                color={i < show.rating ? '#F59E0B' : '#374151'}
+                fill={i < show.rating ? '#F59E0B' : 'transparent'}
+                strokeWidth={1}
+              />
+            ))}
           </View>
         )}
       </View>
