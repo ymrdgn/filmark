@@ -44,6 +44,13 @@ export default function FriendsScreen() {
     loadFriends();
   }, []);
 
+  // Clear search results when query changes
+  useEffect(() => {
+    if (searchQuery.trim() === '') {
+      setSearchResults([]);
+    }
+  }, [searchQuery]);
+
   const loadCurrentUser = async () => {
     try {
       const {
@@ -75,6 +82,12 @@ export default function FriendsScreen() {
 
   const handleSearch = async () => {
     if (!searchQuery.trim()) {
+      setSearchResults([]);
+      return;
+    }
+
+    // Email tam yazılmadan arama yapılmasın (@ işareti ve en az 5 karakter)
+    if (!searchQuery.includes('@') || searchQuery.length < 5) {
       setSearchResults([]);
       return;
     }
