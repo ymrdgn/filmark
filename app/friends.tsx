@@ -121,7 +121,6 @@ export default function FriendsScreen() {
         Alert.alert('Error', error.message || 'Failed to send friend request');
       } else {
         console.log('✅ Friend request sent successfully');
-        Alert.alert('Success', `Friend request sent to ${userEmail}!`);
         // Reload friends to show pending request but keep search results
         loadFriends();
       }
@@ -164,6 +163,26 @@ export default function FriendsScreen() {
     } catch (error) {
       console.error('Reject request error:', error);
       Alert.alert('Error', 'Failed to reject friend request');
+    } finally {
+      setProcessingRequestId(null);
+    }
+  };
+
+  const handleCancelRequest = async (
+    friendshipId: string,
+    friendEmail: string
+  ) => {
+    setProcessingRequestId(friendshipId);
+    try {
+      const { error } = await friendsApi.removeFriend(friendshipId);
+      if (error) {
+        Alert.alert('Error', 'Failed to cancel friend request');
+      } else {
+        loadFriends();
+      }
+    } catch (error) {
+      console.error('Cancel request error:', error);
+      Alert.alert('Error', 'Failed to cancel friend request');
     } finally {
       setProcessingRequestId(null);
     }
@@ -330,12 +349,28 @@ export default function FriendsScreen() {
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.actionButton, styles.rejectButton]}
-                onPress={() => handleRejectRequest(friend.id, friendEmail)}
+                onPress={() => handleRejectRequest(friend.id)}
                 disabled={processingRequestId === friend.id}
               >
                 <X size={16} color="white" strokeWidth={2} />
               </TouchableOpacity>
             </>
+          )}
+          {friend.status === 'pending' && !isIncoming && (
+            <TouchableOpacity
+              style={styles.cancelRequestButton}
+              onPress={() => handleCancelRequest(friend.id, friendEmail)}
+              disabled={processingRequestId === friend.id}
+            >
+              {processingRequestId === friend.id ? (
+                <ActivityIndicator size="small" color="white" />
+              ) : (
+                <>
+                  <X size={16} color="white" strokeWidth={2} />
+                  <Text style={styles.cancelRequestText}>Cancel Request</Text>
+                </>
+              )}
+            </TouchableOpacity>
           )}
           {friend.status === 'accepted' && (
             <>
@@ -654,6 +689,23 @@ const styles = StyleSheet.create({
   },
   rejectButton: {
     backgroundColor: '#EF4444',
+  },
+  cancelButton: {
+    backgroundColor: '#F59E0B',
+  },
+  cancelRequestButton: {
+    backgroundColor: '#F59E0B',
+    borderRadius: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  cancelRequestText: {
+    fontSize: 14,
+    fontFamily: 'Inter-SemiBold',
+    color: 'white',
   },
   removeButton: {
     backgroundColor: '#EF4444',
