@@ -7,7 +7,6 @@
     "ms-vscode.vscode-typescript-next",
     "expo.vscode-expo-tools",
     "formulahendry.auto-rename-tag",
-    "christian-kohler.path-intellisense",
-    "bradlc.vscode-tailwindcss"
+    "christian-kohler.path-intellisense"
   ]
 }

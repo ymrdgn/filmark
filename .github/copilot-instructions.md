@@ -4,10 +4,10 @@
 FilMark is a React Native mobile application built with Expo for tracking movies and TV shows. Users can create lists, search for content, manage friends, and track their viewing history.
 
 ## Technology Stack
-- **Framework**: React Native with Expo (~51.0.28)
-- **Navigation**: Expo Router (~3.5.23)
-- **Language**: TypeScript (~5.3.3)
-- **Backend**: Supabase (~2.45.0)
+- **Framework**: React Native with Expo (v51.x)
+- **Navigation**: Expo Router (v3.x)
+- **Language**: TypeScript (v5.x)
+- **Backend**: Supabase (v2.x)
 - **UI Components**: Custom components with Lucide icons
 - **State Management**: React hooks and AsyncStorage
 
