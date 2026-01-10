@@ -19,7 +19,9 @@ RETURNS TABLE(
   is_watchlist boolean,
   rating integer,
   my_movie_id uuid,
-  inCollection boolean
+  inCollection boolean,
+  updated_at timestamp with time zone,
+  created_at timestamp with time zone
 )
 LANGUAGE plpgsql
 SECURITY DEFINER
@@ -41,12 +43,14 @@ BEGIN
     friend_movie.title,
     friend_movie.year::integer,
     friend_movie.poster_url,
-    COALESCE(my_movie.is_watched, false) as is_watched,
-    COALESCE(my_movie.is_favorite, false) as is_favorite,
+    friend_movie.is_watched,
+    friend_movie.is_favorite,
     COALESCE(my_movie.is_watchlist, false) as is_watchlist,
     my_movie.rating::integer,
     my_movie.id as my_movie_id,
-    (my_movie.id IS NOT NULL) as inCollection
+    (my_movie.id IS NOT NULL) as inCollection,
+    friend_movie.updated_at,
+    friend_movie.created_at
   FROM movies friend_movie
   LEFT JOIN movies my_movie 
     ON my_movie.user_id = auth.uid() 
@@ -69,7 +73,9 @@ RETURNS TABLE(
   is_watchlist boolean,
   rating integer,
   my_show_id uuid,
-  inCollection boolean
+  inCollection boolean,
+  updated_at timestamp with time zone,
+  created_at timestamp with time zone
 )
 LANGUAGE plpgsql
 SECURITY DEFINER
@@ -91,12 +97,14 @@ BEGIN
     friend_show.title,
     friend_show.year::integer,
     friend_show.poster_url,
-    COALESCE(my_show.is_watched, false) as is_watched,
-    COALESCE(my_show.is_favorite, false) as is_favorite,
+    friend_show.is_watched,
+    friend_show.is_favorite,
     COALESCE(my_show.is_watchlist, false) as is_watchlist,
     my_show.rating::integer,
     my_show.id as my_show_id,
-    (my_show.id IS NOT NULL) as inCollection
+    (my_show.id IS NOT NULL) as inCollection,
+    friend_show.updated_at,
+    friend_show.created_at
   FROM tv_shows friend_show
   LEFT JOIN tv_shows my_show 
     ON my_show.user_id = auth.uid() 

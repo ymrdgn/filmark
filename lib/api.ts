@@ -14,13 +14,17 @@ export const moviesApi = {
       .from('movies')
       .select('*')
       .order('created_at', { ascending: false });
-    
+
     return { data, error };
   },
 
   // Add a new movie
-  add: async (movie: Omit<Movie, 'id' | 'user_id' | 'created_at' | 'updated_at'>) => {
-    const { data: { user } } = await supabase.auth.getUser();
+  add: async (
+    movie: Omit<Movie, 'id' | 'user_id' | 'created_at' | 'updated_at'>
+  ) => {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
     if (!user) throw new Error('User not authenticated');
 
     const { data, error } = await supabase
@@ -28,7 +32,7 @@ export const moviesApi = {
       .insert({ ...movie, user_id: user.id })
       .select()
       .single();
-    
+
     return { data, error };
   },
 
@@ -36,21 +40,18 @@ export const moviesApi = {
   update: async (id: string, updates: Partial<Movie>) => {
     const { data, error } = await supabase
       .from('movies')
-      .update(updates)
+      .update({ ...updates, updated_at: new Date().toISOString() })
       .eq('id', id)
       .select()
       .single();
-    
+
     return { data, error };
   },
 
   // Delete a movie
   delete: async (id: string) => {
-    const { error } = await supabase
-      .from('movies')
-      .delete()
-      .eq('id', id);
-    
+    const { error } = await supabase.from('movies').delete().eq('id', id);
+
     return { error };
   },
 
@@ -61,7 +62,7 @@ export const moviesApi = {
       .select('*')
       .eq('is_watched', true)
       .order('created_at', { ascending: false });
-    
+
     return { data, error };
   },
 
@@ -72,7 +73,7 @@ export const moviesApi = {
       .select('*')
       .eq('is_favorite', true)
       .order('created_at', { ascending: false });
-    
+
     return { data, error };
   },
 
@@ -83,7 +84,7 @@ export const moviesApi = {
       .select('*')
       .eq('is_watchlist', true)
       .order('created_at', { ascending: false });
-    
+
     return { data, error };
   },
 };
@@ -96,13 +97,17 @@ export const tvShowsApi = {
       .from('tv_shows')
       .select('*')
       .order('created_at', { ascending: false });
-    
+
     return { data, error };
   },
 
   // Add a new TV show
-  add: async (tvShow: Omit<TVShow, 'id' | 'user_id' | 'created_at' | 'updated_at'>) => {
-    const { data: { user } } = await supabase.auth.getUser();
+  add: async (
+    tvShow: Omit<TVShow, 'id' | 'user_id' | 'created_at' | 'updated_at'>
+  ) => {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
     if (!user) throw new Error('User not authenticated');
 
     const { data, error } = await supabase
@@ -110,7 +115,7 @@ export const tvShowsApi = {
       .insert({ ...tvShow, user_id: user.id })
       .select()
       .single();
-    
+
     return { data, error };
   },
 
@@ -118,21 +123,18 @@ export const tvShowsApi = {
   update: async (id: string, updates: Partial<TVShow>) => {
     const { data, error } = await supabase
       .from('tv_shows')
-      .update(updates)
+      .update({ ...updates, updated_at: new Date().toISOString() })
       .eq('id', id)
       .select()
       .single();
-    
+
     return { data, error };
   },
 
   // Delete a TV show
   delete: async (id: string) => {
-    const { error } = await supabase
-      .from('tv_shows')
-      .delete()
-      .eq('id', id);
-    
+    const { error } = await supabase.from('tv_shows').delete().eq('id', id);
+
     return { error };
   },
 
@@ -143,7 +145,7 @@ export const tvShowsApi = {
       .select('*')
       .eq('is_watched', true)
       .order('created_at', { ascending: false });
-    
+
     return { data, error };
   },
 
@@ -154,7 +156,7 @@ export const tvShowsApi = {
       .select('*')
       .eq('is_favorite', true)
       .order('created_at', { ascending: false });
-    
+
     return { data, error };
   },
 
@@ -165,7 +167,7 @@ export const tvShowsApi = {
       .select('*')
       .eq('is_watchlist', true)
       .order('created_at', { ascending: false });
-    
+
     return { data, error };
   },
 };
@@ -176,7 +178,8 @@ export const listsApi = {
   getAll: async () => {
     const { data, error } = await supabase
       .from('custom_lists')
-      .select(`
+      .select(
+        `
         *,
         list_items (
           id,
@@ -185,15 +188,18 @@ export const listsApi = {
           movies (title, poster_url),
           tv_shows (title, poster_url)
         )
-      `)
+      `
+      )
       .order('created_at', { ascending: false });
-    
+
     return { data, error };
   },
 
   // Create a new custom list
   create: async (name: string, description?: string) => {
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
     if (!user) throw new Error('User not authenticated');
 
     const { data, error } = await supabase
@@ -201,29 +207,29 @@ export const listsApi = {
       .insert({ name, description, user_id: user.id })
       .select()
       .single();
-    
+
     return { data, error };
   },
 
   // Update a custom list
-  update: async (id: string, updates: { name?: string; description?: string }) => {
+  update: async (
+    id: string,
+    updates: { name?: string; description?: string }
+  ) => {
     const { data, error } = await supabase
       .from('custom_lists')
       .update(updates)
       .eq('id', id)
       .select()
       .single();
-    
+
     return { data, error };
   },
 
   // Delete a custom list
   delete: async (id: string) => {
-    const { error } = await supabase
-      .from('custom_lists')
-      .delete()
-      .eq('id', id);
-    
+    const { error } = await supabase.from('custom_lists').delete().eq('id', id);
+
     return { error };
   },
 
@@ -231,23 +237,20 @@ export const listsApi = {
   addItem: async (listId: string, movieId?: string, tvShowId?: string) => {
     const { data, error } = await supabase
       .from('list_items')
-      .insert({ 
-        list_id: listId, 
-        movie_id: movieId || null, 
-        tv_show_id: tvShowId || null 
+      .insert({
+        list_id: listId,
+        movie_id: movieId || null,
+        tv_show_id: tvShowId || null,
       })
       .select()
       .single();
-    
+
     return { data, error };
   },
 
   // Remove item from list
   removeItem: async (listId: string, movieId?: string, tvShowId?: string) => {
-    let query = supabase
-      .from('list_items')
-      .delete()
-      .eq('list_id', listId);
+    let query = supabase.from('list_items').delete().eq('list_id', listId);
 
     if (movieId) {
       query = query.eq('movie_id', movieId);
@@ -264,28 +267,36 @@ export const listsApi = {
 export const achievementsApi = {
   // Get all achievements with user progress
   getAchievementsWithProgress: async () => {
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
     if (!user) throw new Error('User not authenticated');
 
     const { data: achievements, error: achievementsError } = await supabase
       .from('achievements')
       .select('*')
       .order('requirement_value', { ascending: true });
-    
+
     if (achievementsError) return { data: null, error: achievementsError };
 
-    const { data: userAchievements, error: userAchievementsError } = await supabase
-      .from('user_achievements')
-      .select('achievement_id, earned_at')
-      .eq('user_id', user.id);
-    
-    if (userAchievementsError) return { data: null, error: userAchievementsError };
+    const { data: userAchievements, error: userAchievementsError } =
+      await supabase
+        .from('user_achievements')
+        .select('achievement_id, earned_at')
+        .eq('user_id', user.id);
+
+    if (userAchievementsError)
+      return { data: null, error: userAchievementsError };
 
     // Combine achievements with user progress
-    const achievementsWithProgress = achievements?.map(achievement => ({
+    const achievementsWithProgress = achievements?.map((achievement) => ({
       ...achievement,
-      earned: userAchievements?.some(ua => ua.achievement_id === achievement.id) || false,
-      earned_at: userAchievements?.find(ua => ua.achievement_id === achievement.id)?.earned_at || null
+      earned:
+        userAchievements?.some((ua) => ua.achievement_id === achievement.id) ||
+        false,
+      earned_at:
+        userAchievements?.find((ua) => ua.achievement_id === achievement.id)
+          ?.earned_at || null,
     }));
 
     return { data: achievementsWithProgress, error: null };
@@ -293,27 +304,36 @@ export const achievementsApi = {
 
   // Manually check and award achievements for current user
   checkAchievements: async () => {
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
     if (!user) throw new Error('User not authenticated');
 
     const { error } = await supabase.rpc('check_and_award_achievements', {
-      user_uuid: user.id
+      user_uuid: user.id,
     });
 
     return { error };
-  }
+  },
 };
 
 // Stats API
 export const statsApi = {
   // Get user statistics
   getStats: async () => {
-    const [moviesResult, tvShowsResult, allMoviesResult, allTVShowsResult] = await Promise.all([
-      supabase.from('movies').select('is_watched, is_favorite, rating').eq('is_watched', true),
-      supabase.from('tv_shows').select('is_watched, is_favorite, rating, episodes').eq('is_watched', true),
-      supabase.from('movies').select('is_favorite'),
-      supabase.from('tv_shows').select('is_favorite')
-    ]);
+    const [moviesResult, tvShowsResult, allMoviesResult, allTVShowsResult] =
+      await Promise.all([
+        supabase
+          .from('movies')
+          .select('is_watched, is_favorite, rating')
+          .eq('is_watched', true),
+        supabase
+          .from('tv_shows')
+          .select('is_watched, is_favorite, rating, episodes')
+          .eq('is_watched', true),
+        supabase.from('movies').select('is_favorite'),
+        supabase.from('tv_shows').select('is_favorite'),
+      ]);
 
     const watchedMovies = moviesResult.data || [];
     const tvShows = tvShowsResult.data || [];
@@ -322,20 +342,25 @@ export const statsApi = {
 
     const totalMovies = watchedMovies.length;
     const totalTVShows = tvShows.length;
-    const totalEpisodes = tvShows.reduce((sum, show) => sum + (show.episodes || 0), 0);
+    const totalEpisodes = tvShows.reduce(
+      (sum, show) => sum + (show.episodes || 0),
+      0
+    );
 
     // Calculate favorites
-    const favoriteMovies = allMovies.filter(m => m.is_favorite).length;
-    const favoriteTVShows = allTVShows.filter(s => s.is_favorite).length;
+    const favoriteMovies = allMovies.filter((m) => m.is_favorite).length;
+    const favoriteTVShows = allTVShows.filter((s) => s.is_favorite).length;
 
     // Calculate average rating
     const allRatings = [
-      ...watchedMovies.filter(m => m.rating).map(m => m.rating!),
-      ...tvShows.filter(s => s.rating).map(s => s.rating!)
+      ...watchedMovies.filter((m) => m.rating).map((m) => m.rating!),
+      ...tvShows.filter((s) => s.rating).map((s) => s.rating!),
     ];
-    const averageRating = allRatings.length > 0
-      ? allRatings.reduce((sum, rating) => sum + rating, 0) / allRatings.length
-      : 0;
+    const averageRating =
+      allRatings.length > 0
+        ? allRatings.reduce((sum, rating) => sum + rating, 0) /
+          allRatings.length
+        : 0;
 
     // Estimate hours watched (assuming 2h per movie, 45min per episode)
     const movieHours = totalMovies * 2;
@@ -350,18 +375,20 @@ export const statsApi = {
         hoursWatched: totalHours,
         averageRating: Math.round(averageRating * 10) / 10,
         favoriteMovies,
-        favoriteTVShows
+        favoriteTVShows,
       },
-      error: null
+      error: null,
     };
-  }
+  },
 };
 
 // Privacy Settings API
 export const privacyApi = {
   // Get privacy settings
   get: async () => {
-    const { data: { session } } = await supabase.auth.getSession();
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
     if (!session) {
       return { data: null, error: new Error('Not authenticated') };
     }
@@ -371,14 +398,17 @@ export const privacyApi = {
       const response = await fetch(apiUrl, {
         method: 'GET',
         headers: {
-          'Authorization': `Bearer ${session.access_token}`,
+          Authorization: `Bearer ${session.access_token}`,
           'Content-Type': 'application/json',
         },
       });
 
       if (!response.ok) {
         const error = await response.json();
-        return { data: null, error: new Error(error.error || 'Failed to load settings') };
+        return {
+          data: null,
+          error: new Error(error.error || 'Failed to load settings'),
+        };
       }
 
       const data = await response.json();
@@ -394,7 +424,9 @@ export const privacyApi = {
     show_activity: boolean;
     allow_friend_requests: boolean;
   }) => {
-    const { data: { session } } = await supabase.auth.getSession();
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
     if (!session) {
       return { data: null, error: new Error('Not authenticated') };
     }
@@ -404,7 +436,7 @@ export const privacyApi = {
       const response = await fetch(apiUrl, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${session.access_token}`,
+          Authorization: `Bearer ${session.access_token}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(settings),
@@ -412,7 +444,10 @@ export const privacyApi = {
 
       if (!response.ok) {
         const error = await response.json();
-        return { data: null, error: new Error(error.error || 'Failed to update settings') };
+        return {
+          data: null,
+          error: new Error(error.error || 'Failed to update settings'),
+        };
       }
 
       const data = await response.json();
@@ -420,5 +455,5 @@ export const privacyApi = {
     } catch (error: any) {
       return { data: null, error };
     }
-  }
+  },
 };

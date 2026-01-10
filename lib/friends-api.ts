@@ -186,7 +186,7 @@ export const friendsApi = {
   removeFriend: async (friendshipId: string) => {
     try {
       console.log('Attempting to remove friendship:', friendshipId);
-      
+
       const { error } = await supabase
         .from('friends')
         .delete()

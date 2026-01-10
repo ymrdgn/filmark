@@ -301,7 +301,7 @@ export default function HomeScreen() {
                   title: movie.title,
                   type: 'Movie',
                   action: 'favorited',
-                  date: new Date().toISOString(),
+                  date: movie.updated_at || movie.created_at || '',
                   poster: movie.poster_url,
                   rating: movie.rating,
                   year: movie.year,
@@ -320,7 +320,7 @@ export default function HomeScreen() {
                   title: movie.title,
                   type: 'Movie',
                   action: 'watched',
-                  date: new Date().toISOString(),
+                  date: movie.updated_at || movie.created_at || '',
                   poster: movie.poster_url,
                   rating: movie.rating,
                   year: movie.year,
@@ -345,7 +345,7 @@ export default function HomeScreen() {
                   title: show.title,
                   type: 'TV Show',
                   action: 'watched',
-                  date: new Date().toISOString(),
+                  date: show.updated_at || show.created_at || '',
                   poster: show.poster_url,
                   rating: show.rating,
                   year: show.year,
@@ -363,7 +363,7 @@ export default function HomeScreen() {
                   title: show.title,
                   type: 'TV Show',
                   action: 'favorited',
-                  date: new Date().toISOString(),
+                  date: show.updated_at || show.created_at || '',
                   poster: show.poster_url,
                   rating: show.rating,
                   year: show.year,
@@ -381,7 +381,7 @@ export default function HomeScreen() {
           );
         }
       }
-
+      console.log('All Friends Activity:', allFriendsActivity);
       // Sort by date and take first 3
       const sortedActivity = allFriendsActivity
         .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
@@ -394,14 +394,36 @@ export default function HomeScreen() {
   };
 
   const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffTime = Math.abs(now.getTime() - date.getTime());
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    console.log('Formatting date:', dateString);
 
-    if (diffDays === 1) return 'today';
-    if (diffDays === 2) return 'yesterday';
-    if (diffDays <= 7) return `${diffDays - 1} days ago`;
+    if (!dateString) {
+      console.log('Empty date string, returning "recently"');
+      return 'recently';
+    }
+
+    const date = new Date(dateString);
+
+    if (isNaN(date.getTime())) {
+      console.log('Invalid date, returning "recently"');
+      return 'recently';
+    }
+
+    const now = new Date();
+
+    // Sadece tarihleri karşılaştır (saat olmadan)
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const compareDate = new Date(
+      date.getFullYear(),
+      date.getMonth(),
+      date.getDate()
+    );
+
+    const diffTime = today.getTime() - compareDate.getTime();
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+    if (diffDays === 0) return 'today';
+    if (diffDays === 1) return 'yesterday';
+    if (diffDays > 1 && diffDays <= 7) return `${diffDays} days ago`;
 
     return date.toLocaleDateString('en-US', {
       month: 'short',
@@ -636,12 +658,12 @@ export default function HomeScreen() {
                       ]}
                     >
                       <Text style={styles.friendInitial}>
-                        {activity.friendName?.charAt(0)?.toUpperCase() || 'U'}
+                        {activity.friendEmail?.charAt(0)?.toUpperCase() || 'U'}
                       </Text>
                     </View>
                     <View style={styles.friendActivityContent}>
                       <Text style={styles.friendName}>
-                        {activity.friendName}
+                        {activity.friendEmail}
                       </Text>
                       <Text style={styles.friendActivity}>
                         {activity.title} {activity.action} -{' '}
