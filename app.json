@@ -2,7 +2,7 @@
   "expo": {
     "name": "WatchBase",
     "slug": "watchbase",
-    "version": "1.0.6",
+    "version": "1.0.12",
     "orientation": "portrait",
     "icon": "./assets/images/wb-icon.png",
     "scheme": "watchbase",
@@ -30,7 +30,7 @@
 
     "android": {
       "package": "com.watchbase.app",
-      "versionCode": 18,
+      "versionCode": 31,
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/wb-splash.png",
         "backgroundColor": "#6366F1"
@@ -53,7 +53,8 @@
         "expo-build-properties",
         {
           "android": {
-            "targetSdkVersion": 35
+            "targetSdkVersion": 35,
+            "useLegacyPackaging": false
           }
         }
       ]

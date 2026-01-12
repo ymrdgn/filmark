@@ -20,6 +20,15 @@
       },
       "ios": {
         "image": "macos-sonoma-14.6-xcode-16.1"
+      },
+      "android": {
+        "buildType": "app-bundle",
+        "image": "latest",
+        "gradleCommand": ":app:bundleRelease",
+        "env": {
+          "ANDROID_NDK_VERSION": "27.0.12077973",
+          "REACT_NATIVE_ARCHITECTURES": "arm64-v8a"
+        }
       }
     }
   },
