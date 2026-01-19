@@ -71,7 +71,7 @@ export default function TVShowDetailScreen() {
           }, 100);
         }
       };
-    }, [])
+    }, []),
   );
 
   // Load fresh data from API on component mount
@@ -84,7 +84,7 @@ export default function TVShowDetailScreen() {
   useFocusEffect(
     React.useCallback(() => {
       loadTVShowData();
-    }, [])
+    }, []),
   );
 
   const loadTVShowData = async () => {
@@ -101,7 +101,7 @@ export default function TVShowDetailScreen() {
         // If not found by ID, try to find by title and year (for friend's TV shows)
         if (!currentShow && params.title) {
           currentShow = (data as TVShow[]).find(
-            (s) => s.title === params.title && s.year === params.year
+            (s) => s.title === params.title && s.year === params.year,
           );
         }
 
@@ -137,11 +137,12 @@ export default function TVShowDetailScreen() {
   const handleRatingChange = async (newRating: number) => {
     const isUUID =
       /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
-        tvShow.id as string
+        tvShow.id as string,
       );
 
     if (!isUUID || !tvShow.inCollection) {
-      // Add TV show to collection first
+      // Add TV show to collection as watched with rating
+      setLoading(true);
       try {
         const { data, error } = await tvShowsApi.add({
           title: tvShow.title as string,
@@ -159,7 +160,7 @@ export default function TVShowDetailScreen() {
         } as any);
 
         if (error || !data) {
-          console.error('Failed to add TV show (rating):', error);
+          Alert.alert('Error', 'Failed to add TV show to your collection.');
           return;
         }
 
@@ -175,8 +176,10 @@ export default function TVShowDetailScreen() {
         global.refreshTVShows?.();
         return;
       } catch (error) {
-        console.error('Exception adding TV show (rating):', error);
+        Alert.alert('Error', 'Failed to add TV show to your collection.');
         return;
+      } finally {
+        setLoading(false);
       }
     }
     setLoading(true);
@@ -207,7 +210,7 @@ export default function TVShowDetailScreen() {
   const handleWatchedToggle = async () => {
     const isUUID =
       /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
-        tvShow.id as string
+        tvShow.id as string,
       );
 
     if (!isUUID || !tvShow.inCollection) {
@@ -256,7 +259,7 @@ export default function TVShowDetailScreen() {
       };
       const { error } = await tvShowsApi.update(
         tvShow.id as string,
-        updateData
+        updateData,
       );
 
       if (error) {
@@ -284,7 +287,7 @@ export default function TVShowDetailScreen() {
   const handleFavoriteToggle = async () => {
     const isUUID =
       /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
-        tvShow.id as string
+        tvShow.id as string,
       );
 
     if (!isUUID || !tvShow.inCollection) {
@@ -356,7 +359,7 @@ export default function TVShowDetailScreen() {
   const handleWatchlistToggle = async () => {
     const isUUID =
       /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
-        tvShow.id as string
+        tvShow.id as string,
       );
 
     if (!isUUID || !tvShow.inCollection) {
@@ -431,7 +434,7 @@ export default function TVShowDetailScreen() {
       // This functionality needs to be implemented by adding these columns to tv_shows table
       Alert.alert(
         'Info',
-        'Episode tracking feature is not yet implemented in the database.'
+        'Episode tracking feature is not yet implemented in the database.',
       );
       /*
       const { error } = await tvShowsApi.update(tvShow.id as string, {
@@ -580,7 +583,7 @@ export default function TVShowDetailScreen() {
                           backgroundColor: getStatusColor(),
                           width: `${Math.min(
                             (tvShow.current_episode / tvShow.episodes) * 100,
-                            100
+                            100,
                           )}%`,
                         },
                       ]}

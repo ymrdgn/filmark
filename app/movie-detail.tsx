@@ -80,7 +80,7 @@ export default function MovieDetailScreen() {
         // If not found by ID, try to find by title and year (for friend's movies)
         if (!currentMovie && params.title) {
           currentMovie = (data as Movie[]).find(
-            (m) => m.title === params.title && m.year === params.year
+            (m) => m.title === params.title && m.year === params.year,
           );
         }
 
@@ -111,15 +111,48 @@ export default function MovieDetailScreen() {
     // Check if movie is in collection (has valid UUID)
     const isUUID =
       /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
-        movie.id as string
+        movie.id as string,
       );
 
     if (!isUUID || !movie.inCollection) {
-      Alert.alert(
-        'Not in Collection',
-        'Please add this movie to your collection first by marking it as watched.'
-      );
-      return;
+      // Add movie to collection as watched with rating
+      setLoading(true);
+      try {
+        const { data, error } = await moviesApi.add({
+          title: movie.title as string,
+          year: movie.year as string,
+          poster_url: movie.poster_url as string,
+          is_watched: true,
+          is_favorite: false,
+          is_watchlist: false,
+          rating: newRating,
+          watched_date: new Date().toISOString(),
+        });
+
+        if (error || !data) {
+          Alert.alert('Error', 'Failed to add movie to your collection.');
+          return;
+        }
+
+        const movieData = data as Movie;
+        // Update local state with new movie data
+        setMovie((prev) => ({
+          ...prev,
+          id: movieData.id,
+          inCollection: true,
+          is_watched: true,
+          rating: newRating,
+          watched_date: movieData.watched_date,
+        }));
+
+        global.refreshMovies?.();
+        return;
+      } catch (error) {
+        Alert.alert('Error', 'Failed to add movie to your collection.');
+        return;
+      } finally {
+        setLoading(false);
+      }
     }
 
     setLoading(true);
@@ -142,7 +175,6 @@ export default function MovieDetailScreen() {
           is_watched: true,
           watched_date: watchedDate,
         }));
-        Alert.alert('Success', 'Rating updated!');
         global.refreshMovies?.();
       }
     } catch (error) {
@@ -156,7 +188,7 @@ export default function MovieDetailScreen() {
   const handleWatchedToggle = async () => {
     const isUUID =
       /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
-        movie.id as string
+        movie.id as string,
       );
 
     if (!isUUID || !movie.inCollection) {
@@ -231,7 +263,7 @@ export default function MovieDetailScreen() {
   const handleFavoriteToggle = async () => {
     const isUUID =
       /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
-        movie.id as string
+        movie.id as string,
       );
 
     if (!isUUID || !movie.inCollection) {
@@ -302,7 +334,7 @@ export default function MovieDetailScreen() {
   const handleWatchlistToggle = async () => {
     const isUUID =
       /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
-        movie.id as string
+        movie.id as string,
       );
 
     if (!isUUID || !movie.inCollection) {
