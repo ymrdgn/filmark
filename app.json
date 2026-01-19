@@ -2,15 +2,14 @@
   "expo": {
     "name": "WatchBase",
     "slug": "watchbase",
-    "version": "1.0.12",
+    "version": "1.0.13",
     "orientation": "portrait",
     "icon": "./assets/images/wb-icon.png",
     "scheme": "watchbase",
     "userInterfaceStyle": "automatic",
     "splash": {
       "image": "./assets/images/wb-splash.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#6366F1"
+      "resizeMode": "cover"
     },
     "ios": {
       "supportsTablet": true,
@@ -19,8 +18,7 @@
       "deploymentTarget": "13.0",
       "splash": {
         "image": "./assets/images/wb-splash.png",
-        "resizeMode": "contain",
-        "backgroundColor": "#6366F1"
+        "resizeMode": "cover"
       },
       "infoPlist": {
         "UIViewControllerBasedStatusBarAppearance": false,
@@ -30,15 +28,13 @@
 
     "android": {
       "package": "com.watchbase.app",
-      "versionCode": 31,
+      "versionCode": 32,
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/wb-splash.png",
-        "backgroundColor": "#6366F1"
+        "foregroundImage": "./assets/images/wb-icon.png"
       },
       "splash": {
         "image": "./assets/images/wb-splash.png",
-        "resizeMode": "contain",
-        "backgroundColor": "#6366F1"
+        "resizeMode": "cover"
       }
     },
     "web": {
