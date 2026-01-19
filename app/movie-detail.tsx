@@ -569,28 +569,32 @@ export default function MovieDetailScreen() {
                 </Text>
               </TouchableOpacity>
 
-              <TouchableOpacity
-                style={[
-                  styles.actionButton,
-                  movie.is_watchlist && styles.watchlistButtonActive,
-                ]}
-                onPress={handleWatchlistToggle}
-                disabled={loading}
-              >
-                <Plus
-                  size={20}
-                  color={movie.is_watchlist ? 'white' : '#8B5CF6'}
-                  strokeWidth={2}
-                />
-                <Text
+              {!movie.is_watched && (
+                <TouchableOpacity
                   style={[
-                    styles.actionButtonText,
-                    movie.is_watchlist && styles.actionButtonTextActive,
+                    styles.actionButton,
+                    movie.is_watchlist && styles.watchlistButtonActive,
                   ]}
+                  onPress={handleWatchlistToggle}
+                  disabled={loading}
                 >
-                  {movie.is_watchlist ? 'In Watchlist 📝' : 'Add to Watchlist'}
-                </Text>
-              </TouchableOpacity>
+                  <Plus
+                    size={20}
+                    color={movie.is_watchlist ? 'white' : '#8B5CF6'}
+                    strokeWidth={2}
+                  />
+                  <Text
+                    style={[
+                      styles.actionButtonText,
+                      movie.is_watchlist && styles.actionButtonTextActive,
+                    ]}
+                  >
+                    {movie.is_watchlist
+                      ? 'In Watchlist 📝'
+                      : 'Add to Watchlist'}
+                  </Text>
+                </TouchableOpacity>
+              )}
             </View>
           </View>
         </ScrollView>

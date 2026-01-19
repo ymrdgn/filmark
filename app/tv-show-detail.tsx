@@ -670,28 +670,32 @@ export default function TVShowDetailScreen() {
                 </Text>
               </TouchableOpacity>
 
-              <TouchableOpacity
-                style={[
-                  styles.actionButton,
-                  tvShow.is_watchlist && styles.watchlistButtonActive,
-                ]}
-                onPress={handleWatchlistToggle}
-                disabled={loading}
-              >
-                <Plus
-                  size={20}
-                  color={tvShow.is_watchlist ? 'white' : '#8B5CF6'}
-                  strokeWidth={2}
-                />
-                <Text
+              {!tvShow.is_watched && (
+                <TouchableOpacity
                   style={[
-                    styles.actionButtonText,
-                    tvShow.is_watchlist && styles.actionButtonTextActive,
+                    styles.actionButton,
+                    tvShow.is_watchlist && styles.watchlistButtonActive,
                   ]}
+                  onPress={handleWatchlistToggle}
+                  disabled={loading}
                 >
-                  {tvShow.is_watchlist ? 'In Watchlist 📝' : 'Add to Watchlist'}
-                </Text>
-              </TouchableOpacity>
+                  <Plus
+                    size={20}
+                    color={tvShow.is_watchlist ? 'white' : '#8B5CF6'}
+                    strokeWidth={2}
+                  />
+                  <Text
+                    style={[
+                      styles.actionButtonText,
+                      tvShow.is_watchlist && styles.actionButtonTextActive,
+                    ]}
+                  >
+                    {tvShow.is_watchlist
+                      ? 'In Watchlist 📝'
+                      : 'Add to Watchlist'}
+                  </Text>
+                </TouchableOpacity>
+              )}
             </View>
           </View>
 
