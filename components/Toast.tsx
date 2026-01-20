@@ -12,7 +12,13 @@ interface ToastProps {
   duration?: number;
 }
 
-export default function Toast({ message, type, visible, onHide, duration = 3000 }: ToastProps) {
+export default function Toast({
+  message,
+  type,
+  visible,
+  onHide,
+  duration = 3000,
+}: ToastProps) {
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const translateY = useRef(new Animated.Value(-100)).current;
 
@@ -61,22 +67,22 @@ export default function Toast({ message, type, visible, onHide, duration = 3000 
   const getIcon = () => {
     switch (type) {
       case 'success':
-        return <CheckCircle size={20} color="#10B981" strokeWidth={2} />;
+        return <CheckCircle size={20} color="white" strokeWidth={2} />;
       case 'error':
-        return <XCircle size={20} color="#EF4444" strokeWidth={2} />;
+        return <XCircle size={20} color="white" strokeWidth={2} />;
       case 'info':
-        return <AlertCircle size={20} color="#3B82F6" strokeWidth={2} />;
+        return <AlertCircle size={20} color="white" strokeWidth={2} />;
     }
   };
 
   const getBackgroundColor = () => {
     switch (type) {
       case 'success':
-        return 'rgba(16, 185, 129, 0.15)';
+        return 'rgba(16, 185, 129, 0.90)';
       case 'error':
-        return 'rgba(239, 68, 68, 0.15)';
+        return 'rgba(239, 68, 68, 0.90)';
       case 'info':
-        return 'rgba(59, 130, 246, 0.15)';
+        return 'rgba(59, 130, 246, 0.90)';
     }
   };
 
@@ -99,7 +105,6 @@ export default function Toast({ message, type, visible, onHide, duration = 3000 
           opacity: fadeAnim,
           transform: [{ translateY }],
           backgroundColor: getBackgroundColor(),
-          borderColor: getBorderColor(),
         },
       ]}
     >
@@ -120,7 +125,6 @@ const styles = StyleSheet.create({
     gap: 12,
     padding: 16,
     borderRadius: 12,
-    borderWidth: 1,
     zIndex: 9999,
     shadowColor: '#000',
     shadowOffset: {

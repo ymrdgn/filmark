@@ -6,7 +6,6 @@ import {
   ScrollView,
   TouchableOpacity,
   Image,
-  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -26,6 +25,7 @@ import {
 import { router, useLocalSearchParams } from 'expo-router';
 import { moviesApi } from '@/lib/api';
 import { Database } from '@/lib/database.types';
+import Toast from '@/components/Toast';
 
 type Movie = Database['public']['Tables']['movies']['Row'];
 
@@ -42,7 +42,7 @@ interface MovieState {
   is_watched: boolean;
   is_favorite: boolean;
   is_watchlist: boolean;
-  rating: number;
+  rating: number | null;
   watched_date: string | null;
   inCollection: boolean;
 }
@@ -62,6 +62,20 @@ export default function MovieDetailScreen() {
     inCollection: params.inCollection === 'true',
   });
   const [loading, setLoading] = useState(false);
+  const [toastVisible, setToastVisible] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
+  const [toastType, setToastType] = useState<'success' | 'error' | 'info'>(
+    'success',
+  );
+
+  const showToast = (
+    message: string,
+    type: 'success' | 'error' | 'info' = 'success',
+  ) => {
+    setToastMessage(message);
+    setToastType(type);
+    setToastVisible(true);
+  };
 
   // Load fresh data from API on component mount
   useEffect(() => {
@@ -130,7 +144,7 @@ export default function MovieDetailScreen() {
         });
 
         if (error || !data) {
-          Alert.alert('Error', 'Failed to add movie to your collection.');
+          showToast('Failed to add movie to your collection', 'error');
           return;
         }
 
@@ -148,7 +162,7 @@ export default function MovieDetailScreen() {
         global.refreshMovies?.();
         return;
       } catch (error) {
-        Alert.alert('Error', 'Failed to add movie to your collection.');
+        showToast('Failed to add movie to your collection', 'error');
         return;
       } finally {
         setLoading(false);
@@ -165,7 +179,7 @@ export default function MovieDetailScreen() {
       });
 
       if (error) {
-        Alert.alert('Error', 'Failed to update rating.');
+        showToast('Failed to update rating', 'error');
         console.error('Update error:', error);
       } else {
         // Update local state immediately
@@ -178,7 +192,7 @@ export default function MovieDetailScreen() {
         global.refreshMovies?.();
       }
     } catch (error) {
-      Alert.alert('Error', 'Failed to update rating.');
+      showToast('Failed to update rating', 'error');
       console.error('Caught error:', error);
     } finally {
       setLoading(false);
@@ -206,7 +220,7 @@ export default function MovieDetailScreen() {
         });
 
         if (error || !data) {
-          Alert.alert('Error', 'Failed to add movie to your collection.');
+          showToast('Failed to add movie to your collection', 'error');
           return;
         }
 
@@ -223,7 +237,7 @@ export default function MovieDetailScreen() {
         global.refreshMovies?.();
         return;
       } catch (error) {
-        Alert.alert('Error', 'Failed to add movie to your collection.');
+        showToast('Failed to add movie to your collection', 'error');
         return;
       }
     }
@@ -234,11 +248,13 @@ export default function MovieDetailScreen() {
       const updateData: Partial<Movie> = {
         is_watched: newWatchedStatus,
         watched_date: newWatchedStatus ? new Date().toISOString() : null,
+        rating: newWatchedStatus ? movie.rating : null,
+        is_favorite: newWatchedStatus ? movie.is_favorite : false,
       };
       const { error } = await moviesApi.update(movie.id as string, updateData);
 
       if (error) {
-        Alert.alert('Error', 'Failed to update watched status.');
+        showToast('Failed to update watched status', 'error');
         console.error('Update error:', error);
       } else {
         // Update local state immediately
@@ -246,6 +262,8 @@ export default function MovieDetailScreen() {
           ...prev,
           is_watched: newWatchedStatus,
           watched_date: updateData.watched_date || null,
+          rating: newWatchedStatus ? prev.rating : null,
+          is_favorite: newWatchedStatus ? prev.is_favorite : false,
         }));
         const statusText = newWatchedStatus
           ? 'marked as watched'
@@ -253,7 +271,7 @@ export default function MovieDetailScreen() {
         global.refreshMovies?.();
       }
     } catch (error) {
-      Alert.alert('Error', 'Failed to update watched status.');
+      showToast('Failed to update watched status', 'error');
       console.error('Caught error:', error);
     } finally {
       setLoading(false);
@@ -281,7 +299,7 @@ export default function MovieDetailScreen() {
         });
 
         if (error || !data) {
-          Alert.alert('Error', 'Failed to add movie to your collection.');
+          showToast('Failed to add movie to your collection', 'error');
           return;
         }
 
@@ -299,7 +317,7 @@ export default function MovieDetailScreen() {
         global.refreshMovies?.();
         return;
       } catch (error) {
-        Alert.alert('Error', 'Failed to add movie to your collection.');
+        showToast('Failed to add movie to your collection', 'error');
         return;
       }
     }
@@ -307,17 +325,30 @@ export default function MovieDetailScreen() {
     setLoading(true);
     try {
       const newFavoriteStatus = !movie.is_favorite;
-      const { error } = await moviesApi.update(movie.id as string, {
+      const updateData: Partial<Movie> = {
         is_favorite: newFavoriteStatus,
-      });
+      };
+
+      // Favoriye eklenince izledim de işaretlensin
+      if (newFavoriteStatus && !movie.is_watched) {
+        updateData.is_watched = true;
+        updateData.watched_date = new Date().toISOString();
+      }
+
+      const { error } = await moviesApi.update(movie.id as string, updateData);
 
       if (error) {
-        Alert.alert('Error', 'Failed to update favorite status.');
+        showToast('Failed to update favorite status', 'error');
       } else {
         // Update local state immediately
         setMovie((prev) => ({
           ...prev,
           is_favorite: newFavoriteStatus,
+          is_watched: newFavoriteStatus ? true : prev.is_watched,
+          watched_date:
+            newFavoriteStatus && !prev.is_watched
+              ? updateData.watched_date || null
+              : prev.watched_date,
         }));
         const statusText = newFavoriteStatus
           ? 'added to favorites'
@@ -325,7 +356,7 @@ export default function MovieDetailScreen() {
         global.refreshMovies?.();
       }
     } catch (error) {
-      Alert.alert('Error', 'Failed to update favorite status.');
+      showToast('Failed to update favorite status', 'error');
     } finally {
       setLoading(false);
     }
@@ -352,7 +383,7 @@ export default function MovieDetailScreen() {
         });
 
         if (error || !data) {
-          Alert.alert('Error', 'Failed to add movie to your watchlist.');
+          showToast('Failed to add movie to your watchlist', 'error');
           return;
         }
 
@@ -368,7 +399,7 @@ export default function MovieDetailScreen() {
         global.refreshMovies?.();
         return;
       } catch (error) {
-        Alert.alert('Error', 'Failed to add movie to your watchlist.');
+        showToast('Failed to add movie to your watchlist', 'error');
         return;
       }
     }
@@ -381,7 +412,7 @@ export default function MovieDetailScreen() {
       });
 
       if (error) {
-        Alert.alert('Error', 'Failed to update watchlist status.');
+        showToast('Failed to update watchlist status', 'error');
       } else {
         // Update local state immediately
         setMovie((prev) => ({
@@ -394,7 +425,7 @@ export default function MovieDetailScreen() {
         global.refreshMovies?.();
       }
     } catch (error) {
-      Alert.alert('Error', 'Failed to update watchlist status.');
+      showToast('Failed to update watchlist status', 'error');
     } finally {
       setLoading(false);
     }
@@ -403,6 +434,12 @@ export default function MovieDetailScreen() {
   return (
     <SafeAreaView style={styles.container} edges={['left', 'right']}>
       <LinearGradient colors={['#1F2937', '#111827']} style={styles.gradient}>
+        <Toast
+          message={toastMessage}
+          type={toastType}
+          visible={toastVisible}
+          onHide={() => setToastVisible(false)}
+        />
         <View style={styles.header}>
           <TouchableOpacity
             onPress={() => router.back()}
@@ -505,14 +542,16 @@ export default function MovieDetailScreen() {
                 >
                   <Star
                     size={32}
-                    color={star <= movie.rating ? '#F59E0B' : '#374151'}
-                    fill={star <= movie.rating ? '#F59E0B' : 'transparent'}
+                    color={star <= (movie.rating ?? 0) ? '#F59E0B' : '#374151'}
+                    fill={
+                      star <= (movie.rating ?? 0) ? '#F59E0B' : 'transparent'
+                    }
                     strokeWidth={1.5}
                   />
                 </TouchableOpacity>
               ))}
             </View>
-            {movie.rating > 0 && (
+            {movie.rating !== null && movie.rating > 0 && (
               <Text style={styles.ratingText}>
                 You rated this {movie.rating}/5 stars
               </Text>

@@ -8,7 +8,6 @@ import {
   TextInput,
   Dimensions,
   Image,
-  Alert,
   ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -30,6 +29,10 @@ import {
   getPopularMovies,
 } from '@/lib/tmdb';
 import { useFocusEffect } from '@react-navigation/native';
+import Toast from '@/components/Toast';
+import { Database } from '@/lib/database.types';
+
+type Movie = Database['public']['Tables']['movies']['Row'];
 
 const { width } = Dimensions.get('window');
 const cardWidth = (width - 72) / 2;
@@ -37,12 +40,26 @@ const cardWidth = (width - 72) / 2;
 export default function MoviesScreen() {
   const [searchQuery, setSearchQuery] = useState('');
   const [filter, setFilter] = useState('all');
-  const [myMovies, setMyMovies] = useState([]);
+  const [myMovies, setMyMovies] = useState<Movie[]>([]);
   const [tmdbMovies, setTMDBMovies] = useState<TMDBMovie[]>([]);
   const [loading, setLoading] = useState(true);
   const [tmdbLoading, setTMDBLoading] = useState(false);
   const [addingMovieId, setAddingMovieId] = useState<number | null>(null);
   const [updatingMovieId, setUpdatingMovieId] = useState<string | null>(null);
+  const [toastVisible, setToastVisible] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
+  const [toastType, setToastType] = useState<'success' | 'error' | 'info'>(
+    'success',
+  );
+
+  const showToast = (
+    message: string,
+    type: 'success' | 'error' | 'info' = 'success',
+  ) => {
+    setToastMessage(message);
+    setToastType(type);
+    setToastVisible(true);
+  };
 
   useEffect(() => {
     loadMyMovies();
@@ -54,7 +71,7 @@ export default function MoviesScreen() {
     };
 
     return () => {
-      global.refreshMovies = null;
+      global.refreshMovies = undefined;
     };
   }, []);
 
@@ -62,7 +79,7 @@ export default function MoviesScreen() {
   useFocusEffect(
     React.useCallback(() => {
       loadMyMovies();
-    }, [])
+    }, []),
   );
 
   const loadMyMovies = async () => {
@@ -72,11 +89,7 @@ export default function MoviesScreen() {
       !process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY
     ) {
       console.error('❌ Supabase not configured. Please check your .env file.');
-      Alert.alert(
-        'Configuration Error',
-        'Supabase is not configured. Please check your .env file and restart the development server.',
-        [{ text: 'OK' }]
-      );
+      showToast('Configuration error. Please check your setup.', 'error');
       setLoading(false);
       return;
     }
@@ -85,21 +98,13 @@ export default function MoviesScreen() {
       const { data, error } = await moviesApi.getAll();
       if (error) {
         console.error('Error loading movies:', error.message || error);
-        Alert.alert(
-          'Database Error',
-          `Failed to load movies: ${error.message || 'Unknown error'}`,
-          [{ text: 'OK' }]
-        );
+        showToast('Failed to load movies', 'error');
       } else {
         setMyMovies(data || []);
       }
     } catch (error) {
       console.error('Error loading movies:', error);
-      Alert.alert(
-        'Connection Error',
-        'Failed to connect to the database. Please check your internet connection and Supabase configuration.',
-        [{ text: 'OK' }]
-      );
+      showToast('Failed to connect to database', 'error');
     } finally {
       setLoading(false);
     }
@@ -129,7 +134,7 @@ export default function MoviesScreen() {
       setTMDBMovies(response.results);
     } catch (error) {
       console.error('Search error:', error);
-      Alert.alert('Error', 'Failed to search movies. Please try again.');
+      showToast('Failed to search movies', 'error');
     } finally {
       setTMDBLoading(false);
     }
@@ -149,26 +154,25 @@ export default function MoviesScreen() {
       const { data, error } = await moviesApi.add({
         title: movie.title,
         year: movie.release_date
-          ? new Date(movie.release_date).getFullYear()
+          ? new Date(movie.release_date).getFullYear().toString()
           : null,
         poster_url: getImageUrl(movie.poster_path),
         is_watched: true,
         is_favorite: false,
         is_watchlist: false,
         rating: null,
-        duration: null,
         watched_date: new Date().toISOString(),
       });
 
       if (error) {
-        Alert.alert('Error', 'Failed to add movie to your collection.');
+        showToast('Failed to add movie', 'error');
       } else {
         await loadMyMovies();
-        Alert.alert('Success', `${movie.title} added to your watched list!`);
+        showToast(`${movie.title} added to watched list!`, 'success');
       }
     } catch (error) {
       console.error('Add movie error:', error);
-      Alert.alert('Error', 'Failed to add movie to your collection.');
+      showToast('Failed to add movie', 'error');
     } finally {
       setAddingMovieId(null);
     }
@@ -176,7 +180,7 @@ export default function MoviesScreen() {
 
   const handleToggleFavorite = async (
     movieId: string,
-    currentFavoriteStatus: boolean
+    currentFavoriteStatus: boolean,
   ) => {
     setUpdatingMovieId(movieId);
     try {
@@ -185,12 +189,18 @@ export default function MoviesScreen() {
       });
 
       if (error) {
-        Alert.alert('Error', 'Failed to update favorite status.');
+        showToast('Failed to update favorite', 'error');
       } else {
         await loadMyMovies();
+        showToast(
+          currentFavoriteStatus
+            ? 'Removed from favorites'
+            : 'Added to favorites',
+          'success',
+        );
       }
     } catch (error) {
-      Alert.alert('Error', 'Failed to update favorite status.');
+      showToast('Failed to update favorite', 'error');
     } finally {
       setUpdatingMovieId(null);
     }
@@ -231,7 +241,7 @@ export default function MoviesScreen() {
       });
     }
     return myMovies.filter((movie) =>
-      movie.title.toLowerCase().includes(searchQuery.toLowerCase())
+      movie.title.toLowerCase().includes(searchQuery.toLowerCase()),
     );
   };
 
@@ -239,11 +249,11 @@ export default function MoviesScreen() {
 
   const isMovieInCollection = (tmdbMovieTitle: string) => {
     return myMovies.some(
-      (movie) => movie.title.toLowerCase() === tmdbMovieTitle.toLowerCase()
+      (movie) => movie.title.toLowerCase() === tmdbMovieTitle.toLowerCase(),
     );
   };
 
-  const renderMyMovieCard = (movie) => (
+  const renderMyMovieCard = (movie: Movie) => (
     <TouchableOpacity
       key={movie.id}
       style={styles.movieCard}
@@ -304,14 +314,14 @@ export default function MoviesScreen() {
         <Text style={styles.movieYear}>{movie.year}</Text>
 
         <View style={styles.movieMeta}>
-          {movie.rating > 0 && (
+          {movie.rating !== null && movie.rating > 0 && (
             <View style={styles.rating}>
               {[...Array(5)].map((_, i) => (
                 <Star
                   key={i}
                   size={12}
-                  color={i < movie.rating ? '#F59E0B' : '#374151'}
-                  fill={i < movie.rating ? '#F59E0B' : 'transparent'}
+                  color={i < (movie.rating ?? 0) ? '#F59E0B' : '#374151'}
+                  fill={i < (movie.rating ?? 0) ? '#F59E0B' : 'transparent'}
                   strokeWidth={1}
                 />
               ))}
@@ -325,7 +335,7 @@ export default function MoviesScreen() {
   const renderTMDBMovieCard = (movie: TMDBMovie) => {
     const inCollection = isMovieInCollection(movie.title);
     const collectionMovie = myMovies.find(
-      (m) => m.title.toLowerCase() === movie.title.toLowerCase()
+      (m) => m.title.toLowerCase() === movie.title.toLowerCase(),
     );
     const isWatched = collectionMovie?.is_watched || false;
 
@@ -404,7 +414,7 @@ export default function MoviesScreen() {
                 onPress={() =>
                   handleToggleFavorite(
                     collectionMovie.id,
-                    collectionMovie.is_favorite
+                    collectionMovie.is_favorite,
                   )
                 }
                 disabled={updatingMovieId === collectionMovie.id}
@@ -450,6 +460,12 @@ export default function MoviesScreen() {
   return (
     <SafeAreaView style={styles.container} edges={['left', 'right']}>
       <LinearGradient colors={['#1F2937', '#111827']} style={styles.gradient}>
+        <Toast
+          message={toastMessage}
+          type={toastType}
+          visible={toastVisible}
+          onHide={() => setToastVisible(false)}
+        />
         <View style={styles.header}>
           <Text style={styles.title}>Movies</Text>
           <Text style={styles.subtitle}>
@@ -491,10 +507,10 @@ export default function MoviesScreen() {
                 {filterOption === 'all'
                   ? 'All'
                   : filterOption === 'watched'
-                  ? 'Watched'
-                  : filterOption === 'favorites'
-                  ? 'Favorites'
-                  : 'Watchlist'}
+                    ? 'Watched'
+                    : filterOption === 'favorites'
+                      ? 'Favorites'
+                      : 'Watchlist'}
               </Text>
             </TouchableOpacity>
           ))}

@@ -6,7 +6,6 @@ import {
   ScrollView,
   TouchableOpacity,
   Image,
-  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -28,6 +27,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { tvShowsApi } from '@/lib/api';
 import { useFocusEffect } from '@react-navigation/native';
 import { Database } from '@/lib/database.types';
+import Toast from '@/components/Toast';
 
 type TVShow = Database['public']['Tables']['tv_shows']['Row'];
 
@@ -36,9 +36,28 @@ declare global {
   var refreshTVShows: (() => void) | undefined;
 }
 
+interface TVShowState {
+  id: string | string[];
+  title: string | string[];
+  year: string | string[];
+  poster_url: string | string[];
+  is_watched: boolean;
+  is_favorite: boolean;
+  is_watchlist: boolean;
+  rating: number | null;
+  seasons: number;
+  episodes: number;
+  current_season: number;
+  current_episode: number;
+  imdb_rating: number | null;
+  director: string | null;
+  genre: string | null;
+  inCollection: boolean;
+}
+
 export default function TVShowDetailScreen() {
   const params = useLocalSearchParams();
-  const [tvShow, setTVShow] = useState({
+  const [tvShow, setTVShow] = useState<TVShowState>({
     id: params.id,
     title: params.title,
     year: params.year,
@@ -57,6 +76,20 @@ export default function TVShowDetailScreen() {
     inCollection: params.inCollection === 'true',
   });
   const [loading, setLoading] = useState(false);
+  const [toastVisible, setToastVisible] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
+  const [toastType, setToastType] = useState<'success' | 'error' | 'info'>(
+    'success',
+  );
+
+  const showToast = (
+    message: string,
+    type: 'success' | 'error' | 'info' = 'success',
+  ) => {
+    setToastMessage(message);
+    setToastType(type);
+    setToastVisible(true);
+  };
 
   // Auto refresh parent screen when going back
   useFocusEffect(
@@ -160,7 +193,7 @@ export default function TVShowDetailScreen() {
         } as any);
 
         if (error || !data) {
-          Alert.alert('Error', 'Failed to add TV show to your collection.');
+          showToast('Failed to add TV show to your collection', 'error');
           return;
         }
 
@@ -176,7 +209,7 @@ export default function TVShowDetailScreen() {
         global.refreshTVShows?.();
         return;
       } catch (error) {
-        Alert.alert('Error', 'Failed to add TV show to your collection.');
+        showToast('Failed to add TV show to your collection', 'error');
         return;
       } finally {
         setLoading(false);
@@ -190,7 +223,7 @@ export default function TVShowDetailScreen() {
       });
 
       if (error) {
-        Alert.alert('Error', 'Failed to update rating.');
+        showToast('Failed to update rating', 'error');
       } else {
         // Update local state immediately
         setTVShow((prev) => ({
@@ -201,7 +234,7 @@ export default function TVShowDetailScreen() {
         global.refreshTVShows?.();
       }
     } catch (error) {
-      Alert.alert('Error', 'Failed to update rating.');
+      showToast('Failed to update rating', 'error');
     } finally {
       setLoading(false);
     }
@@ -256,6 +289,8 @@ export default function TVShowDetailScreen() {
       const newWatchedStatus = !tvShow.is_watched;
       const updateData = {
         is_watched: newWatchedStatus,
+        rating: newWatchedStatus ? tvShow.rating : null,
+        is_favorite: newWatchedStatus ? tvShow.is_favorite : false,
       };
       const { error } = await tvShowsApi.update(
         tvShow.id as string,
@@ -263,13 +298,15 @@ export default function TVShowDetailScreen() {
       );
 
       if (error) {
-        Alert.alert('Error', 'Failed to update watched status.');
+        showToast('Failed to update watched status', 'error');
         console.error('Update error:', error);
       } else {
         // Update local state immediately
         setTVShow((prev) => ({
           ...prev,
           is_watched: newWatchedStatus,
+          rating: newWatchedStatus ? prev.rating : null,
+          is_favorite: newWatchedStatus ? prev.is_favorite : false,
         }));
         const statusText = newWatchedStatus
           ? 'marked as watched'
@@ -277,7 +314,7 @@ export default function TVShowDetailScreen() {
         global.refreshTVShows?.();
       }
     } catch (error) {
-      Alert.alert('Error', 'Failed to update watched status.');
+      showToast('Failed to update watched status', 'error');
       console.error('Caught error:', error);
     } finally {
       setLoading(false);
@@ -332,17 +369,29 @@ export default function TVShowDetailScreen() {
     setLoading(true);
     try {
       const newFavoriteStatus = !tvShow.is_favorite;
-      const { error } = await tvShowsApi.update(tvShow.id as string, {
+      const updateData: any = {
         is_favorite: newFavoriteStatus,
-      });
+      };
+
+      // Favoriye eklenince izledim de işaretlensin
+      if (newFavoriteStatus && !tvShow.is_watched) {
+        updateData.is_watched = true;
+        updateData.watched_date = new Date().toISOString();
+      }
+
+      const { error } = await tvShowsApi.update(
+        tvShow.id as string,
+        updateData,
+      );
 
       if (error) {
-        Alert.alert('Error', 'Failed to update favorite status.');
+        showToast('Failed to update favorite status', 'error');
       } else {
         // Update local state immediately
         setTVShow((prev) => ({
           ...prev,
           is_favorite: newFavoriteStatus,
+          is_watched: newFavoriteStatus ? true : prev.is_watched,
         }));
         const statusText = newFavoriteStatus
           ? 'added to favorites'
@@ -350,7 +399,7 @@ export default function TVShowDetailScreen() {
         global.refreshTVShows?.();
       }
     } catch (error) {
-      Alert.alert('Error', 'Failed to update favorite status.');
+      showToast('Failed to update favorite status', 'error');
     } finally {
       setLoading(false);
     }
@@ -408,7 +457,7 @@ export default function TVShowDetailScreen() {
       });
 
       if (error) {
-        Alert.alert('Error', 'Failed to update watchlist status.');
+        showToast('Failed to update watchlist status', 'error');
       } else {
         // Update local state immediately
         setTVShow((prev) => ({
@@ -421,7 +470,7 @@ export default function TVShowDetailScreen() {
         global.refreshTVShows?.();
       }
     } catch (error) {
-      Alert.alert('Error', 'Failed to update watchlist status.');
+      showToast('Failed to update watchlist status', 'error');
     } finally {
       setLoading(false);
     }
@@ -432,9 +481,9 @@ export default function TVShowDetailScreen() {
     try {
       // Note: current_season and current_episode fields don't exist in the database schema
       // This functionality needs to be implemented by adding these columns to tv_shows table
-      Alert.alert(
-        'Info',
-        'Episode tracking feature is not yet implemented in the database.',
+      showToast(
+        'Episode tracking feature is not yet implemented in the database',
+        'info',
       );
       /*
       const { error } = await tvShowsApi.update(tvShow.id as string, {
@@ -443,7 +492,7 @@ export default function TVShowDetailScreen() {
       });
 
       if (error) {
-        Alert.alert('Error', 'Failed to update episode progress.');
+        showToast('Failed to update episode progress', 'error');
       } else {
         setTVShow((prev) => ({
           ...prev,
@@ -454,7 +503,7 @@ export default function TVShowDetailScreen() {
       }
       */
     } catch (error) {
-      Alert.alert('Error', 'Failed to update episode progress.');
+      showToast('Failed to update episode progress', 'error');
     } finally {
       setLoading(false);
     }
@@ -483,6 +532,12 @@ export default function TVShowDetailScreen() {
   return (
     <SafeAreaView style={styles.container} edges={['left', 'right']}>
       <LinearGradient colors={['#1F2937', '#111827']} style={styles.gradient}>
+        <Toast
+          message={toastMessage}
+          type={toastType}
+          visible={toastVisible}
+          onHide={() => setToastVisible(false)}
+        />
         <View style={styles.header}>
           <TouchableOpacity
             onPress={() => router.back()}
@@ -606,14 +661,16 @@ export default function TVShowDetailScreen() {
                 >
                   <Star
                     size={32}
-                    color={star <= tvShow.rating ? '#F59E0B' : '#374151'}
-                    fill={star <= tvShow.rating ? '#F59E0B' : 'transparent'}
+                    color={star <= (tvShow.rating ?? 0) ? '#F59E0B' : '#374151'}
+                    fill={
+                      star <= (tvShow.rating ?? 0) ? '#F59E0B' : 'transparent'
+                    }
                     strokeWidth={1.5}
                   />
                 </TouchableOpacity>
               ))}
             </View>
-            {tvShow.rating > 0 && (
+            {tvShow.rating !== null && tvShow.rating > 0 && (
               <Text style={styles.ratingText}>
                 You rated this {tvShow.rating}/5 stars
               </Text>

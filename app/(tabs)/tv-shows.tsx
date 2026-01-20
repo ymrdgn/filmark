@@ -8,7 +8,6 @@ import {
   TextInput,
   Dimensions,
   Image,
-  Alert,
   ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -32,6 +31,7 @@ import {
   getPopularTVShows,
 } from '@/lib/tmdb';
 import { useFocusEffect } from '@react-navigation/native';
+import Toast from '@/components/Toast';
 
 const { width } = Dimensions.get('window');
 const cardWidth = (width - 72) / 2;
@@ -45,6 +45,20 @@ export default function TVShowsScreen() {
   const [tmdbLoading, setTMDBLoading] = useState(false);
   const [addingShowId, setAddingShowId] = useState<number | null>(null);
   const [updatingShowId, setUpdatingShowId] = useState<string | null>(null);
+  const [toastVisible, setToastVisible] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
+  const [toastType, setToastType] = useState<'success' | 'error' | 'info'>(
+    'success',
+  );
+
+  const showToast = (
+    message: string,
+    type: 'success' | 'error' | 'info' = 'success',
+  ) => {
+    setToastMessage(message);
+    setToastType(type);
+    setToastVisible(true);
+  };
 
   useEffect(() => {
     loadMyTVShows();
@@ -64,7 +78,7 @@ export default function TVShowsScreen() {
   useFocusEffect(
     React.useCallback(() => {
       loadMyTVShows();
-    }, [])
+    }, []),
   );
 
   const loadMyTVShows = async () => {
@@ -74,11 +88,7 @@ export default function TVShowsScreen() {
       !process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY
     ) {
       console.error('❌ Supabase not configured. Please check your .env file.');
-      Alert.alert(
-        'Configuration Error',
-        'Supabase is not configured. Please check your .env file and restart the development server.',
-        [{ text: 'OK' }]
-      );
+      showToast('Configuration error. Please check your setup.', 'error');
       setLoading(false);
       return;
     }
@@ -87,21 +97,13 @@ export default function TVShowsScreen() {
       const { data, error } = await tvShowsApi.getAll();
       if (error) {
         console.error('Error loading TV shows:', error.message || error);
-        Alert.alert(
-          'Database Error',
-          `Failed to load TV shows: ${error.message || 'Unknown error'}`,
-          [{ text: 'OK' }]
-        );
+        showToast('Failed to load TV shows', 'error');
       } else {
         setMyTVShows(data || []);
       }
     } catch (error) {
       console.error('Error loading TV shows:', error);
-      Alert.alert(
-        'Connection Error',
-        'Failed to connect to the database. Please check your internet connection and Supabase configuration.',
-        [{ text: 'OK' }]
-      );
+      showToast('Failed to connect to database', 'error');
     } finally {
       setLoading(false);
     }
@@ -131,7 +133,7 @@ export default function TVShowsScreen() {
       setTMDBTVShows(response.results);
     } catch (error) {
       console.error('Search error:', error);
-      Alert.alert('Error', 'Failed to search TV shows. Please try again.');
+      showToast('Failed to search TV shows', 'error');
     } finally {
       setTMDBLoading(false);
     }
@@ -162,14 +164,14 @@ export default function TVShowsScreen() {
       });
 
       if (error) {
-        Alert.alert('Error', 'Failed to add TV show to your collection.');
+        showToast('Failed to add TV show', 'error');
       } else {
         await loadMyTVShows();
-        Alert.alert('Success', `${show.name} added to your watched list!`);
+        showToast(`${show.name} added to watched list!`, 'success');
       }
     } catch (error) {
       console.error('Add TV show error:', error);
-      Alert.alert('Error', 'Failed to add TV show to your collection.');
+      showToast('Failed to add TV show', 'error');
     } finally {
       setAddingShowId(null);
     }
@@ -177,7 +179,7 @@ export default function TVShowsScreen() {
 
   const handleToggleFavorite = async (
     showId: string,
-    currentFavoriteStatus: boolean
+    currentFavoriteStatus: boolean,
   ) => {
     setUpdatingShowId(showId);
     try {
@@ -186,12 +188,18 @@ export default function TVShowsScreen() {
       });
 
       if (error) {
-        Alert.alert('Error', 'Failed to update favorite status.');
+        showToast('Failed to update favorite', 'error');
       } else {
         await loadMyTVShows(); // Reload to show updated status
+        showToast(
+          currentFavoriteStatus
+            ? 'Removed from favorites'
+            : 'Added to favorites',
+          'success',
+        );
       }
     } catch (error) {
-      Alert.alert('Error', 'Failed to update favorite status.');
+      showToast('Failed to update favorite', 'error');
     } finally {
       setUpdatingShowId(null);
     }
@@ -223,7 +231,7 @@ export default function TVShowsScreen() {
       });
     }
     return myTVShows.filter((show) =>
-      show.title.toLowerCase().includes(searchQuery.toLowerCase())
+      show.title.toLowerCase().includes(searchQuery.toLowerCase()),
     );
   };
 
@@ -233,7 +241,7 @@ export default function TVShowsScreen() {
     console.log('Checking if in collection:', tmdbShowName);
     console.log(
       'My TV Shows:',
-      myTVShows.map((s) => ({ id: s.id, title: s.title }))
+      myTVShows.map((s) => ({ id: s.id, title: s.title })),
     );
 
     const found = myTVShows.some((show) => {
@@ -340,7 +348,7 @@ export default function TVShowsScreen() {
   const renderTMDBTVShowCard = (show: TMDBTVShow) => {
     const inCollection = isTVShowInCollection(show.name);
     const collectionShow = myTVShows.find(
-      (s) => s.title?.toLowerCase().trim() === show.name?.toLowerCase().trim()
+      (s) => s.title?.toLowerCase().trim() === show.name?.toLowerCase().trim(),
     );
     const isWatched = collectionShow?.is_watched || false;
 
@@ -401,7 +409,7 @@ export default function TVShowsScreen() {
                 onPress={() =>
                   handleToggleFavorite(
                     collectionShow.id,
-                    collectionShow.is_favorite
+                    collectionShow.is_favorite,
                   )
                 }
                 disabled={updatingShowId === collectionShow.id}
@@ -447,6 +455,12 @@ export default function TVShowsScreen() {
   return (
     <SafeAreaView style={styles.container} edges={['left', 'right']}>
       <LinearGradient colors={['#1F2937', '#111827']} style={styles.gradient}>
+        <Toast
+          message={toastMessage}
+          type={toastType}
+          visible={toastVisible}
+          onHide={() => setToastVisible(false)}
+        />
         <View style={styles.header}>
           <Text style={styles.title}>TV Shows</Text>
           <Text style={styles.subtitle}>
@@ -488,10 +502,10 @@ export default function TVShowsScreen() {
                 {filterOption === 'all'
                   ? 'All'
                   : filterOption === 'watched'
-                  ? 'Watched'
-                  : filterOption === 'favorites'
-                  ? 'Favorites'
-                  : 'Watchlist'}
+                    ? 'Watched'
+                    : filterOption === 'favorites'
+                      ? 'Favorites'
+                      : 'Watchlist'}
               </Text>
             </TouchableOpacity>
           ))}
