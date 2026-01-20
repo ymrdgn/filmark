@@ -287,11 +287,21 @@ export default function TVShowDetailScreen() {
     setLoading(true);
     try {
       const newWatchedStatus = !tvShow.is_watched;
-      const updateData = {
+      const updateData: any = {
         is_watched: newWatchedStatus,
-        rating: newWatchedStatus ? tvShow.rating : null,
         is_favorite: newWatchedStatus ? tvShow.is_favorite : false,
       };
+
+      // Only include rating in update if it has a valid value
+      if (
+        newWatchedStatus &&
+        tvShow.rating &&
+        tvShow.rating >= 1 &&
+        tvShow.rating <= 5
+      ) {
+        updateData.rating = tvShow.rating;
+      }
+
       const { error } = await tvShowsApi.update(
         tvShow.id as string,
         updateData,
@@ -305,8 +315,8 @@ export default function TVShowDetailScreen() {
         setTVShow((prev) => ({
           ...prev,
           is_watched: newWatchedStatus,
-          rating: newWatchedStatus ? prev.rating : null,
           is_favorite: newWatchedStatus ? prev.is_favorite : false,
+          rating: newWatchedStatus && prev.rating ? prev.rating : null,
         }));
         const statusText = newWatchedStatus
           ? 'marked as watched'

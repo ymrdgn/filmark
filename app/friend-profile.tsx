@@ -78,7 +78,7 @@ export default function FriendProfileScreen() {
       } else {
         console.log(
           '🎬 Friend movies data:',
-          JSON.stringify(moviesResult.data, null, 2)
+          JSON.stringify(moviesResult.data, null, 2),
         );
         setMovies(moviesResult.data || []);
       }
@@ -88,7 +88,7 @@ export default function FriendProfileScreen() {
       } else {
         console.log(
           '📺 Friend TV shows data:',
-          JSON.stringify(tvShowsResult.data, null, 2)
+          JSON.stringify(tvShowsResult.data, null, 2),
         );
         setTVShows(tvShowsResult.data || []);
       }
@@ -99,9 +99,9 @@ export default function FriendProfileScreen() {
     }
   };
 
-  const renderMovieItem = (movie: Movie) => (
+  const renderMovieItem = (movie: Movie, index: number) => (
     <TouchableOpacity
-      key={movie.id}
+      key={`${movie.id}-${index}`}
       style={styles.listItem}
       onPress={() =>
         router.push({
@@ -184,9 +184,9 @@ export default function FriendProfileScreen() {
     </TouchableOpacity>
   );
 
-  const renderTVShowItem = (show: TVShow) => (
+  const renderTVShowItem = (show: TVShow, index: number) => (
     <TouchableOpacity
-      key={show.id}
+      key={`${show.id}-${index}`}
       style={styles.listItem}
       onPress={() =>
         router.push({
@@ -310,7 +310,7 @@ export default function FriendProfileScreen() {
           </View>
         </View>
 
-        <View style={styles.statsContainer}>
+        {/* <View style={styles.statsContainer}>
           <View style={styles.statCard}>
             <Film size={20} color="#EF4444" strokeWidth={2} />
             <Text style={styles.statValue}>{watchedMovies.length}</Text>
@@ -328,7 +328,7 @@ export default function FriendProfileScreen() {
             </Text>
             <Text style={styles.statLabel}>Favorites</Text>
           </View>
-        </View>
+        </View> */}
 
         <View style={styles.tabContainer}>
           <TouchableOpacity
@@ -382,7 +382,7 @@ export default function FriendProfileScreen() {
             <View style={styles.itemsList}>
               {activeTab === 'movies' ? (
                 movies.length > 0 ? (
-                  movies.map(renderMovieItem)
+                  movies.map((movie, index) => renderMovieItem(movie, index))
                 ) : (
                   <View style={styles.emptyState}>
                     <Film size={48} color="#6B7280" strokeWidth={1.5} />
@@ -390,7 +390,7 @@ export default function FriendProfileScreen() {
                   </View>
                 )
               ) : tvShows.length > 0 ? (
-                tvShows.map(renderTVShowItem)
+                tvShows.map((show, index) => renderTVShowItem(show, index))
               ) : (
                 <View style={styles.emptyState}>
                   <Tv size={48} color="#6B7280" strokeWidth={1.5} />

@@ -248,9 +248,19 @@ export default function MovieDetailScreen() {
       const updateData: Partial<Movie> = {
         is_watched: newWatchedStatus,
         watched_date: newWatchedStatus ? new Date().toISOString() : null,
-        rating: newWatchedStatus ? movie.rating : null,
         is_favorite: newWatchedStatus ? movie.is_favorite : false,
       };
+
+      // Only include rating in update if it has a valid value
+      if (
+        newWatchedStatus &&
+        movie.rating &&
+        movie.rating >= 1 &&
+        movie.rating <= 5
+      ) {
+        updateData.rating = movie.rating;
+      }
+
       const { error } = await moviesApi.update(movie.id as string, updateData);
 
       if (error) {
@@ -262,8 +272,8 @@ export default function MovieDetailScreen() {
           ...prev,
           is_watched: newWatchedStatus,
           watched_date: updateData.watched_date || null,
-          rating: newWatchedStatus ? prev.rating : null,
           is_favorite: newWatchedStatus ? prev.is_favorite : false,
+          rating: newWatchedStatus && prev.rating ? prev.rating : null,
         }));
         const statusText = newWatchedStatus
           ? 'marked as watched'
