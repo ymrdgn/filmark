@@ -1,7 +1,7 @@
 {
   "cli": {
     "version": ">= 16.26.0",
-    "appVersionSource": "remote"
+    "appVersionSource": "local"
   },
   "build": {
     "development": {
@@ -12,7 +12,7 @@
       "distribution": "internal"
     },
     "production": {
-      "autoIncrement": true,
+      "autoIncrement": false,
       "env": {
         "EXPO_PUBLIC_SUPABASE_URL": "https://pplkrcndmnwbffasrxkx.supabase.co",
         "EXPO_PUBLIC_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBwbGtyY25kbW53YmZmYXNyeGt4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg2MjIxMTAsImV4cCI6MjA3NDE5ODExMH0.rByb4b4cGa6GlDPw56zsxOIdN1RVK_hvE2aXknKO_lw",
