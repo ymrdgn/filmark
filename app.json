@@ -2,7 +2,7 @@
   "expo": {
     "name": "WatchBase",
     "slug": "watchbase",
-    "version": "1.0.16",
+    "version": "1.0.18",
     "orientation": "portrait",
     "icon": "./assets/images/wb-icon.png",
     "scheme": "watchbase",
@@ -25,10 +25,9 @@
         "ITSAppUsesNonExemptEncryption": false
       }
     },
-
     "android": {
       "package": "com.watchbase.app",
-      "versionCode": 33,
+      "versionCode": 36,
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/wb-icon.png"
       },
@@ -53,7 +52,8 @@
             "useLegacyPackaging": false
           }
         }
-      ]
+      ],
+      "expo-web-browser"
     ],
     "experiments": {
       "typedRoutes": true
