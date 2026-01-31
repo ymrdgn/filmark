@@ -52,7 +52,7 @@ export const friendsApi = {
         .from('friends')
         .select('*')
         .or(
-          `and(user_id.eq.${user.id},friend_id.eq.${friendId}),and(user_id.eq.${friendId},friend_id.eq.${user.id})`
+          `and(user_id.eq.${user.id},friend_id.eq.${friendId}),and(user_id.eq.${friendId},friend_id.eq.${user.id})`,
         )
         .maybeSingle();
 
@@ -324,7 +324,7 @@ export const friendsApi = {
   // Respond to friend request (accept or reject)
   respondToRequest: async (
     friendshipId: string,
-    response: 'accepted' | 'rejected'
+    response: 'accepted' | 'rejected',
   ) => {
     try {
       if (response === 'accepted') {

@@ -3,6 +3,28 @@
 -- Bu SQL'i Supabase Dashboard'da çalıştırın
 -- ==========================================
 
+-- ÖNCE: Arkadaşlık silindiğinde bildirimleri de sil
+CREATE OR REPLACE FUNCTION delete_friend_notifications_on_delete()
+RETURNS TRIGGER AS $$
+BEGIN
+  -- Delete all notifications related to this friendship
+  DELETE FROM notifications
+  WHERE (type = 'friend_request' AND related_id = OLD.id)
+     OR (type = 'friend_accepted' AND related_id = OLD.id);
+  
+  RETURN OLD;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Trigger oluştur
+DROP TRIGGER IF EXISTS friend_delete_notification_trigger ON friends;
+CREATE TRIGGER friend_delete_notification_trigger
+  BEFORE DELETE ON friends
+  FOR EACH ROW
+  EXECUTE FUNCTION delete_friend_notifications_on_delete();
+
+-- ==========================================
+
 -- Önce eski fonksiyonları sil
 DROP FUNCTION IF EXISTS get_friend_movies(uuid);
 DROP FUNCTION IF EXISTS get_friend_tv_shows(uuid);
