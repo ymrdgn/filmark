@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { Slot, useRouter } from 'expo-router';
+import { Stack, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useFrameworkReady } from '@/hooks/useFrameworkReady';
 import {
@@ -80,7 +80,29 @@ function RootLayoutNav() {
     };
   }, [router]);
 
-  return <Slot />;
+  return (
+    <Stack
+      screenOptions={{
+        headerShown: false,
+        contentStyle: { backgroundColor: 'transparent' },
+        presentation: 'card',
+      }}
+    >
+      <Stack.Screen name="(tabs)" />
+      <Stack.Screen name="(auth)" />
+      <Stack.Screen name="splash" />
+      <Stack.Screen name="reset-password" />
+      <Stack.Screen name="movie-detail" />
+      <Stack.Screen name="omdb-movie-detail" />
+      <Stack.Screen name="tv-show-detail" />
+      <Stack.Screen name="list-detail" />
+      <Stack.Screen name="friends" />
+      <Stack.Screen name="friend-profile" />
+      <Stack.Screen name="account-settings" />
+      <Stack.Screen name="privacy-settings" />
+      <Stack.Screen name="+not-found" />
+    </Stack>
+  );
 }
 
 export default function RootLayout() {
