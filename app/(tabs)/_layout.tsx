@@ -1,4 +1,6 @@
 import { Tabs } from 'expo-router';
+import { Platform } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   Chrome as Home,
   Film,
@@ -8,6 +10,8 @@ import {
 } from 'lucide-react-native';
 
 export default function TabLayout() {
+  const insets = useSafeAreaInsets();
+
   return (
     <Tabs
       screenOptions={{
@@ -17,9 +21,9 @@ export default function TabLayout() {
           borderTopWidth: 0,
           elevation: 0,
           shadowOpacity: 0,
-          height: 85,
+          height: Platform.OS === 'ios' ? 85 : 70 + insets.bottom,
           paddingTop: 8,
-          paddingBottom: 25,
+          paddingBottom: Platform.OS === 'ios' ? 25 : insets.bottom,
         },
         tabBarActiveTintColor: '#6366F1',
         tabBarInactiveTintColor: '#9CA3AF',
