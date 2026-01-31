@@ -187,6 +187,52 @@ export const friendsApi = {
     try {
       console.log('Attempting to remove friendship:', friendshipId);
 
+      // First, get the friendship details to find both user IDs
+      const { data: friendship, error: fetchError } = (await supabase
+        .from('friends')
+        .select('user_id, friend_id')
+        .eq('id', friendshipId)
+        .single()) as {
+        data: { user_id: string; friend_id: string } | null;
+        error: any;
+      };
+
+      if (fetchError) {
+        console.error('Error fetching friendship:', fetchError);
+        return { error: fetchError, deletedNotificationIds: [] };
+      }
+
+      // Get notification IDs before deleting them (for UI sync)
+      const deletedNotificationIds: string[] = [];
+      if (friendship) {
+        // Get friend_request notifications
+        const { data: friendReqNotifs } = (await (supabase as any)
+          .from('notifications')
+          .select('id')
+          .eq('type', 'friend_request')
+          .eq('related_id', friendshipId)) as {
+          data: Array<{ id: string }> | null;
+        };
+
+        if (friendReqNotifs) {
+          deletedNotificationIds.push(...friendReqNotifs.map((n) => n.id));
+        }
+
+        // Get friend_request_accepted notifications
+        const { data: acceptedNotifs } = (await (supabase as any)
+          .from('notifications')
+          .select('id')
+          .eq('type', 'friend_request_accepted')
+          .eq('related_id', friendshipId)) as {
+          data: Array<{ id: string }> | null;
+        };
+
+        if (acceptedNotifs) {
+          deletedNotificationIds.push(...acceptedNotifs.map((n) => n.id));
+        }
+      }
+
+      // Delete the friendship
       const { error } = await supabase
         .from('friends')
         .delete()
@@ -195,14 +241,36 @@ export const friendsApi = {
       if (error) {
         console.error('Remove friend error:', error);
         console.error('Error details:', JSON.stringify(error, null, 2));
-        return { error };
+        return { error, deletedNotificationIds: [] };
+      }
+
+      // Delete related notifications
+      if (friendship && deletedNotificationIds.length > 0) {
+        console.log('Deleting notifications:', deletedNotificationIds);
+
+        // Delete notification for the friend (receiver of the request)
+        await (supabase as any)
+          .from('notifications')
+          .delete()
+          .eq('type', 'friend_request')
+          .eq('related_id', friendshipId)
+          .eq('user_id', friendship.friend_id);
+
+        // Also delete any friend_accepted notifications if they exist
+        await (supabase as any)
+          .from('notifications')
+          .delete()
+          .eq('type', 'friend_request_accepted')
+          .eq('related_id', friendshipId);
+
+        console.log('Notifications deleted successfully');
       }
 
       console.log('Friend removed successfully');
-      return { error: null };
+      return { error: null, deletedNotificationIds };
     } catch (error) {
       console.error('Remove friend catch error:', error);
-      return { error };
+      return { error, deletedNotificationIds: [] };
     }
   },
 

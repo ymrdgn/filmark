@@ -14,34 +14,45 @@ import { Database } from '@/lib/database.types';
 import { friendsApi } from '@/lib/friends-api';
 
 type Notification = Database['public']['Tables']['notifications']['Row'];
+type NotificationUpdate =
+  Database['public']['Tables']['notifications']['Update'];
 
 export default function NotificationBell() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [modalVisible, setModalVisible] = useState(false);
   const [processingId, setProcessingId] = useState<string | null>(null);
+  const [userId, setUserId] = useState<string | null>(null);
 
   useEffect(() => {
-    loadNotifications();
-    subscribeToNotifications();
+    initializeNotifications();
   }, []);
 
-  const loadNotifications = async () => {
+  const initializeNotifications = async () => {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (user) {
+      setUserId(user.id);
+      await loadNotifications(user.id);
+      subscribeToNotifications(user.id);
+    }
+  };
+
+  const loadNotifications = async (currentUserId?: string) => {
     try {
-      console.log('🔔 Loading notifications...');
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) {
-        console.log('❌ No user found');
+      const userIdToUse = currentUserId || userId;
+      if (!userIdToUse) {
+        console.log('❌ No user ID available');
         return;
       }
 
-      console.log('👤 User ID:', user.id);
+      console.log('🔔 Loading notifications for user:', userIdToUse);
       const { data, error } = await supabase
         .from('notifications')
         .select('*')
-        .eq('user_id', user.id)
+        .eq('user_id', userIdToUse)
         .eq('is_read', false)
         .order('created_at', { ascending: false });
 
@@ -51,7 +62,6 @@ export default function NotificationBell() {
       }
 
       console.log('🔔 Notifications loaded:', data?.length || 0);
-      console.log('🔔 Notifications:', JSON.stringify(data, null, 2));
 
       if (data) {
         setNotifications(data);
@@ -62,21 +72,78 @@ export default function NotificationBell() {
     }
   };
 
-  const subscribeToNotifications = () => {
-    console.log('🔔 Subscribing to notifications...');
+  const subscribeToNotifications = (currentUserId: string) => {
+    console.log(
+      '🔔 Subscribing to real-time notifications for user:',
+      currentUserId,
+    );
+
     const channel = supabase
-      .channel('notifications-channel')
+      .channel(`notifications-${currentUserId}`)
       .on(
         'postgres_changes',
         {
-          event: '*',
+          event: 'INSERT',
+          schema: 'public',
+          table: 'notifications',
+          filter: `user_id=eq.${currentUserId}`,
+        },
+        (payload) => {
+          console.log('🔔 New notification received:', payload.new);
+          const newNotification = payload.new as Notification;
+
+          // Yeni bildirimi anında state'e ekle
+          setNotifications((prev) => [newNotification, ...prev]);
+          setUnreadCount((prev) => prev + 1);
+        },
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'notifications',
+          filter: `user_id=eq.${currentUserId}`,
+        },
+        (payload) => {
+          console.log('🔔 Notification updated:', payload.new);
+          const updatedNotification = payload.new as Notification;
+
+          // Eğer bildirim okundu olarak işaretlendiyse, listeden çıkar
+          if (updatedNotification.is_read) {
+            setNotifications((prev) =>
+              prev.filter((n) => n.id !== updatedNotification.id),
+            );
+            setUnreadCount((prev) => Math.max(0, prev - 1));
+          }
+        },
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'DELETE',
           schema: 'public',
           table: 'notifications',
         },
         (payload) => {
-          console.log('🔔 Notification change detected:', payload);
-          loadNotifications();
-        }
+          console.log('🔔 Notification deleted:', payload.old);
+          const deletedNotification = payload.old as Notification;
+
+          // Notification'ı direkt sil (ID'ye göre kontrol et)
+          setNotifications((prev) => {
+            const filtered = prev.filter(
+              (n) => n.id !== deletedNotification.id,
+            );
+            console.log(
+              '🗑️ Filtered notifications from',
+              prev.length,
+              'to',
+              filtered.length,
+            );
+            return filtered;
+          });
+          setUnreadCount((prev) => Math.max(0, prev - 1));
+        },
       )
       .subscribe((status) => {
         console.log('🔔 Subscription status:', status);
@@ -90,7 +157,7 @@ export default function NotificationBell() {
 
   const markAsRead = async (notificationId: string) => {
     try {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('notifications')
         .update({ is_read: true })
         .eq('id', notificationId);
@@ -114,7 +181,7 @@ export default function NotificationBell() {
     try {
       const { error } = await friendsApi.respondToRequest(
         notification.related_id,
-        'accepted'
+        'accepted',
       );
 
       if (error) {
@@ -131,23 +198,53 @@ export default function NotificationBell() {
   };
 
   const handleRejectFriend = async (notification: Notification) => {
-    if (!notification.related_id) return;
+    if (!notification.related_id) {
+      console.warn('No related_id for notification:', notification.id);
+      return;
+    }
+
+    console.log('🚀 handleRejectFriend called with:', {
+      notificationId: notification.id,
+      relatedId: notification.related_id,
+    });
 
     setProcessingId(notification.id);
+
+    // Bildirim UI'dan hemen sil (optimistic update)
+    console.log('📍 Current notifications count before:', notifications.length);
+    setNotifications((prev) => {
+      const filtered = prev.filter((n) => {
+        console.log('Checking notification:', n.id, 'vs', notification.id);
+        return n.id !== notification.id;
+      });
+      console.log('📍 Filtered notifications count:', filtered.length);
+      return filtered;
+    });
+    setUnreadCount((prev) => {
+      const newCount = Math.max(0, prev - 1);
+      console.log('📍 Unread count updated to:', newCount);
+      return newCount;
+    });
+
     try {
-      const { error } = await friendsApi.respondToRequest(
-        notification.related_id,
-        'rejected'
-      );
+      console.log('🔄 Calling removeFriend with:', notification.related_id);
+      // removeFriend'i çağır - hem friendship hem notification'ları siler
+      const { error } = await friendsApi.removeFriend(notification.related_id);
 
       if (error) {
-        console.error('Error rejecting friend request:', error);
+        console.error('❌ Error rejecting friend request:', error);
+        // Hata varsa geri ekle
+        setNotifications((prev) => [notification, ...prev]);
+        setUnreadCount((prev) => prev + 1);
         return;
       }
 
-      await markAsRead(notification.id);
+      console.log('✅ Friend request rejected and notifications deleted');
     } catch (error) {
-      console.error('Error rejecting friend request:', error);
+      console.error('❌ Error rejecting friend request:', error);
+      // Hata varsa geri ekle
+      setNotifications((prev) => [notification, ...prev]);
+      setUnreadCount((prev) => prev + 1);
     } finally {
       setProcessingId(null);
     }
