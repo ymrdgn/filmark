@@ -51,6 +51,7 @@ export default function MoviesScreen() {
   const [toastType, setToastType] = useState<'success' | 'error' | 'info'>(
     'success',
   );
+  const scrollViewRef = React.useRef<ScrollView>(null);
 
   const showToast = (
     message: string,
@@ -80,12 +81,14 @@ export default function MoviesScreen() {
     React.useCallback(() => {
       loadMyMovies();
       setSearchQuery(''); // Tab değişiminde search'ü temizle
+      scrollViewRef.current?.scrollTo({ y: 0, animated: true }); // En üste kaydır
     }, []),
   );
 
-  // Filter tab'ı değişince search'ü temizle
+  // Filter tab'ı değişince search'ü temizle ve scroll'u sıfırla
   useEffect(() => {
     setSearchQuery('');
+    scrollViewRef.current?.scrollTo({ y: 0, animated: true });
   }, [filter]);
 
   const loadMyMovies = async () => {
@@ -523,6 +526,7 @@ export default function MoviesScreen() {
         </View>
 
         <ScrollView
+          ref={scrollViewRef}
           style={styles.scrollView}
           showsVerticalScrollIndicator={false}
         >
