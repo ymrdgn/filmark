@@ -79,8 +79,14 @@ export default function MoviesScreen() {
   useFocusEffect(
     React.useCallback(() => {
       loadMyMovies();
+      setSearchQuery(''); // Tab değişiminde search'ü temizle
     }, []),
   );
+
+  // Filter tab'ı değişince search'ü temizle
+  useEffect(() => {
+    setSearchQuery('');
+  }, [filter]);
 
   const loadMyMovies = async () => {
     // Check if Supabase is properly configured

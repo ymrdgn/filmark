@@ -78,8 +78,14 @@ export default function TVShowsScreen() {
   useFocusEffect(
     React.useCallback(() => {
       loadMyTVShows();
+      setSearchQuery(''); // Tab değişiminde search'ü temizle
     }, []),
   );
+
+  // Filter tab'ı değişince search'ü temizle
+  useEffect(() => {
+    setSearchQuery('');
+  }, [filter]);
 
   const loadMyTVShows = async () => {
     // Check if Supabase is properly configured
