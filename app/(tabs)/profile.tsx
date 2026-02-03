@@ -28,6 +28,7 @@ import { signOut, getCurrentUser } from '@/lib/supabase';
 import { router } from 'expo-router';
 import { Alert } from 'react-native';
 import { statsApi, achievementsApi } from '@/lib/api';
+import BuyMeCoffee from '@/app/BuyMeCoffee';
 
 export default function ProfileScreen() {
   const [user, setUser] = useState(null);
@@ -88,7 +89,7 @@ export default function ProfileScreen() {
       Alert.alert(
         'Sign Out Failed',
         'There was an error signing out. Please try again.',
-        [{ text: 'OK' }]
+        [{ text: 'OK' }],
       );
     }
   };
@@ -217,56 +218,67 @@ export default function ProfileScreen() {
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Achievements</Text>
             <View style={styles.achievementsContainer}>
-              {achievements.map((achievement, index) => (
-                <View
-                  key={achievement.id}
-                  style={[
-                    styles.achievementCard,
-                    !achievement.earned && styles.achievementLocked,
-                  ]}
-                >
+              {achievements && achievements.length > 0 ? (
+                achievements.map((achievement, index) => (
                   <View
+                    key={achievement.id}
                     style={[
-                      styles.achievementIcon,
-                      {
-                        backgroundColor: achievement.earned
-                          ? '#10B98120'
-                          : '#37415120',
-                      },
+                      styles.achievementCard,
+                      !achievement.earned && styles.achievementLocked,
                     ]}
                   >
-                    {React.createElement(iconMap[achievement.icon] || Award, {
-                      size: 24,
-                      color: achievement.earned ? '#10B981' : '#6B7280',
-                      strokeWidth: 2,
-                    })}
-                  </View>
-                  <View style={styles.achievementInfo}>
-                    <Text
+                    <View
                       style={[
-                        styles.achievementName,
-                        !achievement.earned && styles.achievementNameLocked,
+                        styles.achievementIcon,
+                        {
+                          backgroundColor: achievement.earned
+                            ? '#10B98120'
+                            : '#37415120',
+                        },
                       ]}
                     >
-                      {achievement.name}
-                    </Text>
-                    <Text style={styles.achievementDescription}>
-                      {achievement.description}
-                    </Text>
-                  </View>
-                  {achievement.earned && (
-                    <View style={styles.achievementBadge}>
-                      <Text style={styles.achievementBadgeText}>✓</Text>
+                      {React.createElement(iconMap[achievement.icon] || Award, {
+                        size: 24,
+                        color: achievement.earned ? '#10B981' : '#6B7280',
+                        strokeWidth: 2,
+                      })}
                     </View>
-                  )}
-                  {achievement.earned && achievement.earned_at && (
-                    <Text style={styles.achievementDate}>
-                      {new Date(achievement.earned_at).toLocaleDateString()}
-                    </Text>
-                  )}
-                </View>
-              ))}
+                    <View style={styles.achievementInfo}>
+                      <Text
+                        style={[
+                          styles.achievementName,
+                          !achievement.earned && styles.achievementNameLocked,
+                        ]}
+                      >
+                        {achievement.name}
+                      </Text>
+                      <Text style={styles.achievementDescription}>
+                        {achievement.description}
+                      </Text>
+                    </View>
+                    {achievement.earned && (
+                      <View style={styles.achievementBadge}>
+                        <Text style={styles.achievementBadgeText}>✓</Text>
+                      </View>
+                    )}
+                    {achievement.earned && achievement.earned_at && (
+                      <Text style={styles.achievementDate}>
+                        {new Date(achievement.earned_at).toLocaleDateString()}
+                      </Text>
+                    )}
+                  </View>
+                ))
+              ) : (
+                <Text style={styles.emptyText}>
+                  No achievements yet. Keep watching!
+                </Text>
+              )}
             </View>
+          </View>
+
+          <View style={styles.section}>
+            <Text style={styles.supportTitle}>Support</Text>
+            <BuyMeCoffee />
           </View>
 
           <View style={styles.section}>
@@ -351,6 +363,11 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter-SemiBold',
     color: 'white',
     marginBottom: 16,
+  },
+  supportTitle: {
+    fontSize: 20,
+    fontFamily: 'Inter-SemiBold',
+    color: 'white',
   },
   statsContainer: {
     flexDirection: 'row',
@@ -449,6 +466,7 @@ const styles = StyleSheet.create({
     top: 8,
     right: 8,
   },
+
   menuContainer: {
     gap: 2,
   },
