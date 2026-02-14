@@ -6,6 +6,7 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
+  Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -276,10 +277,12 @@ export default function ProfileScreen() {
             </View>
           </View>
 
-          <View style={styles.section}>
-            <Text style={styles.supportTitle}>Support</Text>
-            <BuyMeCoffee />
-          </View>
+          {Platform.OS === 'android' && (
+            <View style={styles.section}>
+              <Text style={styles.supportTitle}>Support</Text>
+              <BuyMeCoffee />
+            </View>
+          )}
 
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Settings</Text>
