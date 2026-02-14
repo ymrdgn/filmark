@@ -1,92 +1,70 @@
 import { View, Text, Pressable, Alert, Platform } from 'react-native';
 import { useEffect, useState } from 'react';
-import Purchases, { PurchasesPackage } from 'react-native-purchases';
+import Purchases, { PURCHASE_TYPE } from 'react-native-purchases';
 
-// RevenueCat API Keys - https://app.revenuecat.com adresinden al
-const REVENUECAT_ANDROID_API_KEY = 'test_fIYaCxqVOKoQCJXVwporNONAUQM';
-const REVENUECAT_IOS_API_KEY = 'test_fIYaCxqVOKoQCJXVwporNONAUQM'; // Aynı key iOS için de kullanılabilir
-
-const PRODUCT_ID = 'tip_coffee_1'; // Google Play Console'daki ürün ID'si
+const REVENUECAT_ANDROID_API_KEY = 'goog_OitrfOHjHjTANEstwMDfCUFvayR';
+const PRODUCT_ID = 'tip_coffee_1';
 
 export default function BuyMeCoffee() {
   const [isReady, setIsReady] = useState(false);
-  const [coffeePackage, setCoffeePackage] = useState<PurchasesPackage | null>(
-    null,
-  );
+
+  if (Platform.OS !== 'android') return null;
 
   useEffect(() => {
-    const initPurchases = async () => {
+    (async () => {
       try {
-        const apiKey =
-          Platform.OS === 'android'
-            ? REVENUECAT_ANDROID_API_KEY
-            : REVENUECAT_IOS_API_KEY;
-
-        if (apiKey.includes('YOUR_')) {
-          console.warn('RevenueCat API key not configured');
-          setIsReady(true);
-          return;
-        }
-
-        await Purchases.configure({ apiKey });
-
-        // Get available products - offerings olmasa da devam et
-        try {
-          const offerings = await Purchases.getOfferings();
-          if (
-            offerings.current &&
-            offerings.current.availablePackages.length > 0
-          ) {
-            const pkg =
-              offerings.current.availablePackages.find(
-                (p) => p.product.identifier === PRODUCT_ID,
-              ) || offerings.current.availablePackages[0];
-            setCoffeePackage(pkg);
-          }
-        } catch (offeringsError) {
-          console.warn(
-            'Could not fetch offerings (this is OK for testing):',
-            offeringsError,
-          );
-        }
-
+        await Purchases.configure({ apiKey: REVENUECAT_ANDROID_API_KEY });
         setIsReady(true);
-      } catch (error) {
-        console.warn('RevenueCat init failed:', error);
+        console.log('[RC] configured');
+      } catch (e) {
+        console.warn('[RC] configure error', e);
         setIsReady(true);
       }
-    };
-
-    initPurchases();
+    })();
   }, []);
 
   const buyCoffee = async () => {
-    if (!coffeePackage) {
-      Alert.alert(
-        '☕ Support WatchBase',
-        'In-app purchases are not available right now. Please try again later.',
-      );
-      return;
-    }
-
     try {
-      const { customerInfo } = await Purchases.purchasePackage(coffeePackage);
-      console.log('Purchase successful:', customerInfo);
-      Alert.alert(
-        '💜 Thank you!',
-        'Thanks for supporting WatchBase! Your support means a lot.',
+      console.log('[RC] Trying to fetch INAPP product:', PRODUCT_ID);
+
+      // ✅ ÖNEMLİ: Ürün tipi INAPP olmalı (abonelik değil)
+      // const products = await Purchases.getProducts([PRODUCT_ID]);
+
+      const products = await Purchases.getProducts(
+        [PRODUCT_ID],
+        PURCHASE_TYPE.INAPP,
       );
+      console.log(
+        '[RC] getProducts(INAPP) result:',
+        products.map((p) => p.identifier),
+      );
+
+      if (!products.length) {
+        Alert.alert(
+          '☕ Support WatchBase',
+          'Product not found (INAPP). Check Play tester/install setup.',
+        );
+        return;
+      }
+
+      const { customerInfo } = await Purchases.purchaseStoreProduct(
+        products[0],
+      );
+
+      Alert.alert('💜 Thank you!', 'Thanks for supporting WatchBase!');
+      console.log('[RC] purchase ok', customerInfo);
     } catch (error: any) {
-      if (!error.userCancelled) {
-        console.error('Purchase error:', error);
-        Alert.alert('Error', 'Failed to complete purchase. Please try again.');
+      console.warn('[RC] purchase error', error);
+      if (!error?.userCancelled) {
+        Alert.alert(
+          '☕ Support WatchBase',
+          'In-app purchases are not available right now. Please try again later.',
+        );
       }
     }
   };
 
-  if (!isReady) {
-    return null;
-  }
+  if (!isReady) return null;
 
   return (
     <View style={{ marginTop: 24 }}>

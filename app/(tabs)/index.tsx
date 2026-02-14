@@ -86,7 +86,7 @@ export default function HomeScreen() {
     favoriteTVShows: 0,
   });
   const [recentActivity, setRecentActivity] = React.useState<ActivityItem[]>(
-    []
+    [],
   );
   const [friendsActivity, setFriendsActivity] = React.useState<
     FriendActivity[]
@@ -105,7 +105,7 @@ export default function HomeScreen() {
         loadRecentActivity();
         loadFriendsActivity();
       }
-    }, [user])
+    }, [user]),
   );
 
   const loadUserData = async () => {
@@ -377,7 +377,7 @@ export default function HomeScreen() {
         } catch (friendError) {
           console.error(
             `Error loading activity for friend ${friendId}:`,
-            friendError
+            friendError,
           );
         }
       }
@@ -415,7 +415,7 @@ export default function HomeScreen() {
     const compareDate = new Date(
       date.getFullYear(),
       date.getMonth(),
-      date.getDate()
+      date.getDate(),
     );
 
     const diffTime = today.getTime() - compareDate.getTime();
@@ -476,7 +476,7 @@ export default function HomeScreen() {
     );
   }
 
-  console.log('Recent Activity:', recentActivity);
+  console.log(' friendsActivityfriendsActivity:', friendsActivity);
   return (
     <SafeAreaView style={styles.container} edges={['left', 'right']}>
       <LinearGradient colors={['#1F2937', '#111827']} style={styles.gradient}>
@@ -658,12 +658,12 @@ export default function HomeScreen() {
                       ]}
                     >
                       <Text style={styles.friendInitial}>
-                        {activity.friendEmail?.charAt(0)?.toUpperCase() || 'U'}
+                        {activity.friendName?.charAt(0)?.toUpperCase() || 'U'}
                       </Text>
                     </View>
                     <View style={styles.friendActivityContent}>
                       <Text style={styles.friendName}>
-                        {activity.friendEmail}
+                        {activity.friendName}
                       </Text>
                       <Text style={styles.friendActivity}>
                         {activity.title} {activity.action} -{' '}
