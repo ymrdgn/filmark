@@ -81,6 +81,7 @@ export default function MoviesScreen() {
     React.useCallback(() => {
       loadMyMovies();
       setSearchQuery(''); // Tab değişiminde search'ü temizle
+      loadPopularMovies(); // All tab'a dönünce popüler filmleri yükle
       scrollViewRef.current?.scrollTo({ y: 0, animated: true }); // En üste kaydır
     }, []),
   );
@@ -89,6 +90,10 @@ export default function MoviesScreen() {
   useEffect(() => {
     setSearchQuery('');
     scrollViewRef.current?.scrollTo({ y: 0, animated: true });
+    // All tab'ına dönünce popüler filmleri yükle
+    if (filter === 'all') {
+      loadPopularMovies();
+    }
   }, [filter]);
 
   const loadMyMovies = async () => {
@@ -478,7 +483,11 @@ export default function MoviesScreen() {
         <View style={styles.header}>
           <Text style={styles.title}>Movies</Text>
           <Text style={styles.subtitle}>
-            {displayMovies.length} movies in collection
+            {filter === 'all'
+              ? searchQuery
+                ? `${tmdbMovies.length} results`
+                : 'Discover Popular Movies'
+              : `${displayMovies.length} movies`}
           </Text>
         </View>
 

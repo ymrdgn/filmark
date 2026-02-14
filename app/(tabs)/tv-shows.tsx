@@ -80,6 +80,7 @@ export default function TVShowsScreen() {
     React.useCallback(() => {
       loadMyTVShows();
       setSearchQuery(''); // Tab değişiminde search'ü temizle
+      loadPopularTVShows(); // All tab'a dönünce popüler dizileri yükle
       scrollViewRef.current?.scrollTo({ y: 0, animated: true }); // En üste kaydır
     }, []),
   );
@@ -88,6 +89,10 @@ export default function TVShowsScreen() {
   useEffect(() => {
     setSearchQuery('');
     scrollViewRef.current?.scrollTo({ y: 0, animated: true });
+    // All tab'ına dönünce popüler dizileri yükle
+    if (filter === 'all') {
+      loadPopularTVShows();
+    }
   }, [filter]);
 
   const loadMyTVShows = async () => {
@@ -473,7 +478,11 @@ export default function TVShowsScreen() {
         <View style={styles.header}>
           <Text style={styles.title}>TV Shows</Text>
           <Text style={styles.subtitle}>
-            {displayTVShows.length} shows in collection
+            {filter === 'all'
+              ? searchQuery
+                ? `${tmdbTVShows.length} results`
+                : 'Discover Popular TV Shows'
+              : `${displayTVShows.length} shows`}
           </Text>
         </View>
 
