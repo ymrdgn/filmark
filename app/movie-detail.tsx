@@ -26,6 +26,17 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { moviesApi } from '@/lib/api';
 import { Database } from '@/lib/database.types';
 import Toast from '@/components/Toast';
+import { DEMO_MODE } from '@/lib/demo-data';
+
+// Import demo posters
+const poster1 = require('@/assets/images/posters/fantasy1.jpg');
+const poster2 = require('@/assets/images/posters/minimal-action1.jpg');
+const poster3 = require('@/assets/images/posters/minimalcinematic.jpg');
+const poster4 = require('@/assets/images/posters/art-house2.jpg');
+const poster5 = require('@/assets/images/posters/minimalblack.jpg');
+const poster6 = require('@/assets/images/posters/art-house1.jpg');
+
+const demoPosters = [poster1, poster2, poster3, poster4, poster5, poster6];
 
 type Movie = Database['public']['Tables']['movies']['Row'];
 
@@ -465,9 +476,15 @@ export default function MovieDetailScreen() {
         >
           <View style={styles.movieHeader}>
             <View style={styles.posterContainer}>
-              {movie.poster_url ? (
+              {movie.poster_url || DEMO_MODE ? (
                 <Image
-                  source={{ uri: movie.poster_url as string }}
+                  source={
+                    DEMO_MODE
+                      ? demoPosters[
+                          parseInt(movie.id.toString()) % demoPosters.length
+                        ]
+                      : { uri: movie.poster_url as string }
+                  }
                   style={styles.poster}
                   resizeMode="cover"
                 />
@@ -479,7 +496,9 @@ export default function MovieDetailScreen() {
             </View>
 
             <View style={styles.movieInfo}>
-              <Text style={styles.movieTitle}>{movie.title}</Text>
+              <Text style={styles.movieTitle}>
+                {DEMO_MODE ? 'Sample Movie Title' : movie.title}
+              </Text>
               <View style={styles.movieMeta}>
                 <Calendar size={16} color="#9CA3AF" strokeWidth={2} />
                 <Text style={styles.movieYear}>{movie.year}</Text>

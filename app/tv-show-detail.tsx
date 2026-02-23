@@ -28,6 +28,17 @@ import { tvShowsApi } from '@/lib/api';
 import { useFocusEffect } from '@react-navigation/native';
 import { Database } from '@/lib/database.types';
 import Toast from '@/components/Toast';
+import { DEMO_MODE } from '@/lib/demo-data';
+
+// Import demo posters
+const poster1 = require('@/assets/images/posters/fantasy1.jpg');
+const poster2 = require('@/assets/images/posters/minimal-action1.jpg');
+const poster3 = require('@/assets/images/posters/minimalcinematic.jpg');
+const poster4 = require('@/assets/images/posters/art-house2.jpg');
+const poster5 = require('@/assets/images/posters/minimalblack.jpg');
+const poster6 = require('@/assets/images/posters/art-house1.jpg');
+
+const demoPosters = [poster1, poster2, poster3, poster4, poster5, poster6];
 
 type TVShow = Database['public']['Tables']['tv_shows']['Row'];
 
@@ -563,9 +574,15 @@ export default function TVShowDetailScreen() {
         >
           <View style={styles.showHeader}>
             <View style={styles.posterContainer}>
-              {tvShow.poster_url ? (
+              {tvShow.poster_url || DEMO_MODE ? (
                 <Image
-                  source={{ uri: tvShow.poster_url as string }}
+                  source={
+                    DEMO_MODE
+                      ? demoPosters[
+                          parseInt(tvShow.id.toString()) % demoPosters.length
+                        ]
+                      : { uri: tvShow.poster_url as string }
+                  }
                   style={styles.poster}
                   resizeMode="cover"
                 />
@@ -577,7 +594,9 @@ export default function TVShowDetailScreen() {
             </View>
 
             <View style={styles.showInfo}>
-              <Text style={styles.showTitle}>{tvShow.title}</Text>
+              <Text style={styles.showTitle}>
+                {DEMO_MODE ? 'Sample TV Show Title' : tvShow.title}
+              </Text>
               <View style={styles.showMeta}>
                 <Calendar size={16} color="#9CA3AF" strokeWidth={2} />
                 <Text style={styles.showYear}>{tvShow.year}</Text>

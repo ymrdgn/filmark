@@ -10,7 +10,8 @@
       "node": "20.11.1",
       "android": {
         "gradleCommand": ":app:assembleDebug"
-      }
+      },
+      "ios": { "simulator": true }
     },
     "preview": {
       "distribution": "internal"

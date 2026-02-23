@@ -21,6 +21,7 @@ import {
 } from 'lucide-react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { friendsApi } from '@/lib/friends-api';
+import { DEMO_MODE, demoMovies, demoTVShows } from '@/lib/demo-data';
 
 interface Movie {
   id: string;
@@ -67,6 +68,15 @@ export default function FriendProfileScreen() {
 
   const loadFriendData = async () => {
     setLoading(true);
+    
+    // If demo mode is enabled, use demo data
+    if (DEMO_MODE) {
+      setMovies(demoMovies as any);
+      setTVShows(demoTVShows as any);
+      setLoading(false);
+      return;
+    }
+    
     try {
       const [moviesResult, tvShowsResult] = await Promise.all([
         friendsApi.getFriendMovies(friendId),
@@ -123,7 +133,11 @@ export default function FriendProfileScreen() {
       <View style={styles.posterContainer}>
         {movie.poster_url ? (
           <Image
-            source={{ uri: movie.poster_url }}
+            source={
+              DEMO_MODE && typeof movie.poster_url !== 'string'
+                ? movie.poster_url
+                : { uri: movie.poster_url as string }
+            }
             style={styles.poster}
             resizeMode="cover"
           />
@@ -211,7 +225,11 @@ export default function FriendProfileScreen() {
       <View style={styles.posterContainer}>
         {show.poster_url ? (
           <Image
-            source={{ uri: show.poster_url }}
+            source={
+              DEMO_MODE && typeof show.poster_url !== 'string'
+                ? show.poster_url
+                : { uri: show.poster_url as string }
+            }
             style={styles.poster}
             resizeMode="cover"
           />

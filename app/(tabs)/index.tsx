@@ -26,6 +26,11 @@ import { friendsApi } from '@/lib/friends-api';
 import { useFocusEffect } from '@react-navigation/native';
 import NotificationBell from '@/components/NotificationBell';
 import { Database } from '@/lib/database.types';
+import {
+  DEMO_MODE,
+  demoRecentActivity,
+  demoFriendsActivity,
+} from '@/lib/demo-data';
 
 type Movie = Database['public']['Tables']['movies']['Row'];
 type TVShow = Database['public']['Tables']['tv_shows']['Row'];
@@ -153,6 +158,12 @@ export default function HomeScreen() {
   };
 
   const loadRecentActivity = async () => {
+    // If demo mode is enabled, use demo data
+    if (DEMO_MODE) {
+      setRecentActivity(demoRecentActivity as any);
+      return;
+    }
+
     try {
       const activities: ActivityItem[] = [];
 
@@ -254,6 +265,12 @@ export default function HomeScreen() {
   };
 
   const loadFriendsActivity = async () => {
+    // If demo mode is enabled, use demo data
+    if (DEMO_MODE) {
+      setFriendsActivity(demoFriendsActivity as any);
+      return;
+    }
+
     try {
       // Get accepted friends
       const { data: friends, error: friendsError } =
@@ -563,7 +580,11 @@ export default function HomeScreen() {
                   <View style={styles.activityPoster}>
                     {item.poster ? (
                       <Image
-                        source={{ uri: item.poster }}
+                        source={
+                          DEMO_MODE && typeof item.poster !== 'string'
+                            ? item.poster
+                            : { uri: item.poster as string }
+                        }
                         style={styles.activityPosterImage}
                         resizeMode="cover"
                       />

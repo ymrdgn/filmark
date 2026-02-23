@@ -31,6 +31,7 @@ import {
 import { useFocusEffect } from '@react-navigation/native';
 import Toast from '@/components/Toast';
 import { Database } from '@/lib/database.types';
+import { DEMO_MODE, demoMovies, demoTMDBMovies } from '@/lib/demo-data';
 
 type Movie = Database['public']['Tables']['movies']['Row'];
 
@@ -97,6 +98,13 @@ export default function MoviesScreen() {
   }, [filter]);
 
   const loadMyMovies = async () => {
+    // If demo mode is enabled, use demo data
+    if (DEMO_MODE) {
+      setMyMovies(demoMovies as any);
+      setLoading(false);
+      return;
+    }
+
     // Check if Supabase is properly configured
     if (
       !process.env.EXPO_PUBLIC_SUPABASE_URL ||
@@ -125,6 +133,13 @@ export default function MoviesScreen() {
   };
 
   const loadPopularMovies = async () => {
+    // If demo mode is enabled, use demo data
+    if (DEMO_MODE) {
+      setTMDBMovies(demoTMDBMovies as any);
+      setTMDBLoading(false);
+      return;
+    }
+
     setTMDBLoading(true);
     try {
       const response = await getPopularMovies();
@@ -165,12 +180,16 @@ export default function MoviesScreen() {
   const handleAddMovie = async (movie: TMDBMovie) => {
     setAddingMovieId(movie.id);
     try {
+      const posterUrl = DEMO_MODE
+        ? 'https://placehold.co/300x450/6366F1/FFFFFF/png?text=Movie'
+        : getImageUrl(movie.poster_path);
+
       const { data, error } = await moviesApi.add({
         title: movie.title,
         year: movie.release_date
           ? new Date(movie.release_date).getFullYear().toString()
           : null,
-        poster_url: getImageUrl(movie.poster_path),
+        poster_url: posterUrl,
         is_watched: true,
         is_favorite: false,
         is_watchlist: false,
@@ -291,7 +310,11 @@ export default function MoviesScreen() {
       <View style={styles.posterContainer}>
         {movie.poster_url ? (
           <Image
-            source={{ uri: movie.poster_url }}
+            source={
+              DEMO_MODE && typeof movie.poster_url !== 'string'
+                ? movie.poster_url
+                : { uri: movie.poster_url as string }
+            }
             style={styles.poster}
             resizeMode="cover"
           />
@@ -375,6 +398,10 @@ export default function MoviesScreen() {
               },
             });
           } else {
+            const posterUrl = DEMO_MODE
+              ? 'https://placehold.co/300x450/6366F1/FFFFFF/png?text=Movie'
+              : getImageUrl(movie.poster_path) || '';
+
             router.push({
               pathname: '/movie-detail',
               params: {
@@ -383,7 +410,7 @@ export default function MoviesScreen() {
                 year: movie.release_date
                   ? new Date(movie.release_date).getFullYear().toString()
                   : '',
-                poster_url: getImageUrl(movie.poster_path) || '',
+                poster_url: posterUrl,
                 tmdb_rating: movie.vote_average?.toString() || '0',
                 overview: movie.overview || '',
                 inCollection: 'false',
@@ -398,11 +425,15 @@ export default function MoviesScreen() {
       >
         <View style={styles.posterContainer}>
           <Image
-            source={{
-              uri:
-                getImageUrl(movie.poster_path) ||
-                'https://via.placeholder.com/300x450?text=No+Image',
-            }}
+            source={
+              DEMO_MODE && (movie as any).poster_url
+                ? (movie as any).poster_url
+                : {
+                    uri:
+                      getImageUrl(movie.poster_path) ||
+                      'https://via.placeholder.com/300x450?text=No+Image',
+                  }
+            }
             style={styles.poster}
             resizeMode="cover"
           />

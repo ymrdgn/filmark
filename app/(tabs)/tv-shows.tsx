@@ -32,6 +32,7 @@ import {
 } from '@/lib/tmdb';
 import { useFocusEffect } from '@react-navigation/native';
 import Toast from '@/components/Toast';
+import { DEMO_MODE, demoTVShows, demoTMDBTVShows } from '@/lib/demo-data';
 
 const { width } = Dimensions.get('window');
 const cardWidth = (width - 72) / 2;
@@ -96,6 +97,13 @@ export default function TVShowsScreen() {
   }, [filter]);
 
   const loadMyTVShows = async () => {
+    // If demo mode is enabled, use demo data
+    if (DEMO_MODE) {
+      setMyTVShows(demoTVShows as any);
+      setLoading(false);
+      return;
+    }
+
     // Check if Supabase is properly configured
     if (
       !process.env.EXPO_PUBLIC_SUPABASE_URL ||
@@ -124,6 +132,13 @@ export default function TVShowsScreen() {
   };
 
   const loadPopularTVShows = async () => {
+    // If demo mode is enabled, use demo data
+    if (DEMO_MODE) {
+      setTMDBTVShows(demoTMDBTVShows as any);
+      setTMDBLoading(false);
+      return;
+    }
+
     setTMDBLoading(true);
     try {
       const response = await getPopularTVShows();
@@ -164,12 +179,16 @@ export default function TVShowsScreen() {
   const handleAddTVShow = async (show: TMDBTVShow) => {
     setAddingShowId(show.id);
     try {
+      const posterUrl = DEMO_MODE
+        ? 'https://placehold.co/300x450/6366F1/FFFFFF/png?text=Show'
+        : getImageUrl(show.poster_path);
+
       const { error } = await tvShowsApi.add({
         title: show.name,
         year: show.first_air_date
           ? new Date(show.first_air_date).getFullYear().toString()
           : null,
-        poster_url: getImageUrl(show.poster_path),
+        poster_url: posterUrl,
         is_watched: true,
         is_favorite: false,
         is_watchlist: false,
@@ -305,7 +324,11 @@ export default function TVShowsScreen() {
       <View style={styles.posterContainer}>
         {show.poster_url ? (
           <Image
-            source={{ uri: show.poster_url }}
+            source={
+              DEMO_MODE && typeof show.poster_url !== 'string'
+                ? show.poster_url
+                : { uri: show.poster_url as string }
+            }
             style={styles.poster}
             resizeMode="cover"
           />
@@ -370,7 +393,11 @@ export default function TVShowsScreen() {
       <TouchableOpacity
         key={show.id}
         style={styles.tmdbShowCard}
-        onPress={() =>
+        onPress={() => {
+          const posterUrl = DEMO_MODE
+            ? 'https://placehold.co/300x450/6366F1/FFFFFF/png?text=Show'
+            : getImageUrl(show.poster_path) || '';
+
           router.push({
             pathname: '/tv-show-detail',
             params: {
@@ -379,7 +406,7 @@ export default function TVShowsScreen() {
               year: show.first_air_date
                 ? new Date(show.first_air_date).getFullYear().toString()
                 : '',
-              poster_url: getImageUrl(show.poster_path) || '',
+              poster_url: posterUrl,
               tmdb_rating: show.vote_average?.toString() || '0',
               overview: show.overview || '',
               inCollection: inCollection ? 'true' : 'false',
@@ -388,16 +415,20 @@ export default function TVShowsScreen() {
               is_watchlist: collectionShow?.is_watchlist?.toString() || 'false',
               rating: collectionShow?.rating?.toString() || '0',
             },
-          })
-        }
+          });
+        }}
       >
         <View style={styles.posterContainer}>
           <Image
-            source={{
-              uri:
-                getImageUrl(show.poster_path) ||
-                'https://via.placeholder.com/300x450?text=No+Image',
-            }}
+            source={
+              DEMO_MODE && (show as any).poster_url
+                ? (show as any).poster_url
+                : {
+                    uri:
+                      getImageUrl(show.poster_path) ||
+                      'https://via.placeholder.com/300x450?text=No+Image',
+                  }
+            }
             style={styles.poster}
             resizeMode="cover"
           />
