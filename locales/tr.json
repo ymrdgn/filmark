@@ -1,0 +1,99 @@
+{
+  "common": {
+    "loading": "Yükleniyor...",
+    "error": "Bir hata oluştu",
+    "save": "Kaydet",
+    "cancel": "İptal",
+    "delete": "Sil",
+    "edit": "Düzenle",
+    "search": "Ara",
+    "close": "Kapat",
+    "back": "Geri",
+    "done": "Tamam",
+    "later": "Sonra",
+    "updateNow": "Şimdi Güncelle"
+  },
+  "tabs": {
+    "home": "Ana Sayfa",
+    "movies": "Filmler",
+    "tvShows": "Diziler",
+    "lists": "Listeler",
+    "profile": "Profil"
+  },
+  "auth": {
+    "login": "Giriş Yap",
+    "signup": "Kayıt Ol",
+    "email": "E-posta",
+    "password": "Şifre",
+    "forgotPassword": "Şifremi Unuttum",
+    "dontHaveAccount": "Hesabın yok mu?",
+    "alreadyHaveAccount": "Zaten hesabın var mı?",
+    "resetPassword": "Şifreyi Sıfırla",
+    "sendResetLink": "Sıfırlama Bağlantısı Gönder"
+  },
+  "profile": {
+    "settings": "Ayarlar",
+    "accountSettings": "Hesap Ayarları",
+    "privacySettings": "Gizlilik Ayarları",
+    "language": "Dil",
+    "logout": "Çıkış Yap",
+    "editProfile": "Profili Düzenle",
+    "favorites": "Favoriler",
+    "watched": "İzlenenler",
+    "watchlist": "İzleme Listesi"
+  },
+  "movies": {
+    "popularMovies": "Popüler Filmler",
+    "topRated": "En İyi Puanlananlar",
+    "nowPlaying": "Vizyondakiler",
+    "upcoming": "Yakında",
+    "searchMovies": "Film Ara",
+    "addToList": "Listeye Ekle",
+    "markAsWatched": "İzlendi Olarak İşaretle",
+    "addToFavorites": "Favorilere Ekle",
+    "overview": "Özet",
+    "cast": "Oyuncular",
+    "reviews": "Yorumlar",
+    "similar": "Benzer Filmler"
+  },
+  "tvShows": {
+    "popularShows": "Popüler Diziler",
+    "topRated": "En İyi Puanlananlar",
+    "onTheAir": "Yayında",
+    "airingToday": "Bugün Yayınlananlar",
+    "searchTVShows": "Dizi Ara",
+    "seasons": "Sezonlar",
+    "episodes": "Bölümler"
+  },
+  "lists": {
+    "myLists": "Listelerim",
+    "createList": "Liste Oluştur",
+    "listName": "Liste Adı",
+    "description": "Açıklama",
+    "addMovie": "Film Ekle",
+    "addTVShow": "Dizi Ekle",
+    "emptyList": "Bu listede henüz içerik yok"
+  },
+  "friends": {
+    "friends": "Arkadaşlar",
+    "addFriend": "Arkadaş Ekle",
+    "searchFriends": "Arkadaş Ara",
+    "pendingRequests": "Bekleyen İstekler",
+    "friendProfile": "Arkadaş Profili",
+    "noFriends": "Henüz arkadaş yok"
+  },
+  "update": {
+    "title": "Güncelleme Mevcut",
+    "message": "Yeni özellikler ve iyileştirmeler mevcut. Lütfen uygulamayı güncelleyin.",
+    "criticalMessage": "Kritik güvenlik güncellemesi gerekli. Devam etmek için lütfen güncelleyin.",
+    "updateNow": "Şimdi Güncelle",
+    "later": "Sonra"
+  },
+  "settings": {
+    "language": "Dil",
+    "chooseLanguage": "Dil Seçin",
+    "turkish": "Türkçe",
+    "english": "İngilizce",
+    "languageInfo": "Uygulama varsayılan olarak cihazınızın dilini kullanacaktır. İstediğiniz zaman bu ekrandan değiştirebilirsiniz."
+  }
+}

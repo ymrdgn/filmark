@@ -1,0 +1,99 @@
+{
+  "common": {
+    "loading": "Loading...",
+    "error": "An error occurred",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "search": "Search",
+    "close": "Close",
+    "back": "Back",
+    "done": "Done",
+    "later": "Later",
+    "updateNow": "Update Now"
+  },
+  "tabs": {
+    "home": "Home",
+    "movies": "Movies",
+    "tvShows": "TV Shows",
+    "lists": "Lists",
+    "profile": "Profile"
+  },
+  "auth": {
+    "login": "Login",
+    "signup": "Sign Up",
+    "email": "Email",
+    "password": "Password",
+    "forgotPassword": "Forgot Password?",
+    "dontHaveAccount": "Don't have an account?",
+    "alreadyHaveAccount": "Already have an account?",
+    "resetPassword": "Reset Password",
+    "sendResetLink": "Send Reset Link"
+  },
+  "profile": {
+    "settings": "Settings",
+    "accountSettings": "Account Settings",
+    "privacySettings": "Privacy Settings",
+    "language": "Language",
+    "logout": "Logout",
+    "editProfile": "Edit Profile",
+    "favorites": "Favorites",
+    "watched": "Watched",
+    "watchlist": "Watchlist"
+  },
+  "movies": {
+    "popularMovies": "Popular Movies",
+    "topRated": "Top Rated",
+    "nowPlaying": "Now Playing",
+    "upcoming": "Upcoming",
+    "searchMovies": "Search Movies",
+    "addToList": "Add to List",
+    "markAsWatched": "Mark as Watched",
+    "addToFavorites": "Add to Favorites",
+    "overview": "Overview",
+    "cast": "Cast",
+    "reviews": "Reviews",
+    "similar": "Similar Movies"
+  },
+  "tvShows": {
+    "popularShows": "Popular Shows",
+    "topRated": "Top Rated",
+    "onTheAir": "On The Air",
+    "airingToday": "Airing Today",
+    "searchTVShows": "Search TV Shows",
+    "seasons": "Seasons",
+    "episodes": "Episodes"
+  },
+  "lists": {
+    "myLists": "My Lists",
+    "createList": "Create List",
+    "listName": "List Name",
+    "description": "Description",
+    "addMovie": "Add Movie",
+    "addTVShow": "Add TV Show",
+    "emptyList": "No items in this list yet"
+  },
+  "friends": {
+    "friends": "Friends",
+    "addFriend": "Add Friend",
+    "searchFriends": "Search Friends",
+    "pendingRequests": "Pending Requests",
+    "friendProfile": "Friend Profile",
+    "noFriends": "No friends yet"
+  },
+  "update": {
+    "title": "Update Available",
+    "message": "New features and improvements are available. Please update the app.",
+    "criticalMessage": "Critical security update required. Please update now to continue.",
+    "updateNow": "Update Now",
+    "later": "Later"
+  },
+  "settings": {
+    "language": "Language",
+    "chooseLanguage": "Choose Language",
+    "turkish": "Turkish",
+    "english": "English",
+    "languageInfo": "The app will use your device's language by default. You can change it anytime from this screen."
+  }
+}

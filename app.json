@@ -2,7 +2,7 @@
   "expo": {
     "name": "WatchBase",
     "slug": "watchbase",
-    "version": "1.0.26",
+    "version": "1.0.27",
     "orientation": "portrait",
     "icon": "./assets/images/wb-icon.png",
     "scheme": "watchbase",
@@ -27,7 +27,7 @@
     },
     "android": {
       "package": "com.watchbase.app",
-      "versionCode": 44,
+      "versionCode": 45,
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/wb-icon.png"
       },

@@ -8,9 +8,11 @@ import {
   BookMarked,
   User,
 } from 'lucide-react-native';
+import { useTranslation } from 'react-i18next';
 
 export default function TabLayout() {
   const insets = useSafeAreaInsets();
+  const { t } = useTranslation();
 
   return (
     <Tabs
@@ -40,7 +42,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Home',
+          title: t('tabs.home'),
           tabBarIcon: ({ size, color }) => (
             <Home size={size} color={color} strokeWidth={2} />
           ),
@@ -49,7 +51,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="movies"
         options={{
-          title: 'Movies',
+          title: t('tabs.movies'),
           tabBarIcon: ({ size, color }) => (
             <Film size={size} color={color} strokeWidth={2} />
           ),
@@ -58,7 +60,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="tv-shows"
         options={{
-          title: 'TV Shows',
+          title: t('tabs.tvShows'),
           tabBarIcon: ({ size, color }) => (
             <Tv size={size} color={color} strokeWidth={2} />
           ),
@@ -67,7 +69,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="lists"
         options={{
-          title: 'Lists',
+          title: t('tabs.lists'),
           tabBarIcon: ({ size, color }) => (
             <BookMarked size={size} color={color} strokeWidth={2} />
           ),
@@ -76,7 +78,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="profile"
         options={{
-          title: 'Profile',
+          title: t('tabs.profile'),
           tabBarIcon: ({ size, color }) => (
             <User size={size} color={color} strokeWidth={2} />
           ),

@@ -24,14 +24,17 @@ import {
   Users,
   Plus,
   Shield,
+  Languages,
 } from 'lucide-react-native';
 import { signOut, getCurrentUser } from '@/lib/supabase';
 import { router } from 'expo-router';
 import { Alert } from 'react-native';
 import { statsApi, achievementsApi } from '@/lib/api';
 import BuyMeCoffee from '@/app/BuyMeCoffee';
+import { useTranslation } from 'react-i18next';
 
 export default function ProfileScreen() {
+  const { t } = useTranslation();
   const [user, setUser] = useState(null);
   const [stats, setStats] = useState({
     moviesWatched: 0,
@@ -137,19 +140,29 @@ export default function ProfileScreen() {
   const menuItems = [
     {
       label: 'Friends',
+      translationKey: 'friends.friends',
       icon: Users,
       color: '#10B981',
       onPress: () => router.push('/friends'),
     },
     {
       label: 'Account Settings',
+      translationKey: 'profile.accountSettings',
       icon: Settings,
       color: '#6366F1',
       onPress: () => router.push('/account-settings'),
     },
+    {
+      label: 'Language',
+      translationKey: 'profile.language',
+      icon: Languages,
+      color: '#F59E0B',
+      onPress: () => router.push('/language-settings'),
+    },
     // { label: 'Privacy Settings', icon: Shield, color: '#8B5CF6', onPress: () => router.push('/privacy-settings') },
     {
       label: 'Sign Out',
+      translationKey: 'profile.logout',
       icon: LogOut,
       color: '#EF4444',
       onPress: handleSignOut,
@@ -285,7 +298,7 @@ export default function ProfileScreen() {
           )}
 
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Settings</Text>
+            <Text style={styles.sectionTitle}>{t('profile.settings')}</Text>
             <View style={styles.menuContainer}>
               {menuItems.map((item, index) => (
                 <TouchableOpacity
@@ -301,7 +314,7 @@ export default function ProfileScreen() {
                   >
                     <item.icon size={20} color={item.color} strokeWidth={2} />
                   </View>
-                  <Text style={styles.menuLabel}>{item.label}</Text>
+                  <Text style={styles.menuLabel}>{t(item.translationKey)}</Text>
                 </TouchableOpacity>
               ))}
             </View>

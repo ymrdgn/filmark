@@ -9,6 +9,7 @@ import {
   Linking,
 } from 'react-native';
 import { BlurView } from 'expo-blur';
+import { useTranslation } from 'react-i18next';
 
 interface UpdateModalProps {
   visible: boolean;
@@ -27,6 +28,8 @@ export function UpdateModal({
   forceUpdate,
   onClose,
 }: UpdateModalProps) {
+  const { t } = useTranslation();
+
   const handleUpdate = () => {
     const url = Platform.OS === 'ios' ? APP_STORE_URL : PLAY_STORE_URL;
     Linking.openURL(url);
@@ -48,14 +51,14 @@ export function UpdateModal({
       <BlurView intensity={80} style={styles.overlay} tint="dark">
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
-            <Text style={styles.title}>Update Available</Text>
+            <Text style={styles.title}>{t('update.title')}</Text>
             <Text style={styles.message}>{message}</Text>
 
             <TouchableOpacity
               style={styles.updateButton}
               onPress={handleUpdate}
             >
-              <Text style={styles.updateButtonText}>Update Now</Text>
+              <Text style={styles.updateButtonText}>{t('update.updateNow')}</Text>
             </TouchableOpacity>
 
             {!forceUpdate && (
@@ -63,7 +66,7 @@ export function UpdateModal({
                 style={styles.laterButton}
                 onPress={handleClose}
               >
-                <Text style={styles.laterButtonText}>Later</Text>
+                <Text style={styles.laterButtonText}>{t('update.later')}</Text>
               </TouchableOpacity>
             )}
           </View>

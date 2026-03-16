@@ -14,6 +14,8 @@ import * as Linking from 'expo-linking';
 import { supabase } from '@/lib/supabase';
 import { useVersionCheck } from '@/hooks/useVersionCheck';
 import { UpdateModal } from '@/components/UpdateModal';
+import '@/i18n'; // Initialize i18n
+import { initializeLanguage } from '@/i18n';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -119,6 +121,11 @@ export default function RootLayout() {
 
   const { showUpdateModal, updateMessage, forceUpdate, closeModal } =
     useVersionCheck();
+
+  useEffect(() => {
+    // Initialize language from storage
+    initializeLanguage();
+  }, []);
 
   useEffect(() => {
     if (fontsLoaded || fontError) {
