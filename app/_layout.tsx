@@ -12,6 +12,8 @@ import {
 import * as SplashScreen from 'expo-splash-screen';
 import * as Linking from 'expo-linking';
 import { supabase } from '@/lib/supabase';
+import { useVersionCheck } from '@/hooks/useVersionCheck';
+import { UpdateModal } from '@/components/UpdateModal';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -115,6 +117,9 @@ export default function RootLayout() {
     'Inter-Bold': Inter_700Bold,
   });
 
+  const { showUpdateModal, updateMessage, forceUpdate, closeModal } =
+    useVersionCheck();
+
   useEffect(() => {
     if (fontsLoaded || fontError) {
       SplashScreen.hideAsync();
@@ -129,6 +134,12 @@ export default function RootLayout() {
     <>
       <RootLayoutNav />
       <StatusBar style="light" />
+      <UpdateModal
+        visible={showUpdateModal}
+        message={updateMessage}
+        forceUpdate={forceUpdate}
+        onClose={closeModal}
+      />
     </>
   );
 }
