@@ -68,7 +68,7 @@ export default function FriendProfileScreen() {
 
   const loadFriendData = async () => {
     setLoading(true);
-    
+
     // If demo mode is enabled, use demo data
     if (DEMO_MODE) {
       setMovies(demoMovies as any);
@@ -76,7 +76,7 @@ export default function FriendProfileScreen() {
       setLoading(false);
       return;
     }
-    
+
     try {
       const [moviesResult, tvShowsResult] = await Promise.all([
         friendsApi.getFriendMovies(friendId),
