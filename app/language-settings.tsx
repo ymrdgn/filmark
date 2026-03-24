@@ -1,5 +1,11 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  ScrollView,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { ChevronLeft, Check } from 'lucide-react-native';
@@ -10,6 +16,25 @@ import { changeLanguage } from '@/i18n';
 const LANGUAGES = [
   { code: 'en', name: 'English', nativeName: 'English' },
   { code: 'tr', name: 'Turkish', nativeName: 'Türkçe' },
+  { code: 'ar', name: 'Arabic', nativeName: 'العربية' },
+  { code: 'de', name: 'German', nativeName: 'Deutsch' },
+  { code: 'es', name: 'Spanish', nativeName: 'Español' },
+  { code: 'fr', name: 'French', nativeName: 'Français' },
+  { code: 'it', name: 'Italian', nativeName: 'Italiano' },
+  { code: 'ja', name: 'Japanese', nativeName: '日本語' },
+  { code: 'ku', name: 'Kurdish', nativeName: 'Kurdî' },
+  {
+    code: 'pt-BR',
+    name: 'Portuguese (Brazil)',
+    nativeName: 'Português (Brasil)',
+  },
+  {
+    code: 'pt-PT',
+    name: 'Portuguese (Portugal)',
+    nativeName: 'Português (Portugal)',
+  },
+  { code: 'fa', name: 'Persian', nativeName: 'فارسی' },
+  { code: 'zh', name: 'Chinese', nativeName: '中文' },
 ];
 
 export default function LanguageSettingsScreen() {
@@ -35,17 +60,20 @@ export default function LanguageSettingsScreen() {
           <View style={styles.backButton} />
         </View>
 
-        <ScrollView style={styles.content}>
-          <Text style={styles.description}>
-            {t('settings.chooseLanguage')}
-          </Text>
+        <ScrollView
+          style={styles.content}
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+        >
+          <Text style={styles.description}>{t('settings.chooseLanguage')}</Text>
 
           {LANGUAGES.map((language) => (
             <TouchableOpacity
               key={language.code}
               style={[
                 styles.languageOption,
-                currentLanguage === language.code && styles.languageOptionActive,
+                currentLanguage === language.code &&
+                  styles.languageOptionActive,
               ]}
               onPress={() => handleLanguageChange(language.code)}
             >
@@ -62,9 +90,7 @@ export default function LanguageSettingsScreen() {
           ))}
 
           <View style={styles.infoBox}>
-            <Text style={styles.infoText}>
-              {t('settings.languageInfo')}
-            </Text>
+            <Text style={styles.infoText}>{t('settings.languageInfo')}</Text>
           </View>
         </ScrollView>
       </LinearGradient>
@@ -104,6 +130,9 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 20,
     paddingTop: 24,
+  },
+  scrollContent: {
+    paddingBottom: 40,
   },
   description: {
     fontSize: 14,
@@ -147,7 +176,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 16,
     marginTop: 24,
-    marginBottom: 32,
+    marginBottom: 60,
     borderLeftWidth: 4,
     borderLeftColor: '#3B82F6',
   },

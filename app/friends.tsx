@@ -9,6 +9,7 @@ import {
   Alert,
   ActivityIndicator,
 } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import {
@@ -27,15 +28,16 @@ import { supabase } from '@/lib/supabase';
 import { friendsApi, Friend, UserSearchResult } from '@/lib/friends-api';
 
 export default function FriendsScreen() {
+  const { t } = useTranslation();
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<UserSearchResult[]>([]);
   const [friends, setFriends] = useState<Friend[]>([]);
-  const [currentUser, setCurrentUser] = useState(null);
+  const [currentUser, setCurrentUser] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [searchLoading, setSearchLoading] = useState(false);
   const [sendingRequestId, setSendingRequestId] = useState<string | null>(null);
   const [processingRequestId, setProcessingRequestId] = useState<string | null>(
-    null
+    null,
   );
   const [removingFriendId, setRemovingFriendId] = useState<string | null>(null);
 
@@ -68,13 +70,13 @@ export default function FriendsScreen() {
       const { data, error } = await friendsApi.getFriends();
       if (error) {
         console.error('Error loading friends:', error);
-        Alert.alert('Error', 'Failed to load friends');
+        Alert.alert(t('friends.error'), t('friends.failedToLoadFriends'));
       } else {
         setFriends(data || []);
       }
     } catch (error) {
       console.error('Error loading friends:', error);
-      Alert.alert('Error', 'Failed to load friends');
+      Alert.alert(t('friends.error'), t('friends.failedToLoadFriends'));
     } finally {
       setLoading(false);
     }
@@ -97,14 +99,14 @@ export default function FriendsScreen() {
       const { data, error } = await friendsApi.searchUsersByEmail(searchQuery);
       if (error) {
         console.error('Search error:', error);
-        Alert.alert('Error', 'Failed to search users');
+        Alert.alert(t('friends.error'), t('friends.failedToSearchUsers'));
       } else {
         console.log('datadata', data);
         setSearchResults(data || []);
       }
     } catch (error) {
       console.error('Search error:', error);
-      Alert.alert('Error', 'Failed to search users');
+      Alert.alert(t('friends.error'), t('friends.failedToSearchUsers'));
     } finally {
       setSearchLoading(false);
     }
@@ -118,7 +120,10 @@ export default function FriendsScreen() {
       console.log('📤 Friend request result:', { data, error });
       if (error) {
         console.error('❌ Friend request failed:', error);
-        Alert.alert('Error', error.message || 'Failed to send friend request');
+        Alert.alert(
+          t('friends.error'),
+          (error as any).message || t('friends.failedToSendRequest'),
+        );
       } else {
         console.log('✅ Friend request sent successfully');
         // Reload friends to show pending request but keep search results
@@ -126,7 +131,7 @@ export default function FriendsScreen() {
       }
     } catch (error) {
       console.error('Send friend request error:', error);
-      Alert.alert('Error', 'Failed to send friend request');
+      Alert.alert(t('friends.error'), t('friends.failedToSendRequest'));
     } finally {
       setSendingRequestId(null);
     }
@@ -137,14 +142,14 @@ export default function FriendsScreen() {
     try {
       const { error } = await friendsApi.acceptFriendRequest(friendshipId);
       if (error) {
-        Alert.alert('Error', 'Failed to accept friend request');
+        Alert.alert(t('friends.error'), t('friends.failedToAcceptRequest'));
       } else {
-        Alert.alert('Success', 'Friend request accepted!');
+        Alert.alert(t('friends.success'), t('friends.requestAccepted'));
         loadFriends();
       }
     } catch (error) {
       console.error('Accept request error:', error);
-      Alert.alert('Error', 'Failed to accept friend request');
+      Alert.alert(t('friends.error'), t('friends.failedToAcceptRequest'));
     } finally {
       setProcessingRequestId(null);
     }
@@ -155,14 +160,14 @@ export default function FriendsScreen() {
     try {
       const { error } = await friendsApi.removeFriend(friendshipId);
       if (error) {
-        Alert.alert('Error', 'Failed to reject friend request');
+        Alert.alert(t('friends.error'), t('friends.failedToRejectRequest'));
       } else {
-        Alert.alert('Success', 'Friend request rejected');
+        Alert.alert(t('friends.success'), t('friends.requestRejected'));
         loadFriends();
       }
     } catch (error) {
       console.error('Reject request error:', error);
-      Alert.alert('Error', 'Failed to reject friend request');
+      Alert.alert(t('friends.error'), t('friends.failedToRejectRequest'));
     } finally {
       setProcessingRequestId(null);
     }
@@ -170,19 +175,19 @@ export default function FriendsScreen() {
 
   const handleCancelRequest = async (
     friendshipId: string,
-    friendEmail: string
+    friendEmail: string | undefined,
   ) => {
     setProcessingRequestId(friendshipId);
     try {
       const { error } = await friendsApi.removeFriend(friendshipId);
       if (error) {
-        Alert.alert('Error', 'Failed to cancel friend request');
+        Alert.alert(t('friends.error'), t('friends.failedToCancelRequest'));
       } else {
         loadFriends();
       }
     } catch (error) {
       console.error('Cancel request error:', error);
-      Alert.alert('Error', 'Failed to cancel friend request');
+      Alert.alert(t('friends.error'), t('friends.failedToCancelRequest'));
     } finally {
       setProcessingRequestId(null);
     }
@@ -190,7 +195,7 @@ export default function FriendsScreen() {
 
   const handleRemoveFriend = async (
     friendshipId: string,
-    friendEmail: string
+    friendEmail: string | undefined,
   ) => {
     console.log('handleRemoveFriend called with:', friendshipId, friendEmail);
 
@@ -206,18 +211,18 @@ export default function FriendsScreen() {
       if (error) {
         console.error('Remove friend failed with error:', error);
         Alert.alert(
-          'Error',
-          `Failed to remove friend: ${error.message || 'Unknown error'}`
+          t('friends.error'),
+          `${t('friends.failedToRemoveFriend')}: ${error.message || 'Unknown error'}`,
         );
       } else {
         console.log('Friend removed successfully, reloading list...');
-        Alert.alert('Success', 'Friend removed successfully');
+        Alert.alert(t('friends.success'), t('friends.friendRemoved'));
         await loadFriends();
         console.log('Friends list reloaded');
       }
     } catch (error) {
       console.error('Remove friend catch error:', error);
-      Alert.alert('Error', 'Failed to remove friend');
+      Alert.alert(t('friends.error'), t('friends.failedToRemoveFriend'));
     } finally {
       console.log('Resetting removingFriendId');
       setRemovingFriendId(null);
@@ -249,7 +254,7 @@ export default function FriendsScreen() {
     const existingFriendship = friends.find(
       (f) =>
         (f.user_id === user.id && f.friend_id === currentUser?.id) ||
-        (f.friend_id === user.id && f.user_id === currentUser?.id)
+        (f.friend_id === user.id && f.user_id === currentUser?.id),
     );
 
     return (
@@ -264,8 +269,8 @@ export default function FriendsScreen() {
           <View style={styles.statusBadge}>
             <Text style={styles.statusBadgeText}>
               {existingFriendship.status === 'pending'
-                ? 'Request Sent'
-                : 'Friends'}
+                ? t('friends.requestSent')
+                : t('friends.friends')}
             </Text>
           </View>
         ) : (
@@ -317,7 +322,9 @@ export default function FriendsScreen() {
                 <>
                   <Clock size={14} color="#F59E0B" strokeWidth={2} />
                   <Text style={styles.statusText}>
-                    {isIncoming ? 'Incoming request' : 'Request sent'}
+                    {isIncoming
+                      ? t('friends.incomingRequest')
+                      : t('friends.requestSentStatus')}
                   </Text>
                 </>
               )}
@@ -325,7 +332,7 @@ export default function FriendsScreen() {
                 <>
                   <Check size={14} color="#10B981" strokeWidth={2} />
                   <Text style={[styles.statusText, { color: '#10B981' }]}>
-                    Friends
+                    {t('friends.friends')}
                   </Text>
                 </>
               )}
@@ -367,7 +374,9 @@ export default function FriendsScreen() {
               ) : (
                 <>
                   <X size={16} color="white" strokeWidth={2} />
-                  <Text style={styles.cancelRequestText}>Cancel Request</Text>
+                  <Text style={styles.cancelRequestText}>
+                    {t('friends.cancelRequest')}
+                  </Text>
                 </>
               )}
             </TouchableOpacity>
@@ -378,7 +387,9 @@ export default function FriendsScreen() {
                 style={styles.viewProfileButton}
                 onPress={() => handleViewFriendProfile(friend)}
               >
-                <Text style={styles.viewProfileText}>View Profile</Text>
+                <Text style={styles.viewProfileText}>
+                  {t('friends.viewProfile')}
+                </Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.actionButton, styles.removeButton]}
@@ -412,9 +423,9 @@ export default function FriendsScreen() {
             <ArrowLeft size={24} color="white" strokeWidth={2} />
           </TouchableOpacity>
           <View style={styles.headerInfo}>
-            <Text style={styles.title}>Friends</Text>
+            <Text style={styles.title}>{t('friends.title')}</Text>
             <Text style={styles.subtitle}>
-              {acceptedFriends.length} friends
+              {t('friends.subtitle', { count: acceptedFriends.length })}
             </Text>
           </View>
         </View>
@@ -424,7 +435,7 @@ export default function FriendsScreen() {
             <Search size={20} color="#9CA3AF" strokeWidth={2} />
             <TextInput
               style={styles.searchInput}
-              placeholder="Search by email..."
+              placeholder={t('friends.searchPlaceholder')}
               placeholderTextColor="#6B7280"
               value={searchQuery}
               onChangeText={setSearchQuery}
@@ -436,7 +447,9 @@ export default function FriendsScreen() {
               onPress={handleSearch}
               style={styles.searchButton}
             >
-              <Text style={styles.searchButtonText}>Search</Text>
+              <Text style={styles.searchButtonText}>
+                {t('friends.searchButton')}
+              </Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -448,7 +461,9 @@ export default function FriendsScreen() {
           {/* Search Results */}
           {searchResults.length > 0 && (
             <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Search Results</Text>
+              <Text style={styles.sectionTitle}>
+                {t('friends.searchResults')}
+              </Text>
               {searchLoading ? (
                 <View style={styles.loadingContainer}>
                   <ActivityIndicator size="large" color="#6366F1" />
@@ -462,7 +477,9 @@ export default function FriendsScreen() {
           {/* Pending Requests */}
           {pendingRequests.length > 0 && (
             <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Pending Requests</Text>
+              <Text style={styles.sectionTitle}>
+                {t('friends.pendingRequests')}
+              </Text>
               {pendingRequests.map(renderFriend)}
             </View>
           )}
@@ -470,7 +487,7 @@ export default function FriendsScreen() {
           {/* Friends */}
           {acceptedFriends.length > 0 && (
             <View style={styles.section}>
-              <Text style={styles.sectionTitle}>My Friends</Text>
+              <Text style={styles.sectionTitle}>{t('friends.myFriends')}</Text>
               {acceptedFriends.map(renderFriend)}
             </View>
           )}
@@ -479,9 +496,11 @@ export default function FriendsScreen() {
           {friends.length === 0 && !loading && (
             <View style={styles.emptyState}>
               <Users size={48} color="#6B7280" strokeWidth={1.5} />
-              <Text style={styles.emptyStateText}>No friends yet</Text>
+              <Text style={styles.emptyStateText}>
+                {t('friends.noFriends')}
+              </Text>
               <Text style={styles.emptyStateSubtext}>
-                Search for friends by email to get started
+                {t('friends.noFriendsSubtext')}
               </Text>
             </View>
           )}
@@ -606,7 +625,6 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter-Medium',
     color: 'white',
     flex: 1,
-    numberOfLines: 1,
     flexShrink: 1,
   },
   addButton: {

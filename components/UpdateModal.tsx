@@ -58,7 +58,9 @@ export function UpdateModal({
               style={styles.updateButton}
               onPress={handleUpdate}
             >
-              <Text style={styles.updateButtonText}>{t('update.updateNow')}</Text>
+              <Text style={styles.updateButtonText}>
+                {t('update.updateNow')}
+              </Text>
             </TouchableOpacity>
 
             {!forceUpdate && (

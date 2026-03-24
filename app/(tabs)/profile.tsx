@@ -34,8 +34,8 @@ import BuyMeCoffee from '@/app/BuyMeCoffee';
 import { useTranslation } from 'react-i18next';
 
 export default function ProfileScreen() {
-  const { t } = useTranslation();
-  const [user, setUser] = useState(null);
+  const { t, i18n } = useTranslation();
+  const [user, setUser] = useState<any>(null);
   const [stats, setStats] = useState({
     moviesWatched: 0,
     tvShows: 0,
@@ -45,7 +45,7 @@ export default function ProfileScreen() {
     favoriteMovies: 0,
     favoriteTVShows: 0,
   });
-  const [achievements, setAchievements] = useState([]);
+  const [achievements, setAchievements] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -100,25 +100,25 @@ export default function ProfileScreen() {
 
   const statsData = [
     {
-      label: 'Movies Watched',
+      label: t('profile.moviesWatched'),
       value: stats.moviesWatched.toString(),
       icon: Film,
       color: '#EF4444',
     },
     {
-      label: 'TV Shows',
+      label: t('profile.tvShows'),
       value: stats.tvShows.toString(),
       icon: Tv,
       color: '#10B981',
     },
     {
-      label: 'Hours Watched',
+      label: t('profile.hoursWatched'),
       value: `${stats.hoursWatched}h`,
       icon: Clock,
       color: '#F59E0B',
     },
     {
-      label: 'Favorites',
+      label: t('profile.favoritesCount'),
       value: (stats.favoriteMovies + stats.favoriteTVShows).toString(),
       icon: Heart,
       color: '#EC4899',
@@ -174,7 +174,9 @@ export default function ProfileScreen() {
       <SafeAreaView style={styles.container} edges={['left', 'right']}>
         <LinearGradient colors={['#1F2937', '#111827']} style={styles.gradient}>
           <View style={styles.loadingContainer}>
-            <Text style={styles.loadingText}>Loading profile...</Text>
+            <Text style={styles.loadingText}>
+              {t('profile.loadingProfile')}
+            </Text>
           </View>
         </LinearGradient>
       </SafeAreaView>
@@ -197,20 +199,25 @@ export default function ProfileScreen() {
                 user?.email?.split('@')[0] ||
                 'User'}
             </Text>
-            <Text style={styles.email}>{user?.email || 'No email'}</Text>
+            <Text style={styles.email}>
+              {user?.email || t('profile.noEmail')}
+            </Text>
             <Text style={styles.joinDate}>
-              Member since{' '}
+              {t('profile.memberSince')}{' '}
               {user?.created_at
-                ? new Date(user.created_at).toLocaleDateString('en-US', {
-                    year: 'numeric',
-                    month: 'long',
-                  })
+                ? new Date(user.created_at).toLocaleDateString(
+                    i18n.language === 'tr' ? 'tr-TR' : 'en-US',
+                    {
+                      year: 'numeric',
+                      month: 'long',
+                    },
+                  )
                 : 'Unknown'}
             </Text>
           </View>
 
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Your Stats</Text>
+            <Text style={styles.sectionTitle}>{t('profile.yourStats')}</Text>
             <View style={styles.statsContainer}>
               {statsData.map((stat, index) => (
                 <View key={index} style={styles.statCard}>
@@ -230,7 +237,7 @@ export default function ProfileScreen() {
           </View>
 
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Achievements</Text>
+            <Text style={styles.sectionTitle}>{t('profile.achievements')}</Text>
             <View style={styles.achievementsContainer}>
               {achievements && achievements.length > 0 ? (
                 achievements.map((achievement, index) => (
@@ -251,11 +258,15 @@ export default function ProfileScreen() {
                         },
                       ]}
                     >
-                      {React.createElement(iconMap[achievement.icon] || Award, {
-                        size: 24,
-                        color: achievement.earned ? '#10B981' : '#6B7280',
-                        strokeWidth: 2,
-                      })}
+                      {React.createElement(
+                        iconMap[achievement.icon as keyof typeof iconMap] ||
+                          Award,
+                        {
+                          size: 24,
+                          color: achievement.earned ? '#10B981' : '#6B7280',
+                          strokeWidth: 2,
+                        },
+                      )}
                     </View>
                     <View style={styles.achievementInfo}>
                       <Text
@@ -264,10 +275,14 @@ export default function ProfileScreen() {
                           !achievement.earned && styles.achievementNameLocked,
                         ]}
                       >
-                        {achievement.name}
+                        {t(`achievements.${achievement.name}`, {
+                          defaultValue: achievement.name,
+                        })}
                       </Text>
                       <Text style={styles.achievementDescription}>
-                        {achievement.description}
+                        {t(`achievements.${achievement.name}_desc`, {
+                          defaultValue: achievement.description,
+                        })}
                       </Text>
                     </View>
                     {achievement.earned && (
@@ -277,14 +292,16 @@ export default function ProfileScreen() {
                     )}
                     {achievement.earned && achievement.earned_at && (
                       <Text style={styles.achievementDate}>
-                        {new Date(achievement.earned_at).toLocaleDateString()}
+                        {new Date(achievement.earned_at).toLocaleDateString(
+                          i18n.language === 'tr' ? 'tr-TR' : 'en-US',
+                        )}
                       </Text>
                     )}
                   </View>
                 ))
               ) : (
                 <Text style={styles.emptyText}>
-                  No achievements yet. Keep watching!
+                  {t('profile.noAchievements')}
                 </Text>
               )}
             </View>
@@ -292,7 +309,7 @@ export default function ProfileScreen() {
 
           {Platform.OS === 'android' && (
             <View style={styles.section}>
-              <Text style={styles.supportTitle}>Support</Text>
+              <Text style={styles.supportTitle}>{t('profile.support')}</Text>
               <BuyMeCoffee />
             </View>
           )}
@@ -520,5 +537,11 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontFamily: 'Inter-Medium',
     color: '#9CA3AF',
+  },
+  emptyText: {
+    fontSize: 14,
+    color: '#9CA3AF',
+    textAlign: 'center',
+    marginTop: 20,
   },
 });

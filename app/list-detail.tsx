@@ -8,6 +8,7 @@ import {
   Image,
   Alert,
 } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { ArrowLeft, Heart, Star, Film, Tv } from 'lucide-react-native';
@@ -23,6 +24,7 @@ type MediaItem = (Movie | TVShow) & {
 };
 
 export default function ListDetailScreen() {
+  const { t } = useTranslation();
   const params = useLocalSearchParams();
   const [items, setItems] = useState<MediaItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -105,7 +107,10 @@ export default function ListDetailScreen() {
       }
 
       if (error) {
-        Alert.alert('Error', 'Failed to update favorite status.');
+        Alert.alert(
+          t('listDetail.error'),
+          t('listDetail.failedToUpdateFavorite'),
+        );
       } else {
         // Update local state
         setItems((prevItems) =>
@@ -117,7 +122,10 @@ export default function ListDetailScreen() {
         );
       }
     } catch (error) {
-      Alert.alert('Error', 'Failed to update favorite status.');
+      Alert.alert(
+        t('listDetail.error'),
+        t('listDetail.failedToUpdateFavorite'),
+      );
     } finally {
       setUpdatingItemId(null);
     }
@@ -183,7 +191,9 @@ export default function ListDetailScreen() {
             {item.title}
           </Text>
           <View style={styles.itemMeta}>
-            <Text style={styles.itemType}>{item.type}</Text>
+            <Text style={styles.itemType}>
+              {item.type === 'Movie' ? t('common.movie') : t('common.tvShow')}
+            </Text>
             {item.year && (
               <>
                 <Text style={styles.separator}>•</Text>
@@ -238,7 +248,9 @@ export default function ListDetailScreen() {
           </TouchableOpacity>
           <View style={styles.headerInfo}>
             <Text style={styles.title}>{listTitle}</Text>
-            <Text style={styles.subtitle}>{items.length} items</Text>
+            <Text style={styles.subtitle}>
+              {t('listDetail.itemsCount', { count: items.length })}
+            </Text>
           </View>
         </View>
 
@@ -248,19 +260,21 @@ export default function ListDetailScreen() {
         >
           {loading ? (
             <View style={styles.loadingContainer}>
-              <Text style={styles.loadingText}>Loading...</Text>
+              <Text style={styles.loadingText}>{t('listDetail.loading')}</Text>
             </View>
           ) : items.length > 0 ? (
             <View style={styles.itemsList}>{items.map(renderListItem)}</View>
           ) : (
             <View style={styles.emptyState}>
-              <Text style={styles.emptyStateText}>No items in this list</Text>
+              <Text style={styles.emptyStateText}>
+                {t('listDetail.noItemsInList')}
+              </Text>
               <Text style={styles.emptyStateSubtext}>
                 {listType === 'favorites'
-                  ? 'Add some movies or shows to favorites to see them here'
+                  ? t('listDetail.emptyFavorites')
                   : listType === 'watched'
-                    ? 'Mark some movies or shows as watched to see them here'
-                    : 'Add some movies or shows to your watchlist to see them here'}
+                    ? t('listDetail.emptyWatched')
+                    : t('listDetail.emptyWatchlist')}
               </Text>
             </View>
           )}

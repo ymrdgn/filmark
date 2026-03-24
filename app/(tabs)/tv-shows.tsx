@@ -33,11 +33,13 @@ import {
 import { useFocusEffect } from '@react-navigation/native';
 import Toast from '@/components/Toast';
 import { DEMO_MODE, demoTVShows, demoTMDBTVShows } from '@/lib/demo-data';
+import { useTranslation } from 'react-i18next';
 
 const { width } = Dimensions.get('window');
 const cardWidth = (width - 72) / 2;
 
 export default function TVShowsScreen() {
+  const { t } = useTranslation();
   const [searchQuery, setSearchQuery] = useState('');
   const [filter, setFilter] = useState('all');
   const [myTVShows, setMyTVShows] = useState<any[]>([]);
@@ -119,7 +121,7 @@ export default function TVShowsScreen() {
       const { data, error } = await tvShowsApi.getAll();
       if (error) {
         console.error('Error loading TV shows:', error.message || error);
-        showToast('Failed to load TV shows', 'error');
+        showToast(t('tvShows.failedToAdd'), 'error');
       } else {
         setMyTVShows(data || []);
       }
@@ -162,7 +164,7 @@ export default function TVShowsScreen() {
       setTMDBTVShows(response.results);
     } catch (error) {
       console.error('Search error:', error);
-      showToast('Failed to search TV shows', 'error');
+      showToast(t('tvShows.failedToSearch'), 'error');
     } finally {
       setTMDBLoading(false);
     }
@@ -197,14 +199,14 @@ export default function TVShowsScreen() {
       });
 
       if (error) {
-        showToast('Failed to add TV show', 'error');
+        showToast(t('tvShows.failedToAdd'), 'error');
       } else {
         await loadMyTVShows();
-        showToast(`${show.name} added to watched list!`, 'success');
+        showToast(t('tvShows.addedToWatched', { title: show.name }), 'success');
       }
     } catch (error) {
       console.error('Add TV show error:', error);
-      showToast('Failed to add TV show', 'error');
+      showToast(t('tvShows.failedToAdd'), 'error');
     } finally {
       setAddingShowId(null);
     }
@@ -221,18 +223,18 @@ export default function TVShowsScreen() {
       });
 
       if (error) {
-        showToast('Failed to update favorite', 'error');
+        showToast(t('tvShows.failedToUpdate'), 'error');
       } else {
         await loadMyTVShows(); // Reload to show updated status
         showToast(
           currentFavoriteStatus
-            ? 'Removed from favorites'
-            : 'Added to favorites',
+            ? t('tvShows.removedFromFavorites')
+            : t('tvShows.addedToFavorites'),
           'success',
         );
       }
     } catch (error) {
-      showToast('Failed to update favorite', 'error');
+      showToast(t('tvShows.failedToUpdate'), 'error');
     } finally {
       setUpdatingShowId(null);
     }
@@ -334,7 +336,9 @@ export default function TVShowsScreen() {
           />
         ) : (
           <View style={styles.posterPlaceholder}>
-            <Text style={styles.posterPlaceholderText}>No Image</Text>
+            <Text style={styles.posterPlaceholderText}>
+              {t('tvShows.noImage')}
+            </Text>
           </View>
         )}
 
@@ -483,7 +487,7 @@ export default function TVShowsScreen() {
           <Text style={styles.showYear}>
             {show.first_air_date
               ? new Date(show.first_air_date).getFullYear()
-              : 'Unknown'}
+              : t('tvShows.unknown')}
           </Text>
 
           <View style={styles.tmdbRating}>
@@ -507,13 +511,13 @@ export default function TVShowsScreen() {
           onHide={() => setToastVisible(false)}
         />
         <View style={styles.header}>
-          <Text style={styles.title}>TV Shows</Text>
+          <Text style={styles.title}>{t('tvShows.title')}</Text>
           <Text style={styles.subtitle}>
             {filter === 'all'
               ? searchQuery
-                ? `${tmdbTVShows.length} results`
-                : 'Discover Popular TV Shows'
-              : `${displayTVShows.length} shows`}
+                ? t('tvShows.results', { count: tmdbTVShows.length })
+                : t('tvShows.discoverPopular')
+              : t('tvShows.showsCount', { count: displayTVShows.length })}
           </Text>
         </View>
 
@@ -522,7 +526,7 @@ export default function TVShowsScreen() {
             <Search size={20} color="#9CA3AF" strokeWidth={2} />
             <TextInput
               style={styles.searchInput}
-              placeholder="Search TV shows..."
+              placeholder={t('tvShows.searchPlaceholder')}
               placeholderTextColor="#6B7280"
               value={searchQuery}
               onChangeText={handleSearchChange}
@@ -532,7 +536,6 @@ export default function TVShowsScreen() {
         </View>
 
         <View style={styles.filters}>
-          <Text style={styles.filterTitle}>Filter:</Text>
           {['all', 'watched', 'favorites'].map((filterOption) => (
             <TouchableOpacity
               key={filterOption}
@@ -549,12 +552,12 @@ export default function TVShowsScreen() {
                 ]}
               >
                 {filterOption === 'all'
-                  ? 'All'
+                  ? t('tvShows.filterAll')
                   : filterOption === 'watched'
-                    ? 'Watched'
+                    ? t('tvShows.filterWatched')
                     : filterOption === 'favorites'
-                      ? 'Favorites'
-                      : 'Watchlist'}
+                      ? t('tvShows.filterFavorites')
+                      : t('tvShows.filterWatchlist')}
               </Text>
             </TouchableOpacity>
           ))}
@@ -583,7 +586,9 @@ export default function TVShowsScreen() {
 
           {filter === 'watched' && (
             <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Watched Shows</Text>
+              <Text style={styles.sectionTitle}>
+                {t('tvShows.watchedShows')}
+              </Text>
               {displayTVShows.length > 0 ? (
                 <View style={styles.showsGrid}>
                   {displayTVShows.map(renderMyTVShowCard)}
@@ -591,10 +596,10 @@ export default function TVShowsScreen() {
               ) : (
                 <View style={styles.emptyState}>
                   <Text style={styles.emptyStateText}>
-                    No watched shows yet
+                    {t('tvShows.noWatchedYet')}
                   </Text>
                   <Text style={styles.emptyStateSubtext}>
-                    Mark some shows as completed to see them here
+                    {t('tvShows.noWatchedSubtext')}
                   </Text>
                 </View>
               )}
@@ -603,7 +608,9 @@ export default function TVShowsScreen() {
 
           {filter === 'favorites' && (
             <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Favorite Shows</Text>
+              <Text style={styles.sectionTitle}>
+                {t('tvShows.favoriteShows')}
+              </Text>
               {displayTVShows.length > 0 ? (
                 <View style={styles.showsGrid}>
                   {displayTVShows.map(renderMyTVShowCard)}
@@ -611,10 +618,10 @@ export default function TVShowsScreen() {
               ) : (
                 <View style={styles.emptyState}>
                   <Text style={styles.emptyStateText}>
-                    No favorite shows yet
+                    {t('tvShows.noFavoritesYet')}
                   </Text>
                   <Text style={styles.emptyStateSubtext}>
-                    Add some shows to favorites to see them here
+                    {t('tvShows.noFavoritesSubtext')}
                   </Text>
                 </View>
               )}
@@ -623,7 +630,7 @@ export default function TVShowsScreen() {
 
           {filter === 'watchlist' && (
             <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Watchlist</Text>
+              <Text style={styles.sectionTitle}>{t('tvShows.watchlist')}</Text>
               {displayTVShows.length > 0 ? (
                 <View style={styles.showsGrid}>
                   {displayTVShows.map(renderMyTVShowCard)}
@@ -631,10 +638,10 @@ export default function TVShowsScreen() {
               ) : (
                 <View style={styles.emptyState}>
                   <Text style={styles.emptyStateText}>
-                    No shows in watchlist yet
+                    {t('tvShows.noWatchlistYet')}
                   </Text>
                   <Text style={styles.emptyStateSubtext}>
-                    Add some shows to your watchlist to see them here
+                    {t('tvShows.noWatchlistSubtext')}
                   </Text>
                 </View>
               )}
@@ -644,12 +651,16 @@ export default function TVShowsScreen() {
           {filter === 'all' && (
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>
-                {searchQuery ? 'Search Results' : 'Popular TV Shows'}
+                {searchQuery
+                  ? t('tvShows.searchResults')
+                  : t('tvShows.popularShows')}
               </Text>
               {tmdbLoading ? (
                 <View style={styles.loadingContainer}>
                   <ActivityIndicator size="large" color="#6366F1" />
-                  <Text style={styles.loadingText}>Loading TV shows...</Text>
+                  <Text style={styles.loadingText}>
+                    {t('tvShows.loadingShows')}
+                  </Text>
                 </View>
               ) : (
                 <View style={styles.showsGrid}>

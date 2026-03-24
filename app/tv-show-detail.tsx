@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   Image,
 } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import {
@@ -67,6 +68,7 @@ interface TVShowState {
 }
 
 export default function TVShowDetailScreen() {
+  const { t, i18n } = useTranslation();
   const params = useLocalSearchParams();
   const [tvShow, setTVShow] = useState<TVShowState>({
     id: params.id,
@@ -204,7 +206,7 @@ export default function TVShowDetailScreen() {
         } as any);
 
         if (error || !data) {
-          showToast('Failed to add TV show to your collection', 'error');
+          showToast(t('tvShows.failedToAddToCollection'), 'error');
           return;
         }
 
@@ -220,7 +222,7 @@ export default function TVShowDetailScreen() {
         global.refreshTVShows?.();
         return;
       } catch (error) {
-        showToast('Failed to add TV show to your collection', 'error');
+        showToast(t('tvShows.failedToAddToCollection'), 'error');
         return;
       } finally {
         setLoading(false);
@@ -234,7 +236,7 @@ export default function TVShowDetailScreen() {
       });
 
       if (error) {
-        showToast('Failed to update rating', 'error');
+        showToast(t('tvShows.failedToUpdateRating'), 'error');
       } else {
         // Update local state immediately
         setTVShow((prev) => ({
@@ -245,7 +247,7 @@ export default function TVShowDetailScreen() {
         global.refreshTVShows?.();
       }
     } catch (error) {
-      showToast('Failed to update rating', 'error');
+      showToast(t('tvShows.failedToUpdateRating'), 'error');
     } finally {
       setLoading(false);
     }
@@ -319,7 +321,7 @@ export default function TVShowDetailScreen() {
       );
 
       if (error) {
-        showToast('Failed to update watched status', 'error');
+        showToast(t('tvShows.failedToUpdateWatched'), 'error');
         console.error('Update error:', error);
       } else {
         // Update local state immediately
@@ -335,7 +337,7 @@ export default function TVShowDetailScreen() {
         global.refreshTVShows?.();
       }
     } catch (error) {
-      showToast('Failed to update watched status', 'error');
+      showToast(t('tvShows.failedToUpdateWatched'), 'error');
       console.error('Caught error:', error);
     } finally {
       setLoading(false);
@@ -406,7 +408,7 @@ export default function TVShowDetailScreen() {
       );
 
       if (error) {
-        showToast('Failed to update favorite status', 'error');
+        showToast(t('tvShows.failedToUpdateFavorite'), 'error');
       } else {
         // Update local state immediately
         setTVShow((prev) => ({
@@ -420,7 +422,7 @@ export default function TVShowDetailScreen() {
         global.refreshTVShows?.();
       }
     } catch (error) {
-      showToast('Failed to update favorite status', 'error');
+      showToast(t('tvShows.failedToUpdateFavorite'), 'error');
     } finally {
       setLoading(false);
     }
@@ -478,7 +480,7 @@ export default function TVShowDetailScreen() {
       });
 
       if (error) {
-        showToast('Failed to update watchlist status', 'error');
+        showToast(t('tvShows.failedToUpdateWatchlist'), 'error');
       } else {
         // Update local state immediately
         setTVShow((prev) => ({
@@ -491,7 +493,7 @@ export default function TVShowDetailScreen() {
         global.refreshTVShows?.();
       }
     } catch (error) {
-      showToast('Failed to update watchlist status', 'error');
+      showToast(t('tvShows.failedToUpdateWatchlist'), 'error');
     } finally {
       setLoading(false);
     }
@@ -531,9 +533,9 @@ export default function TVShowDetailScreen() {
   };
 
   const getWatchingStatus = () => {
-    if (tvShow.is_watched) return 'Completed';
-    if (tvShow.current_episode > 1) return 'Watching';
-    return 'To Watch';
+    if (tvShow.is_watched) return t('tvShows.completed');
+    if (tvShow.current_episode > 1) return t('tvShows.watching');
+    return t('tvShows.toWatch');
   };
 
   const getStatusColor = () => {
@@ -588,7 +590,9 @@ export default function TVShowDetailScreen() {
                 />
               ) : (
                 <View style={styles.posterPlaceholder}>
-                  <Text style={styles.posterPlaceholderText}>No Image</Text>
+                  <Text style={styles.posterPlaceholderText}>
+                    {t('tvShows.noImage')}
+                  </Text>
                 </View>
               )}
             </View>
@@ -604,7 +608,9 @@ export default function TVShowDetailScreen() {
 
               <View style={styles.showMeta}>
                 <Tv size={16} color="#9CA3AF" strokeWidth={2} />
-                <Text style={styles.seasonsText}>{tvShow.seasons} seasons</Text>
+                <Text style={styles.seasonsText}>
+                  {t('tvShows.seasonCount', { count: tvShow.seasons })}
+                </Text>
               </View>
 
               {tvShow.imdb_rating && (
@@ -648,7 +654,9 @@ export default function TVShowDetailScreen() {
                       fill="#EF4444"
                       strokeWidth={1}
                     />
-                    <Text style={styles.favoriteText}>Favorite</Text>
+                    <Text style={styles.favoriteText}>
+                      {t('tvShows.favoriteStatus')}
+                    </Text>
                   </View>
                 )}
               </View>
@@ -679,7 +687,7 @@ export default function TVShowDetailScreen() {
           </View>
 
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Rating</Text>
+            <Text style={styles.sectionTitle}>{t('tvShows.rating')}</Text>
             <View style={styles.ratingContainer}>
               {[1, 2, 3, 4, 5].map((star) => (
                 <TouchableOpacity
@@ -701,13 +709,13 @@ export default function TVShowDetailScreen() {
             </View>
             {tvShow.rating !== null && tvShow.rating > 0 && (
               <Text style={styles.ratingText}>
-                You rated this {tvShow.rating}/5 stars
+                {t('tvShows.youRatedThis', { rating: tvShow.rating })}
               </Text>
             )}
           </View>
 
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Actions</Text>
+            <Text style={styles.sectionTitle}>{t('tvShows.actions')}</Text>
             <View style={styles.actionButtons}>
               <TouchableOpacity
                 style={[
@@ -728,7 +736,9 @@ export default function TVShowDetailScreen() {
                     tvShow.is_watched && styles.actionButtonTextActive,
                   ]}
                 >
-                  {tvShow.is_watched ? 'Watched ✓' : 'Mark as Watched'}
+                  {tvShow.is_watched
+                    ? t('tvShows.watched')
+                    : t('tvShows.markAsWatched')}
                 </Text>
               </TouchableOpacity>
 
@@ -752,7 +762,9 @@ export default function TVShowDetailScreen() {
                     tvShow.is_favorite && styles.actionButtonTextActive,
                   ]}
                 >
-                  {tvShow.is_favorite ? 'Favorite ❤️' : 'Add to Favorites'}
+                  {tvShow.is_favorite
+                    ? t('tvShows.favorite')
+                    : t('tvShows.addToFavorites')}
                 </Text>
               </TouchableOpacity>
 
@@ -777,8 +789,8 @@ export default function TVShowDetailScreen() {
                     ]}
                   >
                     {tvShow.is_watchlist
-                      ? 'In Watchlist 📝'
-                      : 'Add to Watchlist'}
+                      ? t('tvShows.inWatchlist')
+                      : t('tvShows.addToWatchlist')}
                   </Text>
                 </TouchableOpacity>
               )}

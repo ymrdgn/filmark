@@ -31,6 +31,7 @@ import {
   demoRecentActivity,
   demoFriendsActivity,
 } from '@/lib/demo-data';
+import { useTranslation } from 'react-i18next';
 
 type Movie = Database['public']['Tables']['movies']['Row'];
 type TVShow = Database['public']['Tables']['tv_shows']['Row'];
@@ -80,6 +81,7 @@ interface StatsData {
 const { width } = Dimensions.get('window');
 
 export default function HomeScreen() {
+  const { t, i18n } = useTranslation();
   const [user, setUser] = React.useState<any>(null);
   const [stats, setStats] = React.useState<StatsData>({
     moviesWatched: 0,
@@ -415,14 +417,14 @@ export default function HomeScreen() {
 
     if (!dateString) {
       console.log('Empty date string, returning "recently"');
-      return 'recently';
+      return t('common.recently');
     }
 
     const date = new Date(dateString);
 
     if (isNaN(date.getTime())) {
       console.log('Invalid date, returning "recently"');
-      return 'recently';
+      return t('common.recently');
     }
 
     const now = new Date();
@@ -438,11 +440,14 @@ export default function HomeScreen() {
     const diffTime = today.getTime() - compareDate.getTime();
     const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
 
-    if (diffDays === 0) return 'today';
-    if (diffDays === 1) return 'yesterday';
-    if (diffDays > 1 && diffDays <= 7) return `${diffDays} days ago`;
+    if (diffDays === 0) return t('common.today');
+    if (diffDays === 1) return t('common.yesterday');
+    if (diffDays > 1 && diffDays <= 7)
+      return t('common.daysAgo', { count: diffDays });
 
-    return date.toLocaleDateString('en-US', {
+    // Get current locale for date formatting
+    const locale = i18n.language === 'tr' ? 'tr-TR' : 'en-US';
+    return date.toLocaleDateString(locale, {
       month: 'short',
       day: 'numeric',
     });
@@ -456,25 +461,25 @@ export default function HomeScreen() {
   }
   const statsData: StatCardData[] = [
     {
-      label: 'Movies Watched',
+      label: t('home.moviesWatched'),
       value: stats.moviesWatched.toString(),
       icon: Film,
       color: '#EF4444',
     },
     {
-      label: 'TV Shows',
+      label: t('home.tvShows'),
       value: stats.tvShows.toString(),
       icon: Tv,
       color: '#10B981',
     },
     {
-      label: 'Hours Watched',
+      label: t('home.hoursWatched'),
       value: `${stats.hoursWatched}h`,
       icon: Clock,
       color: '#F59E0B',
     },
     {
-      label: 'Average Rating',
+      label: t('home.averageRating'),
       value: stats.averageRating > 0 ? stats.averageRating.toString() : '0',
       icon: Star,
       color: '#8B5CF6',
@@ -486,7 +491,7 @@ export default function HomeScreen() {
       <SafeAreaView style={styles.container} edges={['left', 'right']}>
         <LinearGradient colors={['#1F2937', '#111827']} style={styles.gradient}>
           <View style={styles.loadingContainer}>
-            <Text style={styles.loadingText}>Loading...</Text>
+            <Text style={styles.loadingText}>{t('common.loading')}</Text>
           </View>
         </LinearGradient>
       </SafeAreaView>
@@ -506,15 +511,14 @@ export default function HomeScreen() {
               <View style={styles.headerTextContainer}>
                 <Text style={styles.greeting}>
                   {user
-                    ? `Welcome back, ${
-                        user.user_metadata?.username ||
-                        user.email?.split('@')[0]
-                      }!`
-                    : 'Welcome to WatchTracker!'}
+                    ? t('home.welcomeBack', {
+                        name:
+                          user.user_metadata?.username ||
+                          user.email?.split('@')[0],
+                      })
+                    : t('home.welcome')}
                 </Text>
-                <Text style={styles.subtitle}>
-                  What would you like to watch today?
-                </Text>
+                <Text style={styles.subtitle}>{t('home.subtitle')}</Text>
               </View>
               {user && <NotificationBell />}
             </View>
@@ -524,13 +528,15 @@ export default function HomeScreen() {
                 style={styles.authButton}
                 onPress={() => router.push('/(auth)/login')}
               >
-                <Text style={styles.authButtonText}>Sign In / Sign Up</Text>
+                <Text style={styles.authButtonText}>
+                  {t('home.signInSignUp')}
+                </Text>
               </TouchableOpacity>
             )}
           </View>
 
           <View style={styles.statsContainer}>
-            <Text style={styles.sectionTitle}>Your Stats</Text>
+            <Text style={styles.sectionTitle}>{t('home.yourStats')}</Text>
             <View style={styles.statsGrid}>
               {statsData.map((stat, index) => (
                 <View key={index} style={styles.statCard}>
@@ -551,7 +557,9 @@ export default function HomeScreen() {
 
           {recentActivity.length > 0 && (
             <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Recent Activity</Text>
+              <Text style={styles.sectionTitle}>
+                {t('home.recentActivity')}
+              </Text>
               {recentActivity.map((item, index) => (
                 <TouchableOpacity
                   key={item.id}
@@ -600,11 +608,15 @@ export default function HomeScreen() {
                   </View>
                   <View style={styles.activityContent}>
                     <Text style={styles.activityTitle}>{item.title}</Text>
-                    <Text style={styles.activityType}>{item.type}</Text>
+                    <Text style={styles.activityType}>
+                      {item.type === 'Movie'
+                        ? t('common.movie')
+                        : t('common.tvShow')}
+                    </Text>
                     <Text style={styles.activityAction}>
                       {item.action === 'watched'
-                        ? 'Watched'
-                        : 'Added to favorites'}{' '}
+                        ? t('home.watched')
+                        : t('home.addedToFavorites')}{' '}
                       - {formatDate(item.date)}
                     </Text>
                     {item.rating != null && item.rating > 0 && (
@@ -636,7 +648,9 @@ export default function HomeScreen() {
 
           {friendsActivity.length > 0 && (
             <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Friends Activity</Text>
+              <Text style={styles.sectionTitle}>
+                {t('home.friendsActivity')}
+              </Text>
               <View style={styles.friendsActivity}>
                 {friendsActivity.map((activity, index) => (
                   <TouchableOpacity

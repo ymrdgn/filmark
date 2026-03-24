@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   Image,
 } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import {
@@ -59,6 +60,7 @@ interface MovieState {
 }
 
 export default function MovieDetailScreen() {
+  const { t, i18n } = useTranslation();
   const params = useLocalSearchParams();
   const [movie, setMovie] = useState<MovieState>({
     id: params.id || '',
@@ -155,7 +157,7 @@ export default function MovieDetailScreen() {
         });
 
         if (error || !data) {
-          showToast('Failed to add movie to your collection', 'error');
+          showToast(t('movies.failedToAddToCollection'), 'error');
           return;
         }
 
@@ -173,7 +175,7 @@ export default function MovieDetailScreen() {
         global.refreshMovies?.();
         return;
       } catch (error) {
-        showToast('Failed to add movie to your collection', 'error');
+        showToast(t('movies.failedToAddToCollection'), 'error');
         return;
       } finally {
         setLoading(false);
@@ -190,7 +192,7 @@ export default function MovieDetailScreen() {
       });
 
       if (error) {
-        showToast('Failed to update rating', 'error');
+        showToast(t('movies.failedToUpdateRating'), 'error');
         console.error('Update error:', error);
       } else {
         // Update local state immediately
@@ -203,7 +205,7 @@ export default function MovieDetailScreen() {
         global.refreshMovies?.();
       }
     } catch (error) {
-      showToast('Failed to update rating', 'error');
+      showToast(t('movies.failedToUpdateRating'), 'error');
       console.error('Caught error:', error);
     } finally {
       setLoading(false);
@@ -231,7 +233,7 @@ export default function MovieDetailScreen() {
         });
 
         if (error || !data) {
-          showToast('Failed to add movie to your collection', 'error');
+          showToast(t('movies.failedToAddToCollection'), 'error');
           return;
         }
 
@@ -248,7 +250,7 @@ export default function MovieDetailScreen() {
         global.refreshMovies?.();
         return;
       } catch (error) {
-        showToast('Failed to add movie to your collection', 'error');
+        showToast(t('movies.failedToAddToCollection'), 'error');
         return;
       }
     }
@@ -275,7 +277,7 @@ export default function MovieDetailScreen() {
       const { error } = await moviesApi.update(movie.id as string, updateData);
 
       if (error) {
-        showToast('Failed to update watched status', 'error');
+        showToast(t('movies.failedToUpdateWatched'), 'error');
         console.error('Update error:', error);
       } else {
         // Update local state immediately
@@ -292,7 +294,7 @@ export default function MovieDetailScreen() {
         global.refreshMovies?.();
       }
     } catch (error) {
-      showToast('Failed to update watched status', 'error');
+      showToast(t('movies.failedToUpdateWatched'), 'error');
       console.error('Caught error:', error);
     } finally {
       setLoading(false);
@@ -320,7 +322,7 @@ export default function MovieDetailScreen() {
         });
 
         if (error || !data) {
-          showToast('Failed to add movie to your collection', 'error');
+          showToast(t('movies.failedToAddToCollection'), 'error');
           return;
         }
 
@@ -338,7 +340,7 @@ export default function MovieDetailScreen() {
         global.refreshMovies?.();
         return;
       } catch (error) {
-        showToast('Failed to add movie to your collection', 'error');
+        showToast(t('movies.failedToAddToCollection'), 'error');
         return;
       }
     }
@@ -359,7 +361,7 @@ export default function MovieDetailScreen() {
       const { error } = await moviesApi.update(movie.id as string, updateData);
 
       if (error) {
-        showToast('Failed to update favorite status', 'error');
+        showToast(t('movies.failedToUpdateFavorite'), 'error');
       } else {
         // Update local state immediately
         setMovie((prev) => ({
@@ -377,7 +379,7 @@ export default function MovieDetailScreen() {
         global.refreshMovies?.();
       }
     } catch (error) {
-      showToast('Failed to update favorite status', 'error');
+      showToast(t('movies.failedToUpdateFavorite'), 'error');
     } finally {
       setLoading(false);
     }
@@ -404,7 +406,7 @@ export default function MovieDetailScreen() {
         });
 
         if (error || !data) {
-          showToast('Failed to add movie to your watchlist', 'error');
+          showToast(t('movies.failedToAddToWatchlist'), 'error');
           return;
         }
 
@@ -420,7 +422,7 @@ export default function MovieDetailScreen() {
         global.refreshMovies?.();
         return;
       } catch (error) {
-        showToast('Failed to add movie to your watchlist', 'error');
+        showToast(t('movies.failedToAddToWatchlist'), 'error');
         return;
       }
     }
@@ -433,7 +435,7 @@ export default function MovieDetailScreen() {
       });
 
       if (error) {
-        showToast('Failed to update watchlist status', 'error');
+        showToast(t('movies.failedToUpdateWatchlist'), 'error');
       } else {
         // Update local state immediately
         setMovie((prev) => ({
@@ -446,7 +448,7 @@ export default function MovieDetailScreen() {
         global.refreshMovies?.();
       }
     } catch (error) {
-      showToast('Failed to update watchlist status', 'error');
+      showToast(t('movies.failedToUpdateWatchlist'), 'error');
     } finally {
       setLoading(false);
     }
@@ -490,7 +492,9 @@ export default function MovieDetailScreen() {
                 />
               ) : (
                 <View style={styles.posterPlaceholder}>
-                  <Text style={styles.posterPlaceholderText}>No Image</Text>
+                  <Text style={styles.posterPlaceholderText}>
+                    {t('movies.noImage')}
+                  </Text>
                 </View>
               )}
             </View>
@@ -526,7 +530,9 @@ export default function MovieDetailScreen() {
                       { color: movie.is_watched ? '#10B981' : '#6366F1' },
                     ]}
                   >
-                    {movie.is_watched ? 'Watched' : 'To Watch'}
+                    {movie.is_watched
+                      ? t('movies.watchedStatus')
+                      : t('movies.toWatch')}
                   </Text>
                 </View>
 
@@ -538,29 +544,38 @@ export default function MovieDetailScreen() {
                       fill="#EF4444"
                       strokeWidth={1}
                     />
-                    <Text style={styles.favoriteText}>Favorite</Text>
+                    <Text style={styles.favoriteText}>
+                      {t('movies.favoriteStatus')}
+                    </Text>
                   </View>
                 )}
               </View>
 
-              {movie.is_watched && movie.watched_date && (
-                <View style={styles.watchedDateContainer}>
-                  <Clock size={14} color="#6B7280" strokeWidth={2} />
-                  <Text style={styles.watchedDateText}>
-                    Watched on{' '}
-                    {new Date(movie.watched_date).toLocaleDateString('en-US', {
-                      year: 'numeric',
-                      month: 'long',
-                      day: 'numeric',
-                    })}
-                  </Text>
-                </View>
-              )}
+              {movie.is_watched &&
+                movie.watched_date &&
+                (() => {
+                  const locale = i18n.language === 'tr' ? 'tr-TR' : 'en-US';
+                  const formattedDate = new Date(
+                    movie.watched_date,
+                  ).toLocaleDateString(locale, {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
+                  });
+                  return (
+                    <View style={styles.watchedDateContainer}>
+                      <Clock size={14} color="#6B7280" strokeWidth={2} />
+                      <Text style={styles.watchedDateText}>
+                        {t('movies.watchedOn', { date: formattedDate })}
+                      </Text>
+                    </View>
+                  );
+                })()}
             </View>
           </View>
 
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Rating</Text>
+            <Text style={styles.sectionTitle}>{t('movies.rating')}</Text>
             <View style={styles.ratingContainer}>
               {[1, 2, 3, 4, 5].map((star) => (
                 <TouchableOpacity
@@ -582,13 +597,13 @@ export default function MovieDetailScreen() {
             </View>
             {movie.rating !== null && movie.rating > 0 && (
               <Text style={styles.ratingText}>
-                You rated this {movie.rating}/5 stars
+                {t('movies.youRatedThis', { rating: movie.rating })}
               </Text>
             )}
           </View>
 
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Actions</Text>
+            <Text style={styles.sectionTitle}>{t('movies.actions')}</Text>
             <View style={styles.actionButtons}>
               <TouchableOpacity
                 style={[
@@ -609,7 +624,9 @@ export default function MovieDetailScreen() {
                     movie.is_watched && styles.actionButtonTextActive,
                   ]}
                 >
-                  {movie.is_watched ? 'Watched ✓' : 'Mark as Watched'}
+                  {movie.is_watched
+                    ? t('movies.watched')
+                    : t('movies.markAsWatched')}
                 </Text>
               </TouchableOpacity>
 
@@ -633,7 +650,9 @@ export default function MovieDetailScreen() {
                     movie.is_favorite && styles.actionButtonTextActive,
                   ]}
                 >
-                  {movie.is_favorite ? 'Favorite ❤️' : 'Add to Favorites'}
+                  {movie.is_favorite
+                    ? t('movies.favorite')
+                    : t('movies.addToFavorites')}
                 </Text>
               </TouchableOpacity>
 
@@ -658,8 +677,8 @@ export default function MovieDetailScreen() {
                     ]}
                   >
                     {movie.is_watchlist
-                      ? 'In Watchlist 📝'
-                      : 'Add to Watchlist'}
+                      ? t('movies.inWatchlist')
+                      : t('movies.addToWatchlist')}
                   </Text>
                 </TouchableOpacity>
               )}

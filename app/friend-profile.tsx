@@ -8,6 +8,7 @@ import {
   Image,
   ActivityIndicator,
 } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import {
@@ -53,6 +54,7 @@ interface TVShow {
 }
 
 export default function FriendProfileScreen() {
+  const { t } = useTranslation();
   const params = useLocalSearchParams();
   const [movies, setMovies] = useState<Movie[]>([]);
   const [tvShows, setTVShows] = useState<TVShow[]>([]);
@@ -153,7 +155,7 @@ export default function FriendProfileScreen() {
           {movie.title}
         </Text>
         <View style={styles.itemMeta}>
-          <Text style={styles.itemType}>Movie</Text>
+          <Text style={styles.itemType}>{t('friendProfile.movie')}</Text>
           {movie.year && (
             <>
               <Text style={styles.separator}>•</Text>
@@ -166,7 +168,9 @@ export default function FriendProfileScreen() {
           {movie.is_watched && (
             <View style={styles.statusBadge}>
               <Eye size={12} color="#10B981" strokeWidth={2} />
-              <Text style={styles.statusText}>Watched</Text>
+              <Text style={styles.statusText}>
+                {t('friendProfile.watched')}
+              </Text>
             </View>
           )}
           {movie.is_favorite && (
@@ -175,7 +179,7 @@ export default function FriendProfileScreen() {
             >
               <Heart size={12} color="#EF4444" fill="#EF4444" strokeWidth={1} />
               <Text style={[styles.statusText, { color: '#EF4444' }]}>
-                Favorite
+                {t('friendProfile.favorite')}
               </Text>
             </View>
           )}
@@ -245,7 +249,7 @@ export default function FriendProfileScreen() {
           {show.title}
         </Text>
         <View style={styles.itemMeta}>
-          <Text style={styles.itemType}>TV Show</Text>
+          <Text style={styles.itemType}>{t('friendProfile.tvShow')}</Text>
           {show.year && (
             <>
               <Text style={styles.separator}>•</Text>
@@ -255,7 +259,9 @@ export default function FriendProfileScreen() {
           {show.seasons && (
             <>
               <Text style={styles.separator}>•</Text>
-              <Text style={styles.itemYear}>{show.seasons} seasons</Text>
+              <Text style={styles.itemYear}>
+                {t('friendProfile.seasons', { count: show.seasons })}
+              </Text>
             </>
           )}
         </View>
@@ -264,7 +270,9 @@ export default function FriendProfileScreen() {
           {show.is_watched && (
             <View style={styles.statusBadge}>
               <Eye size={12} color="#10B981" strokeWidth={2} />
-              <Text style={styles.statusText}>Watched</Text>
+              <Text style={styles.statusText}>
+                {t('friendProfile.watched')}
+              </Text>
             </View>
           )}
           {show.is_favorite && (
@@ -273,7 +281,7 @@ export default function FriendProfileScreen() {
             >
               <Heart size={12} color="#EF4444" fill="#EF4444" strokeWidth={1} />
               <Text style={[styles.statusText, { color: '#EF4444' }]}>
-                Favorite
+                {t('friendProfile.favorite')}
               </Text>
             </View>
           )}
@@ -322,7 +330,9 @@ export default function FriendProfileScreen() {
           </TouchableOpacity>
           <View style={styles.headerInfo}>
             <Text style={styles.title}>
-              {friendEmail?.split('@')[0]}'s Lists
+              {t('friendProfile.title', {
+                username: friendEmail?.split('@')[0],
+              })}
             </Text>
             <Text style={styles.subtitle}>{friendEmail}</Text>
           </View>
@@ -364,7 +374,7 @@ export default function FriendProfileScreen() {
                 activeTab === 'movies' && styles.activeTabText,
               ]}
             >
-              Movies ({movies.length})
+              {t('friendProfile.moviesTab', { count: movies.length })}
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
@@ -382,7 +392,7 @@ export default function FriendProfileScreen() {
                 activeTab === 'tv' && styles.activeTabText,
               ]}
             >
-              TV Shows ({tvShows.length})
+              {t('friendProfile.tvShowsTab', { count: tvShows.length })}
             </Text>
           </TouchableOpacity>
         </View>
@@ -394,7 +404,9 @@ export default function FriendProfileScreen() {
           {loading ? (
             <View style={styles.loadingContainer}>
               <ActivityIndicator size="large" color="#6366F1" />
-              <Text style={styles.loadingText}>Loading...</Text>
+              <Text style={styles.loadingText}>
+                {t('friendProfile.loading')}
+              </Text>
             </View>
           ) : (
             <View style={styles.itemsList}>
@@ -404,7 +416,9 @@ export default function FriendProfileScreen() {
                 ) : (
                   <View style={styles.emptyState}>
                     <Film size={48} color="#6B7280" strokeWidth={1.5} />
-                    <Text style={styles.emptyStateText}>No movies yet</Text>
+                    <Text style={styles.emptyStateText}>
+                      {t('friendProfile.noMoviesYet')}
+                    </Text>
                   </View>
                 )
               ) : tvShows.length > 0 ? (
@@ -412,7 +426,9 @@ export default function FriendProfileScreen() {
               ) : (
                 <View style={styles.emptyState}>
                   <Tv size={48} color="#6B7280" strokeWidth={1.5} />
-                  <Text style={styles.emptyStateText}>No TV shows yet</Text>
+                  <Text style={styles.emptyStateText}>
+                    {t('friendProfile.noTVShowsYet')}
+                  </Text>
                 </View>
               )}
             </View>

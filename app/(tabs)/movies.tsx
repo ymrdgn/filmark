@@ -32,6 +32,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import Toast from '@/components/Toast';
 import { Database } from '@/lib/database.types';
 import { DEMO_MODE, demoMovies, demoTMDBMovies } from '@/lib/demo-data';
+import { useTranslation } from 'react-i18next';
 
 type Movie = Database['public']['Tables']['movies']['Row'];
 
@@ -39,6 +40,7 @@ const { width } = Dimensions.get('window');
 const cardWidth = (width - 72) / 2;
 
 export default function MoviesScreen() {
+  const { t } = useTranslation();
   const [searchQuery, setSearchQuery] = useState('');
   const [filter, setFilter] = useState('all');
   const [myMovies, setMyMovies] = useState<Movie[]>([]);
@@ -163,7 +165,7 @@ export default function MoviesScreen() {
       setTMDBMovies(response.results);
     } catch (error) {
       console.error('Search error:', error);
-      showToast('Failed to search movies', 'error');
+      showToast(t('movies.failedToSearch'), 'error');
     } finally {
       setTMDBLoading(false);
     }
@@ -198,14 +200,17 @@ export default function MoviesScreen() {
       });
 
       if (error) {
-        showToast('Failed to add movie', 'error');
+        showToast(t('movies.failedToAdd'), 'error');
       } else {
         await loadMyMovies();
-        showToast(`${movie.title} added to watched list!`, 'success');
+        showToast(
+          t('movies.addedToWatched', { title: movie.title }),
+          'success',
+        );
       }
     } catch (error) {
       console.error('Add movie error:', error);
-      showToast('Failed to add movie', 'error');
+      showToast(t('movies.failedToAdd'), 'error');
     } finally {
       setAddingMovieId(null);
     }
@@ -222,18 +227,18 @@ export default function MoviesScreen() {
       });
 
       if (error) {
-        showToast('Failed to update favorite', 'error');
+        showToast(t('movies.failedToUpdate'), 'error');
       } else {
         await loadMyMovies();
         showToast(
           currentFavoriteStatus
-            ? 'Removed from favorites'
-            : 'Added to favorites',
+            ? t('movies.removedFromFavorites')
+            : t('movies.addedToFavorites'),
           'success',
         );
       }
     } catch (error) {
-      showToast('Failed to update favorite', 'error');
+      showToast(t('movies.failedToUpdate'), 'error');
     } finally {
       setUpdatingMovieId(null);
     }
@@ -320,7 +325,9 @@ export default function MoviesScreen() {
           />
         ) : (
           <View style={styles.posterPlaceholder}>
-            <Text style={styles.posterPlaceholderText}>No Image</Text>
+            <Text style={styles.posterPlaceholderText}>
+              {t('movies.noImage')}
+            </Text>
           </View>
         )}
 
@@ -488,7 +495,7 @@ export default function MoviesScreen() {
           <Text style={styles.movieYear}>
             {movie.release_date
               ? new Date(movie.release_date).getFullYear()
-              : 'Unknown'}
+              : t('movies.unknown')}
           </Text>
 
           <View style={styles.tmdbRating}>
@@ -512,13 +519,13 @@ export default function MoviesScreen() {
           onHide={() => setToastVisible(false)}
         />
         <View style={styles.header}>
-          <Text style={styles.title}>Movies</Text>
+          <Text style={styles.title}>{t('movies.title')}</Text>
           <Text style={styles.subtitle}>
             {filter === 'all'
               ? searchQuery
-                ? `${tmdbMovies.length} results`
-                : 'Discover Popular Movies'
-              : `${displayMovies.length} movies`}
+                ? t('movies.results', { count: tmdbMovies.length })
+                : t('movies.discoverPopular')
+              : t('movies.moviesCount', { count: displayMovies.length })}
           </Text>
         </View>
 
@@ -527,7 +534,7 @@ export default function MoviesScreen() {
             <Search size={20} color="#9CA3AF" strokeWidth={2} />
             <TextInput
               style={styles.searchInput}
-              placeholder="Search movies..."
+              placeholder={t('movies.searchPlaceholder')}
               placeholderTextColor="#6B7280"
               value={searchQuery}
               onChangeText={handleSearchChange}
@@ -537,7 +544,6 @@ export default function MoviesScreen() {
         </View>
 
         <View style={styles.filters}>
-          <Text style={styles.filterTitle}>Filter:</Text>
           {['all', 'watched', 'favorites', 'watchlist'].map((filterOption) => (
             <TouchableOpacity
               key={filterOption}
@@ -554,12 +560,12 @@ export default function MoviesScreen() {
                 ]}
               >
                 {filterOption === 'all'
-                  ? 'All'
+                  ? t('movies.filterAll')
                   : filterOption === 'watched'
-                    ? 'Watched'
+                    ? t('movies.filterWatched')
                     : filterOption === 'favorites'
-                      ? 'Favorites'
-                      : 'Watchlist'}
+                      ? t('movies.filterFavorites')
+                      : t('movies.filterWatchlist')}
               </Text>
             </TouchableOpacity>
           ))}
@@ -581,7 +587,9 @@ export default function MoviesScreen() {
 
           {filter === 'watched' && (
             <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Watched Movies</Text>
+              <Text style={styles.sectionTitle}>
+                {t('movies.watchedMovies')}
+              </Text>
               {displayMovies.length > 0 ? (
                 <View style={styles.moviesGrid}>
                   {displayMovies.map(renderMyMovieCard)}
@@ -589,10 +597,10 @@ export default function MoviesScreen() {
               ) : (
                 <View style={styles.emptyState}>
                   <Text style={styles.emptyStateText}>
-                    No watched movies yet
+                    {t('movies.noWatchedYet')}
                   </Text>
                   <Text style={styles.emptyStateSubtext}>
-                    Mark some movies as watched to see them here
+                    {t('movies.noWatchedSubtext')}
                   </Text>
                 </View>
               )}
@@ -601,7 +609,9 @@ export default function MoviesScreen() {
 
           {filter === 'favorites' && (
             <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Favorite Movies</Text>
+              <Text style={styles.sectionTitle}>
+                {t('movies.favoriteMovies')}
+              </Text>
               {displayMovies.length > 0 ? (
                 <View style={styles.moviesGrid}>
                   {displayMovies.map(renderMyMovieCard)}
@@ -609,10 +619,10 @@ export default function MoviesScreen() {
               ) : (
                 <View style={styles.emptyState}>
                   <Text style={styles.emptyStateText}>
-                    No favorite movies yet
+                    {t('movies.noFavoritesYet')}
                   </Text>
                   <Text style={styles.emptyStateSubtext}>
-                    Add some movies to favorites to see them here
+                    {t('movies.noFavoritesSubtext')}
                   </Text>
                 </View>
               )}
@@ -621,7 +631,7 @@ export default function MoviesScreen() {
 
           {filter === 'watchlist' && (
             <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Watchlist</Text>
+              <Text style={styles.sectionTitle}>{t('movies.watchlist')}</Text>
               {displayMovies.length > 0 ? (
                 <View style={styles.moviesGrid}>
                   {displayMovies.map(renderMyMovieCard)}
@@ -629,10 +639,10 @@ export default function MoviesScreen() {
               ) : (
                 <View style={styles.emptyState}>
                   <Text style={styles.emptyStateText}>
-                    No movies in watchlist yet
+                    {t('movies.noWatchlistYet')}
                   </Text>
                   <Text style={styles.emptyStateSubtext}>
-                    Add some movies to your watchlist to see them here
+                    {t('movies.noWatchlistSubtext')}
                   </Text>
                 </View>
               )}
@@ -642,12 +652,16 @@ export default function MoviesScreen() {
           {filter === 'all' && (
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>
-                {searchQuery ? 'Search Results' : 'Popular Movies'}
+                {searchQuery
+                  ? t('movies.searchResults')
+                  : t('movies.popularMovies')}
               </Text>
               {tmdbLoading ? (
                 <View style={styles.loadingContainer}>
                   <ActivityIndicator size="large" color="#6366F1" />
-                  <Text style={styles.loadingText}>Loading movies...</Text>
+                  <Text style={styles.loadingText}>
+                    {t('movies.loadingMovies')}
+                  </Text>
                 </View>
               ) : (
                 <View style={styles.moviesGrid}>

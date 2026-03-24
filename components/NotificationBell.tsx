@@ -12,6 +12,7 @@ import { Bell, X, Check } from 'lucide-react-native';
 import { supabase } from '@/lib/supabase';
 import { Database } from '@/lib/database.types';
 import { friendsApi } from '@/lib/friends-api';
+import { useTranslation } from 'react-i18next';
 
 type Notification = Database['public']['Tables']['notifications']['Row'];
 type NotificationUpdate =
@@ -23,6 +24,29 @@ export default function NotificationBell() {
   const [modalVisible, setModalVisible] = useState(false);
   const [processingId, setProcessingId] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
+  const { t } = useTranslation();
+
+  // Helper function to get translated notification message
+  const getNotificationMessage = (notification: Notification) => {
+    // Parse the name from the message (e.g., "john@example.com wants to add you as a friend")
+    const messageParts = notification.message.split(' ');
+    const name = messageParts[0]; // First word is usually the email/name
+
+    switch (notification.type) {
+      case 'friend_request':
+        return t('notifications.friendRequest', { name });
+      case 'friend_request_accepted':
+        return t('notifications.friendRequestAccepted', { name });
+      case 'movie_watched':
+        // For movie notifications, we'd need to parse both name and movie
+        // For now, return the original message as fallback
+        return notification.message;
+      case 'movie_added_to_favorites':
+        return notification.message;
+      default:
+        return notification.message;
+    }
+  };
 
   useEffect(() => {
     initializeNotifications();
@@ -273,7 +297,7 @@ export default function NotificationBell() {
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Notifications</Text>
+              <Text style={styles.modalTitle}>{t('notifications.title')}</Text>
               <TouchableOpacity
                 onPress={() => setModalVisible(false)}
                 style={styles.closeButton}
@@ -285,18 +309,15 @@ export default function NotificationBell() {
             <ScrollView style={styles.notificationsList}>
               {notifications.length === 0 ? (
                 <View style={styles.emptyState}>
-                  <Text style={styles.emptyText}>No new notifications</Text>
+                  <Text style={styles.emptyText}>
+                    {t('notifications.noNotifications')}
+                  </Text>
                 </View>
               ) : (
                 notifications.map((notification) => (
                   <View key={notification.id} style={styles.notificationCard}>
-                    <View style={styles.notificationHeader}>
-                      <Text style={styles.notificationTitle}>
-                        {notification.title}
-                      </Text>
-                    </View>
                     <Text style={styles.notificationMessage}>
-                      {notification.message}
+                      {getNotificationMessage(notification)}
                     </Text>
 
                     {notification.type === 'friend_request' && (
@@ -311,7 +332,9 @@ export default function NotificationBell() {
                           ) : (
                             <>
                               <Check size={18} color="white" strokeWidth={2} />
-                              <Text style={styles.buttonText}>Accept</Text>
+                              <Text style={styles.buttonText}>
+                                {t('notifications.accept')}
+                              </Text>
                             </>
                           )}
                         </TouchableOpacity>
@@ -325,7 +348,9 @@ export default function NotificationBell() {
                           ) : (
                             <>
                               <X size={18} color="white" strokeWidth={2} />
-                              <Text style={styles.buttonText}>Reject</Text>
+                              <Text style={styles.buttonText}>
+                                {t('notifications.reject')}
+                              </Text>
                             </>
                           )}
                         </TouchableOpacity>
@@ -338,7 +363,9 @@ export default function NotificationBell() {
                         onPress={() => markAsRead(notification.id)}
                       >
                         <Check size={18} color="white" strokeWidth={2} />
-                        <Text style={styles.buttonText}>OK</Text>
+                        <Text style={styles.buttonText}>
+                          {t('notifications.ok')}
+                        </Text>
                       </TouchableOpacity>
                     )}
 
@@ -348,7 +375,9 @@ export default function NotificationBell() {
                         onPress={() => markAsRead(notification.id)}
                       >
                         <Check size={18} color="white" strokeWidth={2} />
-                        <Text style={styles.buttonText}>OK</Text>
+                        <Text style={styles.buttonText}>
+                          {t('notifications.ok')}
+                        </Text>
                       </TouchableOpacity>
                     )}
                   </View>

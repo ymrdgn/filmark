@@ -6,6 +6,7 @@ import {
   ScrollView,
   TouchableOpacity,
 } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import {
@@ -16,14 +17,32 @@ import {
   Film,
   Tv,
   Plus,
+  LucideIcon,
 } from 'lucide-react-native';
 import { router } from 'expo-router';
 import { moviesApi, tvShowsApi } from '@/lib/api';
+import { Database } from '@/lib/database.types';
+
+type Movie = Database['public']['Tables']['movies']['Row'];
+type TVShow = Database['public']['Tables']['tv_shows']['Row'];
+type ContentItem = (Movie | TVShow) & { type: 'Movie' | 'TV Show' };
+
+interface ListData {
+  id: number;
+  name: string;
+  description: string;
+  icon: LucideIcon;
+  color: string;
+  itemCount: number;
+  items: string[];
+  type: string;
+}
 
 export default function ListsScreen() {
-  const [favorites, setFavorites] = useState([]);
-  const [watchedItems, setWatchedItems] = useState([]);
-  const [watchlistItems, setWatchlistItems] = useState([]);
+  const { t } = useTranslation();
+  const [favorites, setFavorites] = useState<ContentItem[]>([]);
+  const [watchedItems, setWatchedItems] = useState<ContentItem[]>([]);
+  const [watchlistItems, setWatchlistItems] = useState<ContentItem[]>([]);
   const [loading, setLoading] = useState(true);
 
   React.useEffect(() => {
@@ -39,34 +58,34 @@ export default function ListsScreen() {
 
       // Favorites
       const favoriteMovies =
-        moviesResult.data?.filter((m) => m.is_favorite) || [];
+        (moviesResult.data as Movie[])?.filter((m) => m.is_favorite) || [];
       const favoriteTVShows =
-        tvShowsResult.data?.filter((s) => s.is_favorite) || [];
-      const allFavorites = [
-        ...favoriteMovies.map((m) => ({ ...m, type: 'Movie' })),
-        ...favoriteTVShows.map((s) => ({ ...s, type: 'TV Show' })),
+        (tvShowsResult.data as TVShow[])?.filter((s) => s.is_favorite) || [];
+      const allFavorites: ContentItem[] = [
+        ...favoriteMovies.map((m) => ({ ...m, type: 'Movie' as const })),
+        ...favoriteTVShows.map((s) => ({ ...s, type: 'TV Show' as const })),
       ];
       setFavorites(allFavorites);
 
       // Watched
       const watchedMovies =
-        moviesResult.data?.filter((m) => m.is_watched) || [];
+        (moviesResult.data as Movie[])?.filter((m) => m.is_watched) || [];
       const watchedTVShows =
-        tvShowsResult.data?.filter((s) => s.is_watched) || [];
-      const allWatched = [
-        ...watchedMovies.map((m) => ({ ...m, type: 'Movie' })),
-        ...watchedTVShows.map((s) => ({ ...s, type: 'TV Show' })),
+        (tvShowsResult.data as TVShow[])?.filter((s) => s.is_watched) || [];
+      const allWatched: ContentItem[] = [
+        ...watchedMovies.map((m) => ({ ...m, type: 'Movie' as const })),
+        ...watchedTVShows.map((s) => ({ ...s, type: 'TV Show' as const })),
       ];
       setWatchedItems(allWatched);
 
       // Watchlist
       const watchlistMovies =
-        moviesResult.data?.filter((m) => m.is_watchlist) || [];
+        (moviesResult.data as Movie[])?.filter((m) => m.is_watchlist) || [];
       const watchlistTVShows =
-        tvShowsResult.data?.filter((s) => s.is_watchlist) || [];
-      const allWatchlist = [
-        ...watchlistMovies.map((m) => ({ ...m, type: 'Movie' })),
-        ...watchlistTVShows.map((s) => ({ ...s, type: 'TV Show' })),
+        (tvShowsResult.data as TVShow[])?.filter((s) => s.is_watchlist) || [];
+      const allWatchlist: ContentItem[] = [
+        ...watchlistMovies.map((m) => ({ ...m, type: 'Movie' as const })),
+        ...watchlistTVShows.map((s) => ({ ...s, type: 'TV Show' as const })),
       ];
       setWatchlistItems(allWatchlist);
     } catch (error) {
@@ -76,11 +95,11 @@ export default function ListsScreen() {
     }
   };
 
-  const lists = [
+  const lists: ListData[] = [
     {
       id: 1,
-      name: 'Favorites',
-      description: 'My all-time favorite movies and shows',
+      name: t('lists.favorites'),
+      description: t('lists.favoritesDescription'),
       icon: Heart,
       color: '#EF4444',
       itemCount: favorites.length,
@@ -89,8 +108,8 @@ export default function ListsScreen() {
     },
     {
       id: 2,
-      name: 'Watched',
-      description: 'Movies and shows I have watched',
+      name: t('lists.watched'),
+      description: t('lists.watchedDescription'),
       icon: Clock,
       color: '#10B981',
       itemCount: watchedItems.length,
@@ -99,8 +118,8 @@ export default function ListsScreen() {
     },
     {
       id: 3,
-      name: 'Watchlist',
-      description: 'Movies and shows I want to watch',
+      name: t('lists.watchlist'),
+      description: t('lists.watchlistDescription'),
       icon: Plus,
       color: '#8B5CF6',
       itemCount: watchlistItems.length,
@@ -109,54 +128,68 @@ export default function ListsScreen() {
     },
   ];
 
-  const renderListCard = (list) => (
-    <TouchableOpacity
-      key={list.id}
-      style={styles.listCard}
-      onPress={() => {
-        if (list.name === 'Favorites') {
-          router.push('/list-detail?type=favorites&title=Favorites');
-        } else if (list.name === 'Watched') {
-          router.push('/list-detail?type=watched&title=Watched');
-        } else if (list.name === 'Watchlist') {
-          router.push('/list-detail?type=watchlist&title=Watchlist');
-        }
-      }}
-    >
-      <View style={styles.listHeader}>
-        <View style={[styles.listIcon, { backgroundColor: `${list.color}20` }]}>
-          <list.icon size={24} color={list.color} strokeWidth={2} />
-        </View>
-        <View style={styles.listInfo}>
-          <Text style={styles.listName}>{list.name}</Text>
-          <Text style={styles.listDescription}>{list.description}</Text>
-          <Text style={styles.itemCount}>{list.itemCount} items</Text>
-        </View>
-      </View>
+  const renderListCard = (list: ListData) => {
+    const getFriendlyType = () => {
+      if (list.id === 1) return 'favorites';
+      if (list.id === 2) return 'watched';
+      if (list.id === 3) return 'watchlist';
+      return 'custom';
+    };
 
-      <View style={styles.listPreview}>
-        {list.items.slice(0, 3).map((item, index) => (
-          <View key={index} style={styles.previewItem}>
-            <Text style={styles.previewText} numberOfLines={1}>
-              {item}
+    return (
+      <TouchableOpacity
+        key={list.id}
+        style={styles.listCard}
+        onPress={() => {
+          const type = getFriendlyType();
+          router.push(
+            `/list-detail?type=${type}&title=${encodeURIComponent(list.name)}`,
+          );
+        }}
+      >
+        <View style={styles.listHeader}>
+          <View
+            style={[styles.listIcon, { backgroundColor: `${list.color}20` }]}
+          >
+            <list.icon size={24} color={list.color} strokeWidth={2} />
+          </View>
+          <View style={styles.listInfo}>
+            <Text style={styles.listName}>{list.name}</Text>
+            <Text style={styles.listDescription}>{list.description}</Text>
+            <Text style={styles.itemCount}>
+              {t('lists.items', { count: list.itemCount })}
             </Text>
           </View>
-        ))}
-        {list.itemCount > 3 && (
-          <Text style={styles.moreItems}>+{list.itemCount - 3} more</Text>
-        )}
-      </View>
-    </TouchableOpacity>
-  );
+        </View>
+
+        <View style={styles.listPreview}>
+          {list.items.slice(0, 3).map((item, index) => (
+            <View key={index} style={styles.previewItem}>
+              <Text style={styles.previewText} numberOfLines={1}>
+                {item}
+              </Text>
+            </View>
+          ))}
+          {list.itemCount > 3 && (
+            <Text style={styles.moreItems}>
+              {t('lists.more', { count: list.itemCount - 3 })}
+            </Text>
+          )}
+        </View>
+      </TouchableOpacity>
+    );
+  };
 
   return (
     <SafeAreaView style={styles.container} edges={['left', 'right']}>
       <LinearGradient colors={['#1F2937', '#111827']} style={styles.gradient}>
         <View style={styles.header}>
-          <Text style={styles.title}>My Lists</Text>
+          <Text style={styles.title}>{t('lists.title')}</Text>
           <Text style={styles.subtitle}>
-            {favorites.length + watchedItems.length + watchlistItems.length}{' '}
-            items in your lists
+            {t('lists.subtitle', {
+              count:
+                favorites.length + watchedItems.length + watchlistItems.length,
+            })}
           </Text>
         </View>
 

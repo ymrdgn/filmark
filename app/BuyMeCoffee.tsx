@@ -1,11 +1,13 @@
 import { View, Text, Pressable, Alert, Platform } from 'react-native';
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 const REVENUECAT_ANDROID_API_KEY = 'goog_OitrfOHjHjTANEstwMDfCUFvayR';
 const PRODUCT_ID = 'tip_coffee_1';
 
 export default function BuyMeCoffee() {
   const [isReady, setIsReady] = useState(false);
+  const { t } = useTranslation();
 
   if (Platform.OS !== 'android') return null;
 
@@ -87,7 +89,7 @@ export default function BuyMeCoffee() {
         }}
       >
         <Text style={{ color: 'white', fontWeight: '600', fontSize: 16 }}>
-          ☕ Buy me a coffee
+          ☕ {t('profile.buyMeACoffee')}
         </Text>
       </Pressable>
     </View>

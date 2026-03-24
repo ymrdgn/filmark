@@ -9,6 +9,7 @@ import {
   Alert,
   ActivityIndicator,
 } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { ArrowLeft, User, Lock, Trash2 } from 'lucide-react-native';
@@ -17,6 +18,7 @@ import { supabase, getCurrentUser, signOut } from '@/lib/supabase';
 import Toast from '@/components/Toast';
 
 export default function AccountSettingsScreen() {
+  const { t } = useTranslation();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [user, setUser] = useState<any>(null);
@@ -51,7 +53,7 @@ export default function AccountSettingsScreen() {
 
   const handleUpdateUsername = async () => {
     if (!username.trim()) {
-      setError('Username cannot be empty');
+      setError(t('accountSettings.usernameCannotBeEmpty'));
       return;
     }
 
@@ -67,22 +69,22 @@ export default function AccountSettingsScreen() {
 
       const { error: dbError } = await supabase
         .from('users')
-        .update({ username: username.trim() })
+        .update({ username: username.trim() } as never)
         .eq('id', user.id);
 
       if (dbError) throw dbError;
 
       setToast({
         visible: true,
-        message: 'Username updated successfully',
+        message: t('accountSettings.usernameUpdated'),
         type: 'success',
       });
       loadUserData();
     } catch (err: any) {
-      setError(err.message || 'Failed to update username');
+      setError(err.message || t('accountSettings.failedToUpdateUsername'));
       setToast({
         visible: true,
-        message: err.message || 'Failed to update username',
+        message: err.message || t('accountSettings.failedToUpdateUsername'),
         type: 'error',
       });
     } finally {
@@ -94,17 +96,17 @@ export default function AccountSettingsScreen() {
     setError('');
 
     if (!newPassword || !confirmPassword) {
-      setError('Please fill in all password fields');
+      setError(t('accountSettings.fillAllPasswordFields'));
       return;
     }
 
     if (newPassword.length < 6) {
-      setError('Password must be at least 6 characters');
+      setError(t('accountSettings.passwordMinLength'));
       return;
     }
 
     if (newPassword !== confirmPassword) {
-      setError('Passwords do not match');
+      setError(t('accountSettings.passwordsDoNotMatch'));
       return;
     }
 
@@ -119,17 +121,17 @@ export default function AccountSettingsScreen() {
 
       setToast({
         visible: true,
-        message: 'Password changed successfully',
+        message: t('accountSettings.passwordChanged'),
         type: 'success',
       });
       setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
     } catch (err: any) {
-      setError(err.message || 'Failed to change password');
+      setError(err.message || t('accountSettings.failedToChangePassword'));
       setToast({
         visible: true,
-        message: err.message || 'Failed to change password',
+        message: err.message || t('accountSettings.failedToChangePassword'),
         type: 'error',
       });
     } finally {
@@ -139,19 +141,19 @@ export default function AccountSettingsScreen() {
 
   const handleDeleteAccount = () => {
     Alert.alert(
-      'Delete Account',
-      'Are you sure you want to delete your account? This action cannot be undone and all your data will be permanently deleted.',
+      t('accountSettings.deleteAccountConfirmTitle'),
+      t('accountSettings.deleteAccountConfirmMessage'),
       [
         {
-          text: 'Cancel',
+          text: t('accountSettings.cancel'),
           style: 'cancel',
         },
         {
-          text: 'Delete',
+          text: t('accountSettings.delete'),
           style: 'destructive',
           onPress: confirmDeleteAccount,
         },
-      ]
+      ],
     );
   };
 
@@ -173,7 +175,7 @@ export default function AccountSettingsScreen() {
             Authorization: `Bearer ${session.access_token}`,
             'Content-Type': 'application/json',
           },
-        }
+        },
       );
 
       if (!response.ok) {
@@ -189,7 +191,7 @@ export default function AccountSettingsScreen() {
 
       setToast({
         visible: true,
-        message: 'Account deleted successfully',
+        message: t('accountSettings.accountDeleted'),
         type: 'success',
       });
 
@@ -199,10 +201,10 @@ export default function AccountSettingsScreen() {
       }, 1000);
     } catch (err: any) {
       console.error('Delete account error:', err);
-      setError(err.message || 'Failed to delete account');
+      setError(err.message || t('accountSettings.failedToDeleteAccount'));
       setToast({
         visible: true,
-        message: err.message || 'Failed to delete account',
+        message: err.message || t('accountSettings.failedToDeleteAccount'),
         type: 'error',
       });
       setSaving(false);
@@ -237,7 +239,7 @@ export default function AccountSettingsScreen() {
           >
             <ArrowLeft size={24} color="white" strokeWidth={2} />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Account Settings</Text>
+          <Text style={styles.headerTitle}>{t('accountSettings.title')}</Text>
           <View style={styles.placeholder} />
         </View>
 
@@ -254,21 +256,27 @@ export default function AccountSettingsScreen() {
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
               <User size={20} color="#6366F1" strokeWidth={2} />
-              <Text style={styles.sectionTitle}>Profile Information</Text>
+              <Text style={styles.sectionTitle}>
+                {t('accountSettings.profileInformation')}
+              </Text>
             </View>
             <View style={styles.card}>
-              <Text style={styles.label}>Email</Text>
+              <Text style={styles.label}>{t('accountSettings.email')}</Text>
               <View style={styles.disabledInput}>
                 <Text style={styles.disabledInputText}>{user?.email}</Text>
               </View>
-              <Text style={styles.helperText}>Email cannot be changed</Text>
+              <Text style={styles.helperText}>
+                {t('accountSettings.emailCannotBeChanged')}
+              </Text>
 
-              <Text style={[styles.label, styles.labelSpacing]}>Username</Text>
+              <Text style={[styles.label, styles.labelSpacing]}>
+                {t('accountSettings.username')}
+              </Text>
               <TextInput
                 style={styles.input}
                 value={username}
                 onChangeText={setUsername}
-                placeholder="Enter username"
+                placeholder={t('accountSettings.enterUsername')}
                 placeholderTextColor="#6B7280"
                 autoCapitalize="none"
               />
@@ -280,7 +288,9 @@ export default function AccountSettingsScreen() {
                 {saving ? (
                   <ActivityIndicator color="white" />
                 ) : (
-                  <Text style={styles.buttonText}>Update Username</Text>
+                  <Text style={styles.buttonText}>
+                    {t('accountSettings.updateUsername')}
+                  </Text>
                 )}
               </TouchableOpacity>
             </View>
@@ -289,28 +299,32 @@ export default function AccountSettingsScreen() {
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
               <Lock size={20} color="#6366F1" strokeWidth={2} />
-              <Text style={styles.sectionTitle}>Change Password</Text>
+              <Text style={styles.sectionTitle}>
+                {t('accountSettings.changePassword')}
+              </Text>
             </View>
             <View style={styles.card}>
-              <Text style={styles.label}>New Password</Text>
+              <Text style={styles.label}>
+                {t('accountSettings.newPassword')}
+              </Text>
               <TextInput
                 style={styles.input}
                 value={newPassword}
                 onChangeText={setNewPassword}
-                placeholder="Enter new password"
+                placeholder={t('accountSettings.enterNewPassword')}
                 placeholderTextColor="#6B7280"
                 secureTextEntry
                 autoCapitalize="none"
               />
 
               <Text style={[styles.label, styles.labelSpacing]}>
-                Confirm New Password
+                {t('accountSettings.confirmNewPassword')}
               </Text>
               <TextInput
                 style={styles.input}
                 value={confirmPassword}
                 onChangeText={setConfirmPassword}
-                placeholder="Confirm new password"
+                placeholder={t('accountSettings.confirmNewPasswordPlaceholder')}
                 placeholderTextColor="#6B7280"
                 secureTextEntry
                 autoCapitalize="none"
@@ -324,7 +338,9 @@ export default function AccountSettingsScreen() {
                 {saving ? (
                   <ActivityIndicator color="white" />
                 ) : (
-                  <Text style={styles.buttonText}>Change Password</Text>
+                  <Text style={styles.buttonText}>
+                    {t('accountSettings.changePasswordButton')}
+                  </Text>
                 )}
               </TouchableOpacity>
             </View>
@@ -334,14 +350,12 @@ export default function AccountSettingsScreen() {
             <View style={styles.sectionHeader}>
               <Trash2 size={20} color="#EF4444" strokeWidth={2} />
               <Text style={[styles.sectionTitle, styles.dangerText]}>
-                Danger Zone
+                {t('accountSettings.dangerZone')}
               </Text>
             </View>
             <View style={styles.card}>
               <Text style={styles.dangerDescription}>
-                Once you delete your account, there is no going back. All your
-                data including movies, TV shows, lists, and friends will be
-                permanently deleted.
+                {t('accountSettings.deleteAccountWarning')}
               </Text>
               <TouchableOpacity
                 style={[
@@ -356,7 +370,9 @@ export default function AccountSettingsScreen() {
                 {saving ? (
                   <ActivityIndicator color="white" />
                 ) : (
-                  <Text style={styles.buttonText}>Delete Account</Text>
+                  <Text style={styles.buttonText}>
+                    {t('accountSettings.deleteAccount')}
+                  </Text>
                 )}
               </TouchableOpacity>
             </View>
