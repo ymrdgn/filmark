@@ -12,6 +12,7 @@ import {
   ScrollView,
   Modal,
 } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
@@ -19,6 +20,7 @@ import { Mail, Lock, Eye, EyeOff, Film, User, X } from 'lucide-react-native';
 import { signUp, signIn, resetPassword } from '@/lib/supabase';
 
 export default function LoginScreen() {
+  const { t } = useTranslation();
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -37,29 +39,29 @@ export default function LoginScreen() {
       'email:',
       email,
       'password length:',
-      password.length
+      password.length,
     );
 
     if (!email || !password) {
       console.log('Missing email or password');
-      Alert.alert('Error', 'Please fill in all fields');
+      Alert.alert(t('auth.error'), t('auth.fillAllFields'));
       return;
     }
 
     if (!isLogin && !username.trim()) {
-      Alert.alert('Error', 'Please enter your username');
+      Alert.alert(t('auth.error'), t('auth.enterUsername'));
       return;
     }
 
     if (!isLogin && password !== confirmPassword) {
       console.log('Passwords do not match');
-      Alert.alert('Error', 'Passwords do not match');
+      Alert.alert(t('auth.error'), t('auth.passwordsDoNotMatch'));
       return;
     }
 
     if (password.length < 6) {
       console.log('Password too short');
-      Alert.alert('Error', 'The password must be at least 6 characters long');
+      Alert.alert(t('auth.error'), t('auth.passwordMinLength'));
       return;
     }
 
@@ -84,50 +86,43 @@ export default function LoginScreen() {
         // Debug: Log the full error object
         console.log(
           'Full error object:',
-          JSON.stringify(result.error, null, 2)
+          JSON.stringify(result.error, null, 2),
         );
 
         let errorMessage = result.error.message;
         if (result.error.code === 'user_already_exists') {
-          errorMessage =
-            'An account with this email address already exists. Please try logging in.';
+          errorMessage = t('auth.userAlreadyExists');
         } else if (result.error.message.includes('Invalid login credentials')) {
-          errorMessage =
-            'The email or password is incorrect. Please check and try again.';
+          errorMessage = t('auth.invalidCredentials');
         } else if (result.error.message.includes('Email not confirmed')) {
-          errorMessage = 'You need to verify your email address.';
+          errorMessage = t('auth.emailNotConfirmed');
         } else if (
           result.error.message.includes('Password should be at least')
         ) {
-          errorMessage = 'The password must be at least 6 characters long.';
+          errorMessage = t('auth.passwordMinLength');
         } else if (result.error.message.includes('Invalid API key')) {
-          errorMessage =
-            'Application configuration error. Please try again later.';
+          errorMessage = t('auth.configError');
         } else if (result.error.message.includes('API key')) {
-          errorMessage = 'API key error. Please restart the application.';
+          errorMessage = t('auth.apiKeyError');
         }
-        Alert.alert('Hata', errorMessage);
+        Alert.alert(t('auth.error'), errorMessage);
       } else {
         // Kayıt başarılı
         if (!isLogin) {
           // Signup successful
           console.log('Signup successful, showing success message');
-          Alert.alert(
-            'Registration Successful! 🎉',
-            'Your account has been successfully created. You can now log in.',
-            [
-              {
-                text: 'Log In',
-                onPress: () => {
-                  console.log('Switching to login mode');
-                  setIsLogin(true);
-                  setPassword('');
-                  setConfirmPassword('');
-                  setUsername('');
-                },
+          Alert.alert(t('auth.registrationSuccess'), t('auth.accountCreated'), [
+            {
+              text: t('auth.loginButton'),
+              onPress: () => {
+                console.log('Switching to login mode');
+                setIsLogin(true);
+                setPassword('');
+                setConfirmPassword('');
+                setUsername('');
               },
-            ]
-          );
+            },
+          ]);
         }
         // Giriş başarılı
         else if (result.data && result.data.user) {
@@ -138,7 +133,7 @@ export default function LoginScreen() {
       }
     } catch (error) {
       console.log('Catch error:', error);
-      Alert.alert('Error', 'An unexpected error has occurred.');
+      Alert.alert(t('auth.error'), t('auth.unexpectedError'));
     } finally {
       console.log('Auth process finished');
       setLoading(false);
@@ -147,7 +142,7 @@ export default function LoginScreen() {
 
   const handleResetPassword = async () => {
     if (!resetEmail || !resetEmail.includes('@')) {
-      Alert.alert('Error', 'Please enter a valid email address');
+      Alert.alert(t('auth.error'), t('auth.invalidEmail'));
       return;
     }
 
@@ -156,25 +151,24 @@ export default function LoginScreen() {
       const { error } = await resetPassword(resetEmail);
 
       if (error) {
-        Alert.alert('Error', error.message || 'Failed to send reset email');
-      } else {
         Alert.alert(
-          'Success! ✉️',
-          'Password reset link has been sent to your email. Please check your inbox.',
-          [
-            {
-              text: 'OK',
-              onPress: () => {
-                setResetModalVisible(false);
-                setResetEmail('');
-              },
-            },
-          ]
+          t('auth.error'),
+          error.message || t('auth.failedToSendReset'),
         );
+      } else {
+        Alert.alert(t('auth.successTitle'), t('auth.resetEmailSent'), [
+          {
+            text: t('common.ok'),
+            onPress: () => {
+              setResetModalVisible(false);
+              setResetEmail('');
+            },
+          },
+        ]);
       }
     } catch (error) {
       console.log('Reset password error:', error);
-      Alert.alert('Error', 'An unexpected error occurred');
+      Alert.alert(t('auth.error'), t('auth.unexpectedError'));
     } finally {
       setResetLoading(false);
     }
@@ -201,7 +195,7 @@ export default function LoginScreen() {
               />
               {/* <Text style={styles.title}>WatchBase</Text> */}
               <Text style={styles.subtitle}>
-                {isLogin ? 'Welcome back!' : 'Create your account'}
+                {isLogin ? t('auth.welcomeBack') : t('auth.createAccount')}
               </Text>
             </View>
 
@@ -210,7 +204,7 @@ export default function LoginScreen() {
                 <Mail size={20} color="#9CA3AF" style={styles.inputIcon} />
                 <TextInput
                   style={styles.input}
-                  placeholder="Email address"
+                  placeholder={t('auth.emailAddress')}
                   placeholderTextColor="#6B7280"
                   value={email}
                   onChangeText={setEmail}
@@ -224,7 +218,7 @@ export default function LoginScreen() {
                   <User size={20} color="#9CA3AF" style={styles.inputIcon} />
                   <TextInput
                     style={styles.input}
-                    placeholder="Username"
+                    placeholder={t('auth.username')}
                     placeholderTextColor="#6B7280"
                     value={username}
                     onChangeText={setUsername}
@@ -237,7 +231,7 @@ export default function LoginScreen() {
                 <Lock size={20} color="#9CA3AF" style={styles.inputIcon} />
                 <TextInput
                   style={styles.input}
-                  placeholder="Password"
+                  placeholder={t('auth.password')}
                   placeholderTextColor="#6B7280"
                   value={password}
                   onChangeText={setPassword}
@@ -261,7 +255,7 @@ export default function LoginScreen() {
                   onPress={() => setResetModalVisible(true)}
                 >
                   <Text style={styles.forgotPasswordText}>
-                    Forgot Password?
+                    {t('auth.forgotPassword')}
                   </Text>
                 </TouchableOpacity>
               )}
@@ -271,7 +265,7 @@ export default function LoginScreen() {
                   <Lock size={20} color="#9CA3AF" style={styles.inputIcon} />
                   <TextInput
                     style={styles.input}
-                    placeholder="Confirm password"
+                    placeholder={t('auth.confirmPassword')}
                     placeholderTextColor="#6B7280"
                     value={confirmPassword}
                     onChangeText={setConfirmPassword}
@@ -283,13 +277,13 @@ export default function LoginScreen() {
               {!isLogin && (
                 <View style={styles.passwordRequirements}>
                   <Text style={styles.requirementsTitle}>
-                    Password requirements:
+                    {t('auth.passwordRequirements')}
                   </Text>
                   <Text style={styles.requirementText}>
-                    • At least 6 characters
+                    {t('auth.atLeast6Chars')}
                   </Text>
                   <Text style={styles.requirementText}>
-                    • Mix of letters and numbers recommended
+                    {t('auth.mixRecommended')}
                   </Text>
                 </View>
               )}
@@ -306,10 +300,10 @@ export default function LoginScreen() {
                 >
                   <Text style={styles.buttonText}>
                     {loading
-                      ? 'Please wait...'
+                      ? t('auth.pleaseWait')
                       : isLogin
-                      ? 'Sign In'
-                      : 'Create Account'}
+                        ? t('auth.signIn')
+                        : t('auth.createAccountButton')}
                   </Text>
                 </LinearGradient>
               </TouchableOpacity>
@@ -320,10 +314,10 @@ export default function LoginScreen() {
               >
                 <Text style={styles.switchText}>
                   {isLogin
-                    ? "Don't have an account? "
-                    : 'Already have an account? '}
+                    ? t('auth.dontHaveAccount')
+                    : t('auth.alreadyHaveAccount')}
                   <Text style={styles.switchTextBold}>
-                    {isLogin ? 'Sign Up' : 'Sign In'}
+                    {isLogin ? t('auth.signup') : t('auth.signIn')}
                   </Text>
                 </Text>
               </TouchableOpacity>
@@ -341,7 +335,7 @@ export default function LoginScreen() {
           <View style={styles.modalOverlay}>
             <View style={styles.modalContent}>
               <View style={styles.modalHeader}>
-                <Text style={styles.modalTitle}>Reset Password</Text>
+                <Text style={styles.modalTitle}>{t('auth.resetPassword')}</Text>
                 <TouchableOpacity
                   onPress={() => setResetModalVisible(false)}
                   style={styles.closeButton}
@@ -351,15 +345,14 @@ export default function LoginScreen() {
               </View>
 
               <Text style={styles.modalDescription}>
-                Enter your email address and we'll send you a link to reset your
-                password.
+                {t('auth.resetPasswordDescription')}
               </Text>
 
               <View style={styles.inputContainer}>
                 <Mail size={20} color="#9CA3AF" style={styles.inputIcon} />
                 <TextInput
                   style={styles.input}
-                  placeholder="Email address"
+                  placeholder={t('auth.emailAddress')}
                   placeholderTextColor="#6B7280"
                   value={resetEmail}
                   onChangeText={setResetEmail}
@@ -380,7 +373,7 @@ export default function LoginScreen() {
                   end={{ x: 1, y: 0 }}
                 >
                   <Text style={styles.buttonText}>
-                    {resetLoading ? 'Sending...' : 'Send Reset Link'}
+                    {resetLoading ? t('auth.sending') : t('auth.sendResetLink')}
                   </Text>
                 </LinearGradient>
               </TouchableOpacity>

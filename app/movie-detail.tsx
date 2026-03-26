@@ -106,12 +106,29 @@ export default function MovieDetailScreen() {
 
         // If not found by ID, try to find by title and year (for friend's movies)
         if (!currentMovie && params.title) {
-          currentMovie = (data as Movie[]).find(
-            (m) => m.title === params.title && m.year === params.year,
+          const searchTitle =
+            (Array.isArray(params.title) ? params.title[0] : params.title) ||
+            '';
+          const searchYear =
+            (Array.isArray(params.year) ? params.year[0] : params.year) || '';
+
+          console.log('Searching by title/year:', { searchTitle, searchYear });
+          console.log(
+            'Available movies:',
+            (data as Movie[]).map((m) => ({ title: m.title, year: m.year })),
           );
+
+          currentMovie = (data as Movie[]).find(
+            (m) =>
+              m.title?.trim() === searchTitle.trim() &&
+              String(m.year || '').trim() === String(searchYear).trim(),
+          );
+
+          console.log('Found movie:', currentMovie ? 'YES' : 'NO');
         }
 
         if (currentMovie) {
+          console.log('Updating movie state with:', currentMovie);
           setMovie({
             id: currentMovie.id,
             title: currentMovie.title,
@@ -125,6 +142,7 @@ export default function MovieDetailScreen() {
             inCollection: true,
           });
         } else {
+          console.log('Movie not found in collection');
           // Movie not in user's collection, keep params data
           // inCollection will remain false, allowing add functionality
         }

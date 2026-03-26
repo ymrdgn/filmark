@@ -668,12 +668,11 @@ export default function HomeScreen() {
                           title: activity.title,
                           year: activity.year || '',
                           poster_url: activity.poster || '',
-                          is_watched: activity.is_watched.toString(),
-                          is_favorite: activity.is_favorite.toString(),
-                          is_watchlist:
-                            activity.is_watchlist?.toString() || 'false',
-                          rating: activity.rating?.toString() || '0',
-                          inCollection: 'true',
+                          is_watched: 'false',
+                          is_favorite: 'false',
+                          is_watchlist: 'false',
+                          rating: '0',
+                          inCollection: 'false',
                         },
                       });
                     }}

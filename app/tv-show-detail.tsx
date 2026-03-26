@@ -146,9 +146,25 @@ export default function TVShowDetailScreen() {
 
         // If not found by ID, try to find by title and year (for friend's TV shows)
         if (!currentShow && params.title) {
-          currentShow = (data as TVShow[]).find(
-            (s) => s.title === params.title && s.year === params.year,
+          const searchTitle =
+            (Array.isArray(params.title) ? params.title[0] : params.title) ||
+            '';
+          const searchYear =
+            (Array.isArray(params.year) ? params.year[0] : params.year) || '';
+
+          console.log('Searching by title/year:', { searchTitle, searchYear });
+          console.log(
+            'Available shows:',
+            (data as TVShow[]).map((s) => ({ title: s.title, year: s.year })),
           );
+
+          currentShow = (data as TVShow[]).find(
+            (s) =>
+              s.title?.trim() === searchTitle.trim() &&
+              String(s.year || '').trim() === String(searchYear).trim(),
+          );
+
+          console.log('Found show:', currentShow ? 'YES' : 'NO');
         }
 
         console.log('Found current show:', currentShow);
