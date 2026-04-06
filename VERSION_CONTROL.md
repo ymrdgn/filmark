@@ -96,7 +96,7 @@ WHERE platform = 'ios';
 
 ```sql
 UPDATE app_version
-SET minimum_version = '1.0.28', force_update = false,
+SET minimum_version = '1.29', force_update = false,
     update_message = '🎉 Yeni özellikler eklendi! Lütfen güncelleme yapın.'
 WHERE platform = 'android';
 ```

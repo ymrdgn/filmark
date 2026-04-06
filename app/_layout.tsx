@@ -17,7 +17,7 @@ import { UpdateModal } from '@/components/UpdateModal';
 import '@/i18n'; // Initialize i18n
 import { initializeLanguage } from '@/i18n';
 
-SplashScreen.preventAutoHideAsync();
+SplashScreen.preventAutoHideAsync().catch(() => {});
 
 function RootLayoutNav() {
   const router = useRouter();
@@ -129,7 +129,7 @@ export default function RootLayout() {
 
   useEffect(() => {
     if (fontsLoaded || fontError) {
-      SplashScreen.hideAsync();
+      SplashScreen.hideAsync().catch(() => {});
     }
   }, [fontsLoaded, fontError]);
 
