@@ -81,7 +81,7 @@
     "successTitle": "Success! ✉️",
     "resetEmailSent": "Password reset link has been sent to your email. Please check your inbox.",
     "registrationSuccess": "Registration Successful! 🎉",
-    "accountCreated": "Your account has been successfully created. You can now log in."
+    "accountCreated": "Account created successfully. Please confirm your email to continue."
   },
   "profile": {
     "settings": "Settings",

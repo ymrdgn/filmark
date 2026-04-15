@@ -83,7 +83,7 @@
     "successTitle": "¡Éxito! ✉️",
     "resetEmailSent": "Se ha enviado un enlace para restablecer tu contraseña a tu correo electrónico. Por favor revisa tu bandeja de entrada.",
     "registrationSuccess": "¡Registro exitoso! 🎉",
-    "accountCreated": "Tu cuenta ha sido creada exitosamente. Ahora puedes iniciar sesión."
+    "accountCreated": "Cuenta creada correctamente. Por favor, confirma tu correo electrónico para continuar."
   },
   "profile": {
     "settings": "Configuración",

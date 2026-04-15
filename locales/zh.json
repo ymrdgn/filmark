@@ -81,7 +81,7 @@
     "successTitle": "成功！ ✉️",
     "resetEmailSent": "密码重置链接已发送至您的邮箱。请检查收件箱。",
     "registrationSuccess": "注册成功！ 🎉",
-    "accountCreated": "您的账户已成功创建。现在可以登录了。"
+    "accountCreated": "账户创建成功。请确认您的邮箱以继续。"
   },
   "profile": {
     "settings": "设置",

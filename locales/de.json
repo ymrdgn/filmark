@@ -81,7 +81,7 @@
     "successTitle": "Erfolg! ✉️",
     "resetEmailSent": "Der Link zum Zurücksetzen des Passworts wurde an deine E-Mail gesendet. Bitte überprüfe deinen Posteingang.",
     "registrationSuccess": "Registrierung erfolgreich! 🎉",
-    "accountCreated": "Dein Konto wurde erfolgreich erstellt. Du kannst dich jetzt anmelden."
+    "accountCreated": "Konto erfolgreich erstellt. Bitte bestätigen Sie Ihre E-Mail-Adresse, um fortzufahren."
   },
   "profile": {
     "settings": "Einstellungen",

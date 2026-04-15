@@ -81,7 +81,7 @@
     "successTitle": "Succès ! ✉️",
     "resetEmailSent": "Le lien de réinitialisation du mot de passe a été envoyé à votre e-mail. Veuillez vérifier votre boîte de réception.",
     "registrationSuccess": "Inscription réussie ! 🎉",
-    "accountCreated": "Votre compte a été créé avec succès. Vous pouvez maintenant vous connecter."
+    "accountCreated": "Compte créé avec succès. Veuillez confirmer votre adresse e-mail pour continuer."
   },
   "profile": {
     "settings": "Paramètres",
