@@ -34,6 +34,9 @@ import { useFocusEffect } from '@react-navigation/native';
 import Toast from '@/components/Toast';
 import { DEMO_MODE, demoTVShows, demoTMDBTVShows } from '@/lib/demo-data';
 import { useTranslation } from 'react-i18next';
+import { getCurrentUser } from '@/lib/supabase';
+
+const TESTER_EMAIL = 'tester@watchbase.app';
 
 const { width } = Dimensions.get('window');
 const cardWidth = (width - 72) / 2;
@@ -54,6 +57,8 @@ export default function TVShowsScreen() {
     'success',
   );
   const scrollViewRef = React.useRef<ScrollView>(null);
+  const [demoMode, setDemoMode] = useState(DEMO_MODE);
+  const demoModeRef = React.useRef(DEMO_MODE);
 
   const showToast = (
     message: string,
@@ -65,8 +70,7 @@ export default function TVShowsScreen() {
   };
 
   useEffect(() => {
-    loadMyTVShows();
-    loadPopularTVShows();
+    checkUserAndLoad();
 
     // Set up global refresh function
     global.refreshTVShows = () => {
@@ -88,6 +92,17 @@ export default function TVShowsScreen() {
     }, []),
   );
 
+  const checkUserAndLoad = async () => {
+    try {
+      const { user } = await getCurrentUser();
+      const isDemo = DEMO_MODE || user?.email === TESTER_EMAIL;
+      demoModeRef.current = isDemo;
+      setDemoMode(isDemo);
+    } catch {}
+    loadMyTVShows();
+    loadPopularTVShows();
+  };
+
   // Filter tab'ı değişince search'ü temizle ve scroll'u sıfırla
   useEffect(() => {
     setSearchQuery('');
@@ -100,7 +115,7 @@ export default function TVShowsScreen() {
 
   const loadMyTVShows = async () => {
     // If demo mode is enabled, use demo data
-    if (DEMO_MODE) {
+    if (demoModeRef.current) {
       setMyTVShows(demoTVShows as any);
       setLoading(false);
       return;
@@ -135,7 +150,7 @@ export default function TVShowsScreen() {
 
   const loadPopularTVShows = async () => {
     // If demo mode is enabled, use demo data
-    if (DEMO_MODE) {
+    if (demoModeRef.current) {
       setTMDBTVShows(demoTMDBTVShows as any);
       setTMDBLoading(false);
       return;
@@ -181,7 +196,7 @@ export default function TVShowsScreen() {
   const handleAddTVShow = async (show: TMDBTVShow) => {
     setAddingShowId(show.id);
     try {
-      const posterUrl = DEMO_MODE
+      const posterUrl = demoMode
         ? 'https://placehold.co/300x450/6366F1/FFFFFF/png?text=Show'
         : getImageUrl(show.poster_path);
 
@@ -327,7 +342,7 @@ export default function TVShowsScreen() {
         {show.poster_url ? (
           <Image
             source={
-              DEMO_MODE && typeof show.poster_url !== 'string'
+              demoMode && typeof show.poster_url !== 'string'
                 ? show.poster_url
                 : { uri: show.poster_url as string }
             }
@@ -398,7 +413,7 @@ export default function TVShowsScreen() {
         key={show.id}
         style={styles.tmdbShowCard}
         onPress={() => {
-          const posterUrl = DEMO_MODE
+          const posterUrl = demoMode
             ? 'https://placehold.co/300x450/6366F1/FFFFFF/png?text=Show'
             : getImageUrl(show.poster_path) || '';
 
@@ -425,7 +440,7 @@ export default function TVShowsScreen() {
         <View style={styles.posterContainer}>
           <Image
             source={
-              DEMO_MODE && (show as any).poster_url
+              demoMode && (show as any).poster_url
                 ? (show as any).poster_url
                 : {
                     uri:

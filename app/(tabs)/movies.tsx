@@ -33,6 +33,9 @@ import Toast from '@/components/Toast';
 import { Database } from '@/lib/database.types';
 import { DEMO_MODE, demoMovies, demoTMDBMovies } from '@/lib/demo-data';
 import { useTranslation } from 'react-i18next';
+import { getCurrentUser } from '@/lib/supabase';
+
+const TESTER_EMAIL = 'tester@watchbase.app';
 
 type Movie = Database['public']['Tables']['movies']['Row'];
 
@@ -55,6 +58,8 @@ export default function MoviesScreen() {
     'success',
   );
   const scrollViewRef = React.useRef<ScrollView>(null);
+  const [demoMode, setDemoMode] = useState(DEMO_MODE);
+  const demoModeRef = React.useRef(DEMO_MODE);
 
   const showToast = (
     message: string,
@@ -66,8 +71,7 @@ export default function MoviesScreen() {
   };
 
   useEffect(() => {
-    loadMyMovies();
-    loadPopularMovies();
+    checkUserAndLoad();
 
     // Set up global refresh function
     global.refreshMovies = () => {
@@ -89,6 +93,17 @@ export default function MoviesScreen() {
     }, []),
   );
 
+  const checkUserAndLoad = async () => {
+    try {
+      const { user } = await getCurrentUser();
+      const isDemo = DEMO_MODE || user?.email === TESTER_EMAIL;
+      demoModeRef.current = isDemo;
+      setDemoMode(isDemo);
+    } catch {}
+    loadMyMovies();
+    loadPopularMovies();
+  };
+
   // Filter tab'ı değişince search'ü temizle ve scroll'u sıfırla
   useEffect(() => {
     setSearchQuery('');
@@ -101,7 +116,7 @@ export default function MoviesScreen() {
 
   const loadMyMovies = async () => {
     // If demo mode is enabled, use demo data
-    if (DEMO_MODE) {
+    if (demoModeRef.current) {
       setMyMovies(demoMovies as any);
       setLoading(false);
       return;
@@ -136,7 +151,7 @@ export default function MoviesScreen() {
 
   const loadPopularMovies = async () => {
     // If demo mode is enabled, use demo data
-    if (DEMO_MODE) {
+    if (demoModeRef.current) {
       setTMDBMovies(demoTMDBMovies as any);
       setTMDBLoading(false);
       return;
@@ -182,7 +197,7 @@ export default function MoviesScreen() {
   const handleAddMovie = async (movie: TMDBMovie) => {
     setAddingMovieId(movie.id);
     try {
-      const posterUrl = DEMO_MODE
+      const posterUrl = demoMode
         ? 'https://placehold.co/300x450/6366F1/FFFFFF/png?text=Movie'
         : getImageUrl(movie.poster_path);
 
@@ -316,7 +331,7 @@ export default function MoviesScreen() {
         {movie.poster_url ? (
           <Image
             source={
-              DEMO_MODE && typeof movie.poster_url !== 'string'
+              demoMode && typeof movie.poster_url !== 'string'
                 ? movie.poster_url
                 : { uri: movie.poster_url as string }
             }
@@ -405,7 +420,7 @@ export default function MoviesScreen() {
               },
             });
           } else {
-            const posterUrl = DEMO_MODE
+            const posterUrl = demoMode
               ? 'https://placehold.co/300x450/6366F1/FFFFFF/png?text=Movie'
               : getImageUrl(movie.poster_path) || '';
 
@@ -433,7 +448,7 @@ export default function MoviesScreen() {
         <View style={styles.posterContainer}>
           <Image
             source={
-              DEMO_MODE && (movie as any).poster_url
+              demoMode && (movie as any).poster_url
                 ? (movie as any).poster_url
                 : {
                     uri:

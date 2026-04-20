@@ -33,6 +33,8 @@ import {
 } from '@/lib/demo-data';
 import { useTranslation } from 'react-i18next';
 
+const TESTER_EMAIL = 'tester@watchbase.app';
+
 type Movie = Database['public']['Tables']['movies']['Row'];
 type TVShow = Database['public']['Tables']['tv_shows']['Row'];
 
@@ -99,6 +101,8 @@ export default function HomeScreen() {
     FriendActivity[]
   >([]);
   const [loading, setLoading] = React.useState(true);
+  const [demoMode, setDemoMode] = React.useState(DEMO_MODE);
+  const demoModeRef = React.useRef(DEMO_MODE);
 
   React.useEffect(() => {
     loadUserData();
@@ -119,6 +123,10 @@ export default function HomeScreen() {
     try {
       const { user } = await getCurrentUser();
       setUser(user);
+
+      const isDemo = DEMO_MODE || user?.email === TESTER_EMAIL;
+      demoModeRef.current = isDemo;
+      setDemoMode(isDemo);
 
       if (user) {
         try {
@@ -161,7 +169,7 @@ export default function HomeScreen() {
 
   const loadRecentActivity = async () => {
     // If demo mode is enabled, use demo data
-    if (DEMO_MODE) {
+    if (demoModeRef.current) {
       setRecentActivity(demoRecentActivity as any);
       return;
     }
@@ -268,7 +276,7 @@ export default function HomeScreen() {
 
   const loadFriendsActivity = async () => {
     // If demo mode is enabled, use demo data
-    if (DEMO_MODE) {
+    if (demoModeRef.current) {
       setFriendsActivity(demoFriendsActivity as any);
       return;
     }
@@ -589,7 +597,7 @@ export default function HomeScreen() {
                     {item.poster ? (
                       <Image
                         source={
-                          DEMO_MODE && typeof item.poster !== 'string'
+                          demoMode && typeof item.poster !== 'string'
                             ? item.poster
                             : { uri: item.poster as string }
                         }
