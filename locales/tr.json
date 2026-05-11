@@ -1,4 +1,15 @@
 {
+  "onboarding": {
+    "skip": "Geç",
+    "next": "Devam",
+    "getStarted": "Başla",
+    "trackTitle": "Her şeyi tek yerde topla",
+    "trackDesc": "İzlediğin film ve dizileri kaydet, ilerlemeni takip et.",
+    "discoverTitle": "Yeni keşifler yap",
+    "discoverDesc": "Milyonlarca içerik arasından sıradaki favorini bul.",
+    "shareTitle": "Arkadaşlarınla paylaş",
+    "shareDesc": "Listeler oluştur, ne izlediğini arkadaşlarınla paylaş."
+  },
   "common": {
     "loading": "Yükleniyor...",
     "error": "Bir hata oluştu",

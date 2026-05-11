@@ -1,4 +1,15 @@
 {
+  "onboarding": {
+    "skip": "Skip",
+    "next": "Next",
+    "getStarted": "Get Started",
+    "trackTitle": "Everything in one place",
+    "trackDesc": "Save the movies and shows you watch and keep track of your progress.",
+    "discoverTitle": "Discover what's next",
+    "discoverDesc": "Find your next favorite from millions of titles.",
+    "shareTitle": "Share with friends",
+    "shareDesc": "Build lists and share what you're watching with friends."
+  },
   "common": {
     "loading": "Loading...",
     "error": "An error occurred",

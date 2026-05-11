@@ -2,6 +2,7 @@ import 'react-native-url-polyfill/auto';
 import { useEffect } from 'react';
 import { Stack, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFrameworkReady } from '@/hooks/useFrameworkReady';
 import {
   useFonts,
@@ -19,6 +20,22 @@ import '@/i18n'; // Initialize i18n
 import { initializeLanguage } from '@/i18n';
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
+
+const ONBOARDING_KEY = 'onboarding_completed';
+
+async function routeAfterAuth(router: ReturnType<typeof useRouter>) {
+  const seen = await AsyncStorage.getItem(ONBOARDING_KEY);
+  if (!seen) {
+    router.replace('/onboarding');
+    return;
+  }
+  const { data } = await supabase.auth.getSession();
+  if (data.session) {
+    router.replace('/(tabs)');
+  } else {
+    router.replace('/(auth)/login');
+  }
+}
 
 function RootLayoutNav() {
   const router = useRouter();
@@ -52,13 +69,7 @@ function RootLayoutNav() {
       }
 
       // Normal authentication check for other cases
-      supabase.auth.getSession().then(({ data: { session } }) => {
-        if (session) {
-          router.replace('/(tabs)');
-        } else {
-          router.replace('/(auth)/login');
-        }
-      });
+      routeAfterAuth(router);
     };
 
     // Listen for incoming links
@@ -69,14 +80,7 @@ function RootLayoutNav() {
       if (url) {
         handleUrl({ url });
       } else {
-        // No initial URL, do normal auth check
-        supabase.auth.getSession().then(({ data: { session } }) => {
-          if (session) {
-            router.replace('/(tabs)');
-          } else {
-            router.replace('/(auth)/login');
-          }
-        });
+        routeAfterAuth(router);
       }
     });
 
@@ -95,6 +99,7 @@ function RootLayoutNav() {
     >
       <Stack.Screen name="(tabs)" />
       <Stack.Screen name="(auth)" />
+      <Stack.Screen name="onboarding" />
       <Stack.Screen name="splash" />
       <Stack.Screen name="reset-password" />
       <Stack.Screen name="movie-detail" />
