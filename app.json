@@ -2,7 +2,7 @@
   "expo": {
     "name": "WatchBase",
     "slug": "watchbase",
-    "version": "1.0.30",
+    "version": "1.0.32",
     "orientation": "portrait",
     "icon": "./assets/images/wb-icon.png",
     "scheme": "watchbase",
@@ -14,7 +14,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.watchbase.app",
-      "buildNumber": "15",
+      "buildNumber": "19",
       "deploymentTarget": "13.0",
       "splash": {
         "image": "./assets/images/wb-splash.png",
@@ -27,7 +27,7 @@
     },
     "android": {
       "package": "com.watchbase.app",
-      "versionCode": 48,
+      "versionCode": 49,
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/wb-icon.png"
       },

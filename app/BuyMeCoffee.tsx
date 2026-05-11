@@ -1,66 +1,53 @@
 import { View, Text, Pressable, Alert, Platform } from 'react-native';
-import { useEffect, useState } from 'react';
+import { useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 
 const REVENUECAT_ANDROID_API_KEY = 'goog_OitrfOHjHjTANEstwMDfCUFvayR';
-const PRODUCT_ID = 'tip_coffee_1';
+const REVENUECAT_IOS_API_KEY = 'appl_AvTKTRupBHzTXSYiOmhxAIlmvLa';
+const COFFEE_PACKAGE_ID = 'coffee';
 
 export default function BuyMeCoffee() {
-  const [isReady, setIsReady] = useState(false);
   const { t } = useTranslation();
+  const configuredRef = useRef(false);
 
-  if (Platform.OS !== 'android') return null;
-
-  useEffect(() => {
-    (async () => {
-      try {
-        const Purchases = (await import('react-native-purchases')).default;
-
-        await Purchases.configure({ apiKey: REVENUECAT_ANDROID_API_KEY });
-        setIsReady(true);
-        console.log('[RC] configured');
-      } catch (e) {
-        console.warn('[RC] configure error', e);
-        setIsReady(true);
-      }
-    })();
-  }, []);
+  if (Platform.OS !== 'android' && Platform.OS !== 'ios') return null;
 
   const buyCoffee = async () => {
     try {
-      // ✅ ÖNEMLİ: Ürün tipi INAPP olmalı (abonelik değil)
-      // const products = await Purchases.getProducts([PRODUCT_ID]);
-
       const Purchases = (await import('react-native-purchases')).default;
-      const PURCHASE_TYPE = (await import('react-native-purchases'))
-        .PURCHASE_TYPE;
 
-      const products = await Purchases.getProducts(
-        [PRODUCT_ID],
-        PURCHASE_TYPE.INAPP,
-      );
+      if (!configuredRef.current) {
+        const apiKey =
+          Platform.OS === 'ios'
+            ? REVENUECAT_IOS_API_KEY
+            : REVENUECAT_ANDROID_API_KEY;
+        await Purchases.configure({ apiKey });
+        configuredRef.current = true;
+        console.log('[RC] configured');
+      }
+
+      const offerings = await Purchases.getOfferings();
       console.log(
-        'PURCHASE_TYPE.INAPPPURCHASE_TYPE.INAPPPURCHASE_TYPE.INAPP [RC] Trying to fetch INAPP product:',
-        PRODUCT_ID,
-        PURCHASE_TYPE.INAPP,
+        '[RC] offerings:',
+        offerings.current?.availablePackages.map((p) => ({
+          packageId: p.identifier,
+          productId: p.product.identifier,
+        })),
       );
 
-      console.log(
-        '[RC] getProducts(INAPP) result:',
-        products.map((p) => p.identifier),
+      const coffeePackage = offerings.current?.availablePackages.find(
+        (p) => p.identifier === COFFEE_PACKAGE_ID,
       );
 
-      if (!products.length) {
+      if (!coffeePackage) {
         Alert.alert(
           '☕ Support WatchBase',
-          'Product not found (INAPP). Check Play tester/install setup.',
+          'Coffee package not found. Check RevenueCat offering setup.',
         );
         return;
       }
 
-      const { customerInfo } = await Purchases.purchaseStoreProduct(
-        products[0],
-      );
+      const { customerInfo } = await Purchases.purchasePackage(coffeePackage);
 
       Alert.alert('💜 Thank you!', 'Thanks for supporting WatchBase!');
       console.log('[RC] purchase ok', customerInfo);
@@ -74,8 +61,6 @@ export default function BuyMeCoffee() {
       }
     }
   };
-
-  if (!isReady) return null;
 
   return (
     <View style={{ marginTop: 24 }}>

@@ -25,7 +25,7 @@
         "EXPO_PUBLIC_TMDB_API_KEY": "2262b33837655ede5ea81107302ae48d"
       },
       "ios": {
-        "image": "macos-sonoma-14.6-xcode-16.1"
+        "image": "latest"
       },
       "android": {
         "buildType": "app-bundle",

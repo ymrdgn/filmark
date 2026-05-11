@@ -307,12 +307,10 @@ export default function ProfileScreen() {
             </View>
           </View>
 
-          {Platform.OS === 'android' && (
-            <View style={styles.section}>
-              <Text style={styles.supportTitle}>{t('profile.support')}</Text>
-              <BuyMeCoffee />
-            </View>
-          )}
+          <View style={styles.section}>
+            <Text style={styles.supportTitle}>{t('profile.support')}</Text>
+            <BuyMeCoffee />
+          </View>
 
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>{t('profile.settings')}</Text>
