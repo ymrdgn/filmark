@@ -106,6 +106,56 @@ const testConnection = async () => {
 // Test connection on startup
 testConnection();
 
+// Retry a network-bound operation a few times on transient connection failures.
+// Mobile networks (weak LTE) often drop the first request; a short retry avoids
+// surfacing a "Network request failed" error the user could have avoided.
+const isTransientNetworkError = (error: any): boolean => {
+  const message: string = error?.message || '';
+  return (
+    message.includes('Network request failed') ||
+    message.includes('Failed to fetch') ||
+    message.toLowerCase().includes('network') ||
+    error?.name === 'AuthRetryableFetchError'
+  );
+};
+
+// Supabase auth calls return network failures inside `{ error }` (as
+// AuthRetryableFetchError) rather than throwing, so we retry on both a thrown
+// error and a returned transient error.
+const withRetry = async <T extends { error: any }>(
+  operation: () => Promise<T>,
+  retries = 2,
+  delayMs = 800
+): Promise<T> => {
+  let attempt = 0;
+  // eslint-disable-next-line no-constant-condition
+  while (true) {
+    try {
+      const result = await operation();
+      if (
+        result?.error &&
+        isTransientNetworkError(result.error) &&
+        attempt < retries
+      ) {
+        attempt += 1;
+        console.log(
+          `Transient network error, retrying (${attempt}/${retries})...`
+        );
+        await new Promise((resolve) => setTimeout(resolve, delayMs));
+        continue;
+      }
+      return result;
+    } catch (err) {
+      if (attempt >= retries || !isTransientNetworkError(err)) {
+        throw err;
+      }
+      attempt += 1;
+      console.log(`Transient network error, retrying (${attempt}/${retries})...`);
+      await new Promise((resolve) => setTimeout(resolve, delayMs));
+    }
+  }
+};
+
 // Auth helper functions
 export const signUp = async (
   email: string,
@@ -113,25 +163,29 @@ export const signUp = async (
   username: string
 ) => {
   console.log('SignUp attempt for:', email);
-  const { data, error } = await supabase.auth.signUp({
-    email,
-    password,
-    options: {
-      data: {
-        username: username,
+  const { data, error } = await withRetry(() =>
+    supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: {
+          username: username,
+        },
       },
-    },
-  });
+    })
+  );
   console.log('SignUp result:', { data: !!data, error: error?.message });
   return { data, error };
 };
 
 export const signIn = async (email: string, password: string) => {
   console.log('SignIn attempt for:', email);
-  const { data, error } = await supabase.auth.signInWithPassword({
-    email,
-    password,
-  });
+  const { data, error } = await withRetry(() =>
+    supabase.auth.signInWithPassword({
+      email,
+      password,
+    })
+  );
   console.log('SignIn result:', { data: !!data, error: error?.message });
   return { data, error };
 };

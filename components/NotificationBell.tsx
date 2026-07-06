@@ -43,6 +43,17 @@ export default function NotificationBell() {
         return notification.message;
       case 'movie_added_to_favorites':
         return notification.message;
+      case 'achievement_earned': {
+        // DB message is stored in English as "You earned: <Achievement Name>".
+        // Extract the achievement name and localize it (name + wrapper text).
+        const rawName = notification.message
+          .replace(/^You earned:\s*/i, '')
+          .trim();
+        const localizedName = t(`achievements.${rawName}`, {
+          defaultValue: rawName,
+        });
+        return t('notifications.achievementEarned', { name: localizedName });
+      }
       default:
         return notification.message;
     }

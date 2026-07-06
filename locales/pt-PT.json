@@ -76,6 +76,7 @@
     "configError": "Erro de configuração da aplicação. Por favor tenta novamente mais tarde.",
     "apiKeyError": "Erro na chave API. Por favor reinicia a aplicação.",
     "unexpectedError": "Ocorreu um erro inesperado.",
+    "networkError": "Erro de ligação. Verifica a tua ligação à Internet e tenta novamente.",
     "invalidEmail": "Por favor introduz um endereço de e-mail válido",
     "failedToSendReset": "Falha ao enviar e-mail de redefinição",
     "successTitle": "Sucesso! ✉️",
@@ -226,7 +227,6 @@
     "addToWatchlist": "Adicionar à lista",
     "addToFavorites": "Adicionar aos favoritos"
   },
-
   "tvShows": {
     "title": "Séries",
     "discoverPopular": "Descobre séries populares",
@@ -291,7 +291,6 @@
     "episodeCount": "{{count}} episódio",
     "episodeCount_other": "{{count}} episódios"
   },
-
   "lists": {
     "title": "As minhas listas",
     "subtitle": "{{count}} itens nas tuas listas",
@@ -311,7 +310,6 @@
     "addTVShow": "Adicionar série",
     "emptyList": "Lista vazia"
   },
-
   "listDetail": {
     "itemsCount": "{{count}} itens",
     "loading": "A carregar...",
@@ -322,7 +320,6 @@
     "emptyWatched": "Marca como visto",
     "emptyWatchlist": "Adiciona à lista"
   },
-
   "friends": {
     "title": "Amigos",
     "subtitle": "{{count}} amigos",
@@ -355,7 +352,6 @@
     "friendRemoved": "Removido",
     "failedToRemoveFriend": "Falha"
   },
-
   "friendProfile": {
     "title": "Listas de {{username}}",
     "moviesTab": "Filmes ({{count}})",
@@ -372,7 +368,6 @@
     "tvShows": "Séries",
     "favorites": "Favoritos"
   },
-
   "update": {
     "title": "Atualização disponível",
     "message": "Novas funcionalidades disponíveis.",
@@ -380,7 +375,6 @@
     "updateNow": "Atualizar",
     "later": "Depois"
   },
-
   "settings": {
     "language": "Idioma",
     "chooseLanguage": "Escolher idioma",
@@ -388,12 +382,12 @@
     "english": "Inglês",
     "languageInfo": "Podes alterar a qualquer momento."
   },
-
   "notifications": {
     "title": "Notificações",
     "noNotifications": "Sem notificações",
     "friendRequest": "{{name}} enviou um pedido",
     "friendRequestAccepted": "{{name}} aceitou",
+    "achievementEarned": "Ganhaste: {{name}}",
     "movieWatched": "{{name}} viu {{movie}}",
     "movieAddedToFavorites": "{{name}} adicionou {{movie}}",
     "accept": "Aceitar",

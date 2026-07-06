@@ -76,6 +76,7 @@
     "configError": "应用程序配置错误。请稍后再试。",
     "apiKeyError": "API密钥错误。请重启应用程序。",
     "unexpectedError": "发生意外错误。",
+    "networkError": "网络连接错误。请检查您的网络连接后重试。",
     "invalidEmail": "请输入有效的邮箱地址",
     "failedToSendReset": "发送重置邮件失败",
     "successTitle": "成功！ ✉️",
@@ -164,7 +165,6 @@
     "accountDeleted": "账户删除成功",
     "failedToDeleteAccount": "删除账户失败"
   },
-
   "movies": {
     "title": "电影",
     "discoverPopular": "发现热门电影",
@@ -227,7 +227,6 @@
     "addToWatchlist": "加入列表",
     "addToFavorites": "加入收藏"
   },
-
   "tvShows": {
     "title": "电视剧",
     "discoverPopular": "发现热门剧集",
@@ -292,7 +291,6 @@
     "episodeCount": "{{count}}集",
     "episodeCount_other": "{{count}}集"
   },
-
   "lists": {
     "title": "我的列表",
     "subtitle": "共{{count}}项",
@@ -312,7 +310,6 @@
     "addTVShow": "添加剧集",
     "emptyList": "暂无内容"
   },
-
   "listDetail": {
     "itemsCount": "{{count}}项",
     "loading": "加载中...",
@@ -323,7 +320,6 @@
     "emptyWatched": "标记观看查看",
     "emptyWatchlist": "添加列表查看"
   },
-
   "friends": {
     "title": "好友",
     "subtitle": "{{count}}位好友",
@@ -356,7 +352,6 @@
     "friendRemoved": "已移除",
     "failedToRemoveFriend": "失败"
   },
-
   "friendProfile": {
     "title": "{{username}}的列表",
     "moviesTab": "电影 ({{count}})",
@@ -373,7 +368,6 @@
     "tvShows": "电视剧",
     "favorites": "收藏"
   },
-
   "update": {
     "title": "有可用更新",
     "message": "有新功能和改进，请更新应用。",
@@ -381,7 +375,6 @@
     "updateNow": "立即更新",
     "later": "稍后"
   },
-
   "settings": {
     "language": "语言",
     "chooseLanguage": "选择语言",
@@ -389,12 +382,12 @@
     "english": "英语",
     "languageInfo": "默认使用设备语言，可随时更改。"
   },
-
   "notifications": {
     "title": "通知",
     "noNotifications": "暂无通知",
     "friendRequest": "{{name}}向你发送了好友请求",
     "friendRequestAccepted": "{{name}}接受了你的请求",
+    "achievementEarned": "你获得了：{{name}}",
     "movieWatched": "{{name}}观看了{{movie}}",
     "movieAddedToFavorites": "{{name}}收藏了{{movie}}",
     "accept": "接受",

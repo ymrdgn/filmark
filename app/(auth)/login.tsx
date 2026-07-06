@@ -90,7 +90,13 @@ export default function LoginScreen() {
         );
 
         let errorMessage = result.error.message;
-        if (result.error.code === 'user_already_exists') {
+        if (
+          result.error.message?.includes('Network request failed') ||
+          result.error.message?.includes('Failed to fetch') ||
+          result.error.name === 'AuthRetryableFetchError'
+        ) {
+          errorMessage = t('auth.networkError');
+        } else if (result.error.code === 'user_already_exists') {
           errorMessage = t('auth.userAlreadyExists');
         } else if (result.error.message.includes('Invalid login credentials')) {
           errorMessage = t('auth.invalidCredentials');
@@ -133,7 +139,15 @@ export default function LoginScreen() {
       }
     } catch (error) {
       console.log('Catch error:', error);
-      Alert.alert(t('auth.error'), t('auth.unexpectedError'));
+      const message = error instanceof Error ? error.message : String(error);
+      const isNetworkError =
+        message.includes('Network request failed') ||
+        message.includes('Failed to fetch') ||
+        message.includes('network');
+      Alert.alert(
+        t('auth.error'),
+        isNetworkError ? t('auth.networkError') : t('auth.unexpectedError'),
+      );
     } finally {
       console.log('Auth process finished');
       setLoading(false);

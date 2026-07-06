@@ -355,6 +355,7 @@
     "noNotifications": "هیچ اعلانی نداری",
     "friendRequest": "{{name}} برای شما درخواست دوستی ارسال کرد",
     "friendRequestAccepted": "{{name}} درخواست دوستی شما را پذیرفت",
+    "achievementEarned": "شما به دست آوردید: {{name}}",
     "movieWatched": "{{name}} {{movie}} را تماشا کرد",
     "movieAddedToFavorites": "{{name}} {{movie}} را به علاقه‌مندی‌ها اضافه کرد",
     "accept": "قبول",
