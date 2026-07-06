@@ -3,7 +3,7 @@ import {
   View,
   Text,
   StyleSheet,
-  ScrollView,
+  FlatList,
   TouchableOpacity,
   Image,
   ActivityIndicator,
@@ -397,45 +397,58 @@ export default function FriendProfileScreen() {
           </TouchableOpacity>
         </View>
 
-        <ScrollView
-          style={styles.scrollView}
-          showsVerticalScrollIndicator={false}
-        >
-          {loading ? (
-            <View style={styles.loadingContainer}>
-              <ActivityIndicator size="large" color="#6366F1" />
-              <Text style={styles.loadingText}>
-                {t('friendProfile.loading')}
-              </Text>
-            </View>
-          ) : (
-            <View style={styles.itemsList}>
-              {activeTab === 'movies' ? (
-                movies.length > 0 ? (
-                  movies.map((movie, index) => renderMovieItem(movie, index))
-                ) : (
-                  <View style={styles.emptyState}>
-                    <Film size={48} color="#6B7280" strokeWidth={1.5} />
-                    <Text style={styles.emptyStateText}>
-                      {t('friendProfile.noMoviesYet')}
-                    </Text>
-                  </View>
-                )
-              ) : tvShows.length > 0 ? (
-                tvShows.map((show, index) => renderTVShowItem(show, index))
-              ) : (
-                <View style={styles.emptyState}>
-                  <Tv size={48} color="#6B7280" strokeWidth={1.5} />
-                  <Text style={styles.emptyStateText}>
-                    {t('friendProfile.noTVShowsYet')}
-                  </Text>
-                </View>
-              )}
-            </View>
-          )}
-
-          <View style={styles.bottomSpacer} />
-        </ScrollView>
+        {loading ? (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color="#6366F1" />
+            <Text style={styles.loadingText}>
+              {t('friendProfile.loading')}
+            </Text>
+          </View>
+        ) : activeTab === 'movies' ? (
+          <FlatList
+            data={movies}
+            keyExtractor={(item, index) => `${item.id}-${index}`}
+            renderItem={({ item, index }) => renderMovieItem(item, index)}
+            style={styles.scrollView}
+            contentContainerStyle={styles.itemsList}
+            showsVerticalScrollIndicator={false}
+            initialNumToRender={10}
+            maxToRenderPerBatch={10}
+            windowSize={11}
+            removeClippedSubviews
+            ListEmptyComponent={
+              <View style={styles.emptyState}>
+                <Film size={48} color="#6B7280" strokeWidth={1.5} />
+                <Text style={styles.emptyStateText}>
+                  {t('friendProfile.noMoviesYet')}
+                </Text>
+              </View>
+            }
+            ListFooterComponent={<View style={styles.bottomSpacer} />}
+          />
+        ) : (
+          <FlatList
+            data={tvShows}
+            keyExtractor={(item, index) => `${item.id}-${index}`}
+            renderItem={({ item, index }) => renderTVShowItem(item, index)}
+            style={styles.scrollView}
+            contentContainerStyle={styles.itemsList}
+            showsVerticalScrollIndicator={false}
+            initialNumToRender={10}
+            maxToRenderPerBatch={10}
+            windowSize={11}
+            removeClippedSubviews
+            ListEmptyComponent={
+              <View style={styles.emptyState}>
+                <Tv size={48} color="#6B7280" strokeWidth={1.5} />
+                <Text style={styles.emptyStateText}>
+                  {t('friendProfile.noTVShowsYet')}
+                </Text>
+              </View>
+            }
+            ListFooterComponent={<View style={styles.bottomSpacer} />}
+          />
+        )}
       </LinearGradient>
     </SafeAreaView>
   );

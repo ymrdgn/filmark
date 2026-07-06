@@ -3,7 +3,7 @@ import {
   View,
   Text,
   StyleSheet,
-  ScrollView,
+  FlatList,
   TouchableOpacity,
   Image,
   Alert,
@@ -254,33 +254,39 @@ export default function ListDetailScreen() {
           </View>
         </View>
 
-        <ScrollView
-          style={styles.scrollView}
-          showsVerticalScrollIndicator={false}
-        >
-          {loading ? (
-            <View style={styles.loadingContainer}>
-              <Text style={styles.loadingText}>{t('listDetail.loading')}</Text>
-            </View>
-          ) : items.length > 0 ? (
-            <View style={styles.itemsList}>{items.map(renderListItem)}</View>
-          ) : (
-            <View style={styles.emptyState}>
-              <Text style={styles.emptyStateText}>
-                {t('listDetail.noItemsInList')}
-              </Text>
-              <Text style={styles.emptyStateSubtext}>
-                {listType === 'favorites'
-                  ? t('listDetail.emptyFavorites')
-                  : listType === 'watched'
-                    ? t('listDetail.emptyWatched')
-                    : t('listDetail.emptyWatchlist')}
-              </Text>
-            </View>
-          )}
-
-          <View style={styles.bottomSpacer} />
-        </ScrollView>
+        {loading ? (
+          <View style={styles.loadingContainer}>
+            <Text style={styles.loadingText}>{t('listDetail.loading')}</Text>
+          </View>
+        ) : (
+          <FlatList
+            data={items}
+            keyExtractor={(item) => item.id}
+            renderItem={({ item }) => renderListItem(item)}
+            style={styles.scrollView}
+            contentContainerStyle={styles.itemsList}
+            showsVerticalScrollIndicator={false}
+            initialNumToRender={10}
+            maxToRenderPerBatch={10}
+            windowSize={11}
+            removeClippedSubviews
+            ListEmptyComponent={
+              <View style={styles.emptyState}>
+                <Text style={styles.emptyStateText}>
+                  {t('listDetail.noItemsInList')}
+                </Text>
+                <Text style={styles.emptyStateSubtext}>
+                  {listType === 'favorites'
+                    ? t('listDetail.emptyFavorites')
+                    : listType === 'watched'
+                      ? t('listDetail.emptyWatched')
+                      : t('listDetail.emptyWatchlist')}
+                </Text>
+              </View>
+            }
+            ListFooterComponent={<View style={styles.bottomSpacer} />}
+          />
+        )}
       </LinearGradient>
     </SafeAreaView>
   );
