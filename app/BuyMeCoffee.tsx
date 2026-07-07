@@ -1,5 +1,12 @@
-import { View, Text, Pressable, Alert, Platform } from 'react-native';
-import { useRef } from 'react';
+import {
+  View,
+  Text,
+  Pressable,
+  Alert,
+  Platform,
+  ActivityIndicator,
+} from 'react-native';
+import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 const REVENUECAT_ANDROID_API_KEY = 'goog_OitrfOHjHjTANEstwMDfCUFvayR';
@@ -9,10 +16,13 @@ const COFFEE_PACKAGE_ID = 'coffee';
 export default function BuyMeCoffee() {
   const { t } = useTranslation();
   const configuredRef = useRef(false);
+  const [loading, setLoading] = useState(false);
 
   if (Platform.OS !== 'android' && Platform.OS !== 'ios') return null;
 
   const buyCoffee = async () => {
+    if (loading) return;
+    setLoading(true);
     try {
       const Purchases = (await import('react-native-purchases')).default;
 
@@ -59,6 +69,8 @@ export default function BuyMeCoffee() {
           'In-app purchases are not available right now. Please try again later.',
         );
       }
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -66,13 +78,19 @@ export default function BuyMeCoffee() {
     <View style={{ marginTop: 24 }}>
       <Pressable
         onPress={buyCoffee}
+        disabled={loading}
         style={{
           backgroundColor: '#FF813F',
           padding: 14,
           borderRadius: 12,
           alignItems: 'center',
+          flexDirection: 'row',
+          justifyContent: 'center',
+          gap: 8,
+          opacity: loading ? 0.6 : 1,
         }}
       >
+        {loading && <ActivityIndicator size="small" color="white" />}
         <Text style={{ color: 'white', fontWeight: '600', fontSize: 16 }}>
           ☕ {t('profile.buyMeACoffee')}
         </Text>
