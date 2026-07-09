@@ -83,7 +83,9 @@
     "successTitle": "¡Éxito! ✉️",
     "resetEmailSent": "Se ha enviado un enlace para restablecer tu contraseña a tu correo electrónico. Por favor revisa tu bandeja de entrada.",
     "registrationSuccess": "¡Registro exitoso! 🎉",
-    "accountCreated": "Cuenta creada correctamente. Por favor, confirma tu correo electrónico para continuar."
+    "accountCreated": "Cuenta creada correctamente. Por favor, confirma tu correo electrónico para continuar.",
+    "orContinueWith": "o continúa con",
+    "continueWithGoogle": "Continuar con Google"
   },
   "profile": {
     "settings": "Configuración",

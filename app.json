@@ -14,7 +14,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.watchbase.app",
-      "buildNumber": "19",
+      "buildNumber": "20",
       "deploymentTarget": "13.0",
       "splash": {
         "image": "./assets/images/wb-splash.png",
@@ -27,7 +27,7 @@
     },
     "android": {
       "package": "com.watchbase.app",
-      "versionCode": 49,
+      "versionCode": 50,
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/wb-icon.png"
       },
@@ -50,10 +50,23 @@
           "android": {
             "targetSdkVersion": 35,
             "useLegacyPackaging": false
+          },
+          "ios": {
+            "extraPods": [
+              { "name": "GoogleUtilities", "modular_headers": true },
+              { "name": "RecaptchaInterop", "modular_headers": true },
+              { "name": "AppCheckCore", "modular_headers": true }
+            ]
           }
         }
       ],
-      "expo-web-browser"
+      "expo-web-browser",
+      [
+        "@react-native-google-signin/google-signin",
+        {
+          "iosUrlScheme": "com.googleusercontent.apps.969827516914-qbgj50f2436o9r92cdal9n0ont0hqkv1"
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true

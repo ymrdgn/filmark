@@ -82,7 +82,9 @@
     "successTitle": "Successo! ✉️",
     "resetEmailSent": "Il link per reimpostare la password è stato inviato alla tua email. Controlla la tua casella di posta.",
     "registrationSuccess": "Registrazione riuscita! 🎉",
-    "accountCreated": "Account creato con successo. Conferma il tuo indirizzo email per continuare."
+    "accountCreated": "Account creato con successo. Conferma il tuo indirizzo email per continuare.",
+    "orContinueWith": "oppure continua con",
+    "continueWithGoogle": "Continua con Google"
   },
   "profile": {
     "settings": "Impostazioni",

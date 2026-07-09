@@ -82,7 +82,9 @@
     "successTitle": "Sucesso! ✉️",
     "resetEmailSent": "O link de redefinição de senha foi enviado para seu e-mail. Verifique sua caixa de entrada.",
     "registrationSuccess": "Registro bem-sucedido! 🎉",
-    "accountCreated": "Conta criada com sucesso. Por favor, confirme seu e-mail para continuar."
+    "accountCreated": "Conta criada com sucesso. Por favor, confirme seu e-mail para continuar.",
+    "orContinueWith": "ou continue com",
+    "continueWithGoogle": "Continuar com o Google"
   },
   "profile": {
     "settings": "Configurações",

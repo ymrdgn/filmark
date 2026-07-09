@@ -82,7 +82,9 @@
     "successTitle": "Serkeftin! ✉️",
     "resetEmailSent": "Girêdana nûkirina şîfreyê hate şandin e-nameya te. Ji kerema xwe qutiya xwe kontrol bike.",
     "registrationSuccess": "Tomarkirina Serkeftî! 🎉",
-    "accountCreated": "Hesab bi serkeftî hat afirandin. Ji kerema xwe e-nameya xwe piştrast bikin da ku berdewam bikin."
+    "accountCreated": "Hesab bi serkeftî hat afirandin. Ji kerema xwe e-nameya xwe piştrast bikin da ku berdewam bikin.",
+    "orContinueWith": "an berdewam bike bi",
+    "continueWithGoogle": "Bi Google berdewam bike"
   },
   "profile": {
     "settings": "Mîheng",

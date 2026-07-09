@@ -82,7 +82,9 @@
     "successTitle": "Sucesso! ✉️",
     "resetEmailSent": "O link de redefinição da palavra-passe foi enviado para o teu e-mail. Por favor verifica a tua caixa de entrada.",
     "registrationSuccess": "Registo bem-sucedido! 🎉",
-    "accountCreated": "Conta criada com sucesso. Por favor, confirme o seu e-mail para continuar."
+    "accountCreated": "Conta criada com sucesso. Por favor, confirme o seu e-mail para continuar.",
+    "orContinueWith": "ou continua com",
+    "continueWithGoogle": "Continuar com o Google"
   },
   "profile": {
     "settings": "Definições",

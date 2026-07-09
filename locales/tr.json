@@ -93,7 +93,9 @@
     "successTitle": "Başarılı! ✉️",
     "resetEmailSent": "Şifre sıfırlama linki e-postanıza gönderildi. Lütfen gelen kutunuzu kontrol edin.",
     "registrationSuccess": "Kayıt Başarılı! 🎉",
-    "accountCreated": "Hesabınız başarıyla oluşturuldu. Devam etmek için lütfen e-postanızı onaylayın."
+    "accountCreated": "Hesabınız başarıyla oluşturuldu. Devam etmek için lütfen e-postanızı onaylayın.",
+    "orContinueWith": "veya şununla devam et",
+    "continueWithGoogle": "Google ile devam et"
   },
   "profile": {
     "settings": "Ayarlar",

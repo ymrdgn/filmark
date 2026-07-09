@@ -93,7 +93,9 @@
     "successTitle": "Success! ✉️",
     "resetEmailSent": "Password reset link has been sent to your email. Please check your inbox.",
     "registrationSuccess": "Registration Successful! 🎉",
-    "accountCreated": "Account created successfully. Please confirm your email to continue."
+    "accountCreated": "Account created successfully. Please confirm your email to continue.",
+    "orContinueWith": "or continue with",
+    "continueWithGoogle": "Continue with Google"
   },
   "profile": {
     "settings": "Settings",

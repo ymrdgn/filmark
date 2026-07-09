@@ -82,7 +82,9 @@
     "successTitle": "Erfolg! ✉️",
     "resetEmailSent": "Der Link zum Zurücksetzen des Passworts wurde an deine E-Mail gesendet. Bitte überprüfe deinen Posteingang.",
     "registrationSuccess": "Registrierung erfolgreich! 🎉",
-    "accountCreated": "Konto erfolgreich erstellt. Bitte bestätigen Sie Ihre E-Mail-Adresse, um fortzufahren."
+    "accountCreated": "Konto erfolgreich erstellt. Bitte bestätigen Sie Ihre E-Mail-Adresse, um fortzufahren.",
+    "orContinueWith": "oder weiter mit",
+    "continueWithGoogle": "Mit Google fortfahren"
   },
   "profile": {
     "settings": "Einstellungen",

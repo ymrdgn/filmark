@@ -82,7 +82,9 @@
     "successTitle": "成功！ ✉️",
     "resetEmailSent": "パスワードリセット用のリンクをメールでお送りしました。受信トレイをご確認ください。",
     "registrationSuccess": "登録完了！ 🎉",
-    "accountCreated": "アカウントが正常に作成されました。続行するには、メールアドレスをご確認ください。"
+    "accountCreated": "アカウントが正常に作成されました。続行するには、メールアドレスをご確認ください。",
+    "orContinueWith": "または次で続行",
+    "continueWithGoogle": "Googleで続行"
   },
   "profile": {
     "settings": "設定",

@@ -190,6 +190,49 @@ export const signIn = async (email: string, password: string) => {
   return { data, error };
 };
 
+// Native Google Sign-In. Opens the system account picker, gets a Google ID
+// token, and exchanges it with Supabase via signInWithIdToken. First-time
+// sign-in automatically creates the account (Google has no separate signup).
+export const signInWithGoogle = async () => {
+  console.log('Google sign-in attempt');
+
+  // Lazy-require the native module so the app still runs in environments where
+  // it isn't linked (e.g. Expo Go / web) without crashing at import time.
+  const { GoogleSignin, statusCodes } = require('@react-native-google-signin/google-signin');
+
+  GoogleSignin.configure({
+    webClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
+    iosClientId: process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID,
+  });
+
+  try {
+    await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
+    const response = await GoogleSignin.signIn();
+
+    // Newer versions wrap the payload in `.data`; older ones return it flat.
+    const idToken = response?.data?.idToken ?? response?.idToken;
+    if (!idToken) {
+      return { data: null, error: { message: 'No ID token returned from Google' } };
+    }
+
+    const { data, error } = await withRetry(() =>
+      supabase.auth.signInWithIdToken({
+        provider: 'google',
+        token: idToken,
+      })
+    );
+    console.log('Google sign-in result:', { data: !!data, error: error?.message });
+    return { data, error };
+  } catch (error: any) {
+    // User cancelled the picker — treat as a silent no-op, not an error.
+    if (error?.code === statusCodes.SIGN_IN_CANCELLED) {
+      return { data: null, error: null, cancelled: true };
+    }
+    console.log('Google sign-in error:', error?.code, error?.message);
+    return { data: null, error: { message: error?.message || 'Google sign-in failed' } };
+  }
+};
+
 export const signOut = async () => {
   const { error } = await supabase.auth.signOut();
   return { error };

@@ -17,7 +17,32 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { Mail, Lock, Eye, EyeOff, Film, User, X } from 'lucide-react-native';
-import { signUp, signIn, resetPassword } from '@/lib/supabase';
+import Svg, { Path } from 'react-native-svg';
+import { signUp, signIn, resetPassword, signInWithGoogle } from '@/lib/supabase';
+
+// Official multi-color Google "G" mark, rendered inline so it works offline.
+function GoogleLogo({ size = 20 }: { size?: number }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 48 48">
+      <Path
+        fill="#EA4335"
+        d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"
+      />
+      <Path
+        fill="#4285F4"
+        d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"
+      />
+      <Path
+        fill="#FBBC05"
+        d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"
+      />
+      <Path
+        fill="#34A853"
+        d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"
+      />
+    </Svg>
+  );
+}
 
 export default function LoginScreen() {
   const { t } = useTranslation();
@@ -28,6 +53,7 @@ export default function LoginScreen() {
   const [username, setUsername] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
   const [resetModalVisible, setResetModalVisible] = useState(false);
   const [resetEmail, setResetEmail] = useState('');
   const [resetLoading, setResetLoading] = useState(false);
@@ -151,6 +177,38 @@ export default function LoginScreen() {
     } finally {
       console.log('Auth process finished');
       setLoading(false);
+    }
+  };
+
+  const handleGoogleAuth = async () => {
+    setGoogleLoading(true);
+    try {
+      const result = await signInWithGoogle();
+
+      if (result.cancelled) {
+        return; // User dismissed the account picker.
+      }
+
+      if (result.error) {
+        console.log('Google auth error:', result.error);
+        let errorMessage = result.error.message;
+        if (
+          result.error.message?.includes('Network request failed') ||
+          result.error.message?.includes('Failed to fetch') ||
+          result.error.message?.toLowerCase().includes('network')
+        ) {
+          errorMessage = t('auth.networkError');
+        }
+        Alert.alert(t('auth.error'), errorMessage);
+      } else if (result.data && result.data.user) {
+        console.log('Google login successful, navigating to tabs');
+        router.replace('/(tabs)');
+      }
+    } catch (error) {
+      console.log('Google auth catch error:', error);
+      Alert.alert(t('auth.error'), t('auth.unexpectedError'));
+    } finally {
+      setGoogleLoading(false);
     }
   };
 
@@ -320,6 +378,26 @@ export default function LoginScreen() {
                         : t('auth.createAccountButton')}
                   </Text>
                 </LinearGradient>
+              </TouchableOpacity>
+
+              <View style={styles.dividerContainer}>
+                <View style={styles.dividerLine} />
+                <Text style={styles.dividerText}>{t('auth.orContinueWith')}</Text>
+                <View style={styles.dividerLine} />
+              </View>
+
+              <TouchableOpacity
+                style={[
+                  styles.googleButton,
+                  (googleLoading || loading) && styles.buttonDisabled,
+                ]}
+                onPress={handleGoogleAuth}
+                disabled={googleLoading || loading}
+              >
+                <GoogleLogo size={20} />
+                <Text style={styles.googleButtonText}>
+                  {googleLoading ? t('auth.pleaseWait') : t('auth.continueWithGoogle')}
+                </Text>
               </TouchableOpacity>
 
               <TouchableOpacity
@@ -496,6 +574,42 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontFamily: 'Inter-SemiBold',
     color: 'white',
+  },
+  dividerContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 20,
+    marginBottom: 16,
+  },
+  dividerLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  dividerText: {
+    fontSize: 13,
+    fontFamily: 'Inter-Medium',
+    color: '#6B7280',
+    marginHorizontal: 12,
+  },
+  googleButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    height: 56,
+    paddingHorizontal: 16,
+  },
+  googleIcon: {
+    width: 20,
+    height: 20,
+  },
+  googleButtonText: {
+    fontSize: 16,
+    fontFamily: 'Inter-SemiBold',
+    color: '#1F2937',
+    marginLeft: 12,
   },
   switchButton: {
     marginTop: 24,

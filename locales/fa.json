@@ -50,7 +50,9 @@
     "dontHaveAccount": "حساب کاربری ندارید؟",
     "alreadyHaveAccount": "از قبل حساب دارید؟",
     "resetPassword": "بازیابی رمز عبور",
-    "sendResetLink": "ارسال لینک بازیابی"
+    "sendResetLink": "ارسال لینک بازیابی",
+    "orContinueWith": "یا ادامه با",
+    "continueWithGoogle": "ادامه با Google"
   },
   "profile": {
     "settings": "تنظیمات",
